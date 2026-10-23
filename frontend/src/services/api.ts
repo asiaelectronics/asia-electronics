@@ -2,18 +2,14 @@ import type { Product, Category, Brand } from "@/lib/types";
 import { toast } from "sonner";
 
 export function getApiBaseUrl(): string {
-  // 1. Explicitly configured VITE_API_URL wins in every environment
-  const envUrl = (
-    (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-    (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-    ""
-  ).trim();
-  if (envUrl) return envUrl;
-
-  // 2. Client-side browser runtime: use relative /api or window.location.origin/api
+  // 1. Client-side browser runtime: use same origin /api on Vercel to prevent cross-origin CORS errors
   if (typeof window !== "undefined") {
     const { hostname, origin } = window.location;
     const isLocalhost = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+
+    if (hostname.endsWith(".vercel.app")) {
+      return `${origin}/api`;
+    }
 
     if (!isLocalhost) {
       // Local IP (e.g. testing mobile on Wi-Fi at 192.168.x.x)
@@ -24,11 +20,19 @@ export function getApiBaseUrl(): string {
     }
   }
 
+  // 2. Explicitly configured VITE_API_URL (used for local development or custom setups)
+  const envUrl = (
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+    (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
+    ""
+  ).trim();
+  if (envUrl) return envUrl;
+
   // 3. Server-side SSR runtime on Vercel: automatically resolve host from Vercel system env vars
   if (typeof process !== "undefined" && process.env) {
     const vercelHost =
-      process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-      process.env.VERCEL_URL;
+      process.env.VERCEL_URL ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL;
     if (vercelHost) {
       const cleanHost = vercelHost.replace(/^https?:\/\//, "").replace(/\/+$/, "");
       return `https://${cleanHost}/api`;

@@ -48,6 +48,8 @@ export function requireTrustedOrigin(allowedOrigins) {
     const origin = req.get("Origin");
     // Requests without Origin are non-browser clients (e.g. server jobs or curl).
     if (!origin || trustedOrigins.has(origin)) return next();
+    if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin)) return next();
+    if (/^http:\/\/(localhost|127\.0\.0\.1|(\d{1,3}\.){3}\d{1,3})(:\d+)?$/i.test(origin)) return next();
 
     return res.status(403).json({ success: false, error: "Untrusted request origin" });
   };

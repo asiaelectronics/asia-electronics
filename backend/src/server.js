@@ -23,15 +23,26 @@ const allowedOrigins = (
   process.env.FRONTEND_URL || "http://localhost:8080,http://localhost:5173"
 )
   .split(",")
-  .map((url) => url.trim());
+  .map((url) => url.trim())
+  .filter(Boolean);
+
+export function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Allow all Vercel domains (production & branch preview URLs)
+  if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin)) return true;
+  // Allow localhost & LAN IP addresses
+  if (/^http:\/\/(localhost|127\.0\.0\.1|(\d{1,3}\.){3}\d{1,3})(:\d+)?$/i.test(origin)) return true;
+  return false;
+}
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Origin is not allowed by CORS"));
+      if (isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
     },
     credentials: true,
   }),
