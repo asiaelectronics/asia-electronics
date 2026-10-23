@@ -33,3 +33,11 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Local reference documents and build artifacts (not published to the repository)
+4b385d00924563f7af19f760df15fbea.jpg
+AEC COMPANY PROFILE.pdf
+ITEM & CATEGORY.docx
+build-combined.mjs
+proposal.pdf
+roadmap.md
