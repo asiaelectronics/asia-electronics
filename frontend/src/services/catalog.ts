@@ -96,7 +96,7 @@ export async function syncCatalogWithBackend() {
         fetchBrandsApi(),
       ]);
 
-      if (prodRes && Array.isArray(prodRes.products) && prodRes.products.length > 0) {
+      if (prodRes && Array.isArray(prodRes.products)) {
         const sanitizedProds = prodRes.products.map((p) => ({
           ...p,
           images:
@@ -152,12 +152,12 @@ function slugify(s: string) {
 // â”€â”€â”€ Storage Accessors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function getStoredProducts(): Product[] {
-  if (typeof window === "undefined") return defaultProducts;
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-    if (raw === null) return defaultProducts;
+    if (raw === null) return [];
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length > 0) {
+    if (Array.isArray(parsed)) {
       return parsed.map((p: Product) => ({
         ...p,
         images:
@@ -166,9 +166,9 @@ export function getStoredProducts(): Product[] {
             : ["/assets/imgs/electronic-components.png"],
       }));
     }
-    return defaultProducts;
+    return [];
   } catch {
-    return defaultProducts;
+    return [];
   }
 }
 
@@ -1097,7 +1097,7 @@ export async function getRelated(slug: string): Promise<Product[]> {
 
   if (!p) return [];
 
-  const pool = products.length > 0 ? products : defaultProducts;
+  const pool = products;
   return pool
     .filter((x) => x.category === p.category && x.slug !== p.slug && x.id !== p.id)
     .slice(0, 4);
