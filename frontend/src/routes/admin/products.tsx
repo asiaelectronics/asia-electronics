@@ -1171,7 +1171,7 @@ function ProductFormModal({
   const [compareAtLKR, setCompareAtLKR] = useState(
     editingProduct?.compareAtCents ? String(editingProduct.compareAtCents / 100) : "",
   );
-  const [stock, setStock] = useState(editingProduct ? String(editingProduct.stock) : "25");
+  const [stock] = useState(editingProduct ? String(editingProduct.stock) : "100");
   const [description, setDescription] = useState(editingProduct?.description || "");
   const [imagesList, setImagesList] = useState<string[]>(() => {
     if (
@@ -1565,8 +1565,8 @@ function ProductFormModal({
             </div>
           </div>
 
-          {/* Row 4: Price & Stock */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Row 4: Price */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-bold text-zinc-300 mb-1">
                 Price in LKR <span className="text-orange-500">*</span>
@@ -1595,21 +1595,6 @@ function ProductFormModal({
                 onChange={(e) => setCompareAtLKR(e.target.value)}
                 placeholder="e.g. 2900 (optional)"
                 className="admin-input w-full text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-zinc-300 mb-1">
-                Stock Quantity <span className="text-orange-500">*</span>
-              </label>
-              <input
-                required
-                type="number"
-                min="0"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="e.g. 45"
-                className="admin-input w-full text-xs font-bold"
               />
             </div>
           </div>
