@@ -22,6 +22,8 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { FullScreenLoader } from "@/components/site/FullScreenLoader";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 function NotFoundComponent() {
   return (
@@ -134,6 +136,8 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         {children}
+        <SpeedInsights />
+        <Analytics />
         <Scripts />
       </body>
     </html>
