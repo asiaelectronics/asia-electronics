@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { images } from "@/data/catalog";
@@ -12,17 +12,17 @@ import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asia Electronics & Cellular â€” Electronics, Parts & Accessories (Demo)" },
+      { title: "Asiaelectronics — Electronics, Parts & Accessories" },
       {
         name: "description",
         content:
-          "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment in Sri Lanka.",
+          "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment at Asiaelectronics, Sri Lanka.",
       },
-      { property: "og:title", content: "Asia Electronics & Cellular â€” Demo Store" },
+      { property: "og:title", content: "Asiaelectronics" },
       {
         property: "og:description",
         content:
-          "Electronic components, audio, lighting, mobile parts and TVs â€” demo storefront.",
+          "Electronic components, audio, lighting, mobile parts and TVs at Asiaelectronics.",
       },
     ],
   }),

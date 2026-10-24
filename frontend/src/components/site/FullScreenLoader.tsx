@@ -68,7 +68,7 @@ export function FullScreenLoader() {
     <div
       role="status"
       aria-live="polite"
-      aria-label="Loading Asia Electronics & Cellular"
+      aria-label="Loading Asiaelectronics"
       className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background px-4 transition-opacity duration-300 ease-out select-none ${
         isReady ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}

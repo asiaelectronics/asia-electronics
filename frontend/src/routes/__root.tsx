@@ -88,17 +88,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { title: "Asia Electronics & Cellular — Demo Store" },
+      { title: "Asiaelectronics" },
       {
         name: "description",
         content:
-          "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+          "Electronics, repair parts, lighting, solar products and equipment from Asiaelectronics, Sri Lanka.",
       },
-      { property: "og:title", content: "Asia Electronics & Cellular — Demo Store" },
+      { property: "og:title", content: "Asiaelectronics" },
       {
         property: "og:description",
         content:
-          "Electronics, repair parts, lighting, solar products and equipment from Asia Electronics and Cellular Pvt Ltd, Sri Lanka.",
+          "Electronics, repair parts, lighting, solar products and equipment from Asiaelectronics, Sri Lanka.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

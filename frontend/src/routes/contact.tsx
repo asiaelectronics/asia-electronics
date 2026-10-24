@@ -24,16 +24,16 @@ const enquiryTypes = [
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact Us — Asia Electronics & Cellular" },
+      { title: "Contact Us — Asiaelectronics" },
       {
         name: "description",
         content:
-          "Contact Asia Electronics and Cellular for products, parts, availability, and directions.",
+          "Contact Asiaelectronics for products, parts, availability, and directions.",
       },
-      { property: "og:title", content: "Contact Us — Asia Electronics & Cellular" },
+      { property: "og:title", content: "Contact Us — Asiaelectronics" },
       {
         property: "og:description",
-        content: "Get in touch with Asia Electronics and Cellular.",
+        content: "Get in touch with Asiaelectronics.",
       },
     ],
   }),

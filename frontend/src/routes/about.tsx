@@ -65,13 +65,13 @@ const specialties = [
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About Us — Asia Electronics & Cellular" },
+      { title: "About Us — Asiaelectronics" },
       {
         name: "description",
         content:
           "Learn about Asia Electronics and Cellular Pvt Ltd, an electronics, lighting, audio and mobile parts retailer in Colombo 01100, Sri Lanka.",
       },
-      { property: "og:title", content: "About Asia Electronics & Cellular" },
+      { property: "og:title", content: "About Asiaelectronics" },
       {
         property: "og:description",
         content:

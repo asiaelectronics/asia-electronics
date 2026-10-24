@@ -31,7 +31,7 @@ type Values = z.infer<typeof checkoutSchema>;
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Request Quotation — Asia Electronics & Cellular" },
+      { title: "Request Quotation — Asiaelectronics" },
       {
         name: "description",
         content:

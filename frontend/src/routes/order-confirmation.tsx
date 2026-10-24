@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Check,
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/order-confirmation")({
   }),
   head: () => ({
     meta: [
-      { title: "Quotation Submitted — Asia Electronics & Cellular" },
+      { title: "Quotation Submitted — Asiaelectronics" },
       {
         name: "description",
         content: "Your quotation request has been saved. AEC will contact you via WhatsApp.",

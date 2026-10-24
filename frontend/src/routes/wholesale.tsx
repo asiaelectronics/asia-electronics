@@ -26,7 +26,7 @@ const requestItems = [
 export const Route = createFileRoute("/wholesale")({
   head: () => ({
     meta: [
-      { title: "Wholesale & Bulk Orders ? Asia Electronics & Cellular" },
+      { title: "Wholesale & Bulk Orders — Asiaelectronics" },
       {
         name: "description",
         content:

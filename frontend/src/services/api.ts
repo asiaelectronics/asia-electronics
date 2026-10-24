@@ -491,7 +491,7 @@ export interface ApiSettings {
 }
 
 export const DEFAULT_SETTINGS: ApiSettings = {
-  storeName: "Asia Electronics & Cellular",
+  storeName: "Asiaelectronics",
   whatsappNumber: "+94 74 106 6017",
   officeEmail: "aecpvt60@gmail.com",
   phone: "+94 74 106 6017",

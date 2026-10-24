@@ -24,7 +24,7 @@ import { useAuth } from "@/context/auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
-    meta: [{ title: "Admin â€” Asia Electronics" }, { name: "robots", content: "noindex, nofollow" }],
+    meta: [{ title: "Admin — Asiaelectronics" }, { name: "robots", content: "noindex, nofollow" }],
     links: [
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", href: "/favicon-32x32.png", type: "image/png" },
@@ -367,7 +367,7 @@ function AdminLayout() {
                     {title}
                   </h1>
                   <p className="text-[10px] text-zinc-500">
-                    Asia Electronics & Cellular Â· Admin Portal
+                    Asiaelectronics · Admin Portal
                   </p>
                 </div>
               </div>
