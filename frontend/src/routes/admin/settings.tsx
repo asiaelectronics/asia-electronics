@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import {
   Store,
   Shield,
-  Bell,
   Save,
   Check,
   MessageSquare,
@@ -201,65 +200,6 @@ function AdminSettings() {
                 className="admin-input w-full"
               />
             </div>
-          </div>
-        </div>
-
-        {/* Notifications Settings */}
-        <div className="admin-card space-y-4">
-          <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
-            <Bell className="h-4 w-4 text-orange-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Notification Preferences
-            </h2>
-          </div>
-
-          <div className="space-y-3">
-            <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
-              <div>
-                <p className="text-xs font-bold text-white">New Quotation / Order Notifications</p>
-                <p className="text-[10px] text-zinc-500">
-                  Receive instant alerts when a customer requests a quotation or order
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.newOrders}
-                onChange={(e) => setNotifications((n) => ({ ...n, newOrders: e.target.checked }))}
-                className="accent-orange-500 h-4 w-4 rounded"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
-              <div>
-                <p className="text-xs font-bold text-white">Low Stock Alerts</p>
-                <p className="text-[10px] text-zinc-500">
-                  Alert in admin when product stock falls below 5 units
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.lowStock}
-                onChange={(e) => setNotifications((n) => ({ ...n, lowStock: e.target.checked }))}
-                className="accent-orange-500 h-4 w-4 rounded"
-              />
-            </label>
-
-            <label className="flex items-center justify-between p-3 rounded-lg bg-zinc-900/50 border border-zinc-800 cursor-pointer hover:border-zinc-700 transition-colors">
-              <div>
-                <p className="text-xs font-bold text-white">Weekly Performance Digest</p>
-                <p className="text-[10px] text-zinc-500">
-                  Receive weekly summary digest of quotation inquiries
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={notifications.weeklyReport}
-                onChange={(e) =>
-                  setNotifications((n) => ({ ...n, weeklyReport: e.target.checked }))
-                }
-                className="accent-orange-500 h-4 w-4 rounded"
-              />
-            </label>
           </div>
         </div>
 
