@@ -47,7 +47,7 @@ function getStoreUrl() {
   );
   if (publicUrl) return publicUrl;
 
-  return "https://delightful-stack.vercel.app";
+  return "https://www.asiaelectronics.lk";
 }
 
 function renderItems(items = []) {
