@@ -50,11 +50,16 @@ const STATUS_COLORS: Record<string, string> = {
   Cancelled: "#ef4444", // Rose
 };
 
-const AVAILABILITY_COLORS = {
-  inStock: "#10b981", // Emerald
-  lowStock: "#f59e0b", // Amber
-  outOfStock: "#ef4444", // Red
-};
+const CATEGORY_CHART_COLORS = [
+  "#8b5cf6", // Purple
+  "#ec4899", // Pink
+  "#f59e0b", // Amber
+  "#10b981", // Emerald
+  "#38bdf8", // Sky Blue
+  "#06b6d4", // Cyan
+  "#f97316", // Orange
+  "#6366f1", // Indigo
+];
 
 const darkTooltipStyle = {
   backgroundColor: "#18181b",
@@ -146,45 +151,19 @@ function AdminAnalytics() {
     return entries;
   }, [validOrders]);
 
-  // ─── 2. PRODUCT AVAILABILITY METRICS ──────────────────────────────────────────
-  const availabilityData = useMemo(() => {
-    const inStock = products.filter((p) => p.stock > 10).length;
-    const lowStock = products.filter((p) => p.stock > 0 && p.stock <= 10).length;
-    const outOfStock = products.filter((p) => p.stock === 0).length;
-
-    return [
-      { name: "In Stock (>10)", value: inStock, color: AVAILABILITY_COLORS.inStock },
-      { name: "Low Stock (1-10)", value: lowStock, color: AVAILABILITY_COLORS.lowStock },
-      { name: "Out of Stock (0)", value: outOfStock, color: AVAILABILITY_COLORS.outOfStock },
-    ].filter((item) => item.value > 0);
-  }, [products]);
-
-  const totalCatalogUnits = useMemo(
-    () => products.reduce((acc, p) => acc + (Number(p.stock) || 0), 0),
-    [products],
-  );
-
-  const stockHealthPercentage = useMemo(() => {
-    if (products.length === 0) return 0;
-    const available = products.filter((p) => p.stock > 0).length;
-    return Math.round((available / products.length) * 100);
-  }, [products]);
-
-  // Category stock breakdown
-  const categoryStockData = useMemo(() => {
+  // ─── 2. CATEGORY METRICS ─────────────────────────────────────────────────────
+  const categoryChartData = useMemo(() => {
     return categories
-      .map((cat) => {
+      .map((cat, idx) => {
         const catProds = products.filter((p) => p.category === cat.slug);
-        const units = catProds.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
         return {
           name: cat.name,
-          units,
-          productsCount: catProds.length,
+          value: catProds.length,
+          color: CATEGORY_CHART_COLORS[idx % CATEGORY_CHART_COLORS.length],
         };
       })
-      .filter((c) => c.productsCount > 0)
-      .sort((a, b) => b.units - a.units)
-      .slice(0, 6);
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value);
   }, [categories, products]);
 
   // ─── 3. ORDER DETAILS & PIPELINE METRICS ───────────────────────────────────────
@@ -245,11 +224,11 @@ function AdminAnalytics() {
     }
 
     // If orders don't have item breakdowns yet, show top catalog items
-    return products.slice(0, 5).map((p) => ({
+    return products.slice(0, 5).map((p, idx) => ({
       name: p.name,
       sku: p.sku,
-      unitsSold: Math.max(1, Math.min(25, 30 - p.stock)),
-      revenueLKR: Math.round((p.priceCents / 100) * Math.max(1, 30 - p.stock)),
+      unitsSold: Math.max(1, 10 - idx * 2),
+      revenueLKR: Math.round((p.priceCents / 100) * Math.max(1, 10 - idx * 2)),
       ordersCount: 1,
     }));
   }, [validOrders, products]);
@@ -263,7 +242,7 @@ function AdminAnalytics() {
             Business Analytics & Performance
           </h1>
           <p className="mt-1 text-xs text-zinc-400">
-            Real-time analytics for revenue, stock availability, order pipeline, and best-selling
+            Real-time analytics for revenue, order pipeline, category breakdown, and best-selling
             products.
           </p>
         </div>
@@ -305,11 +284,11 @@ function AdminAnalytics() {
           badgeColor="bg-purple-500/10 text-purple-400 border-purple-500/20"
         />
         <MetricCard
-          label="Stock Health"
-          value={`${stockHealthPercentage}%`}
-          note={`${totalCatalogUnits} total units in catalog`}
-          icon={<PackageCheck className="h-4 w-4 text-amber-400" />}
-          trend={`${products.filter((p) => p.stock <= 5).length} low/out alerts`}
+          label="Catalog Products"
+          value={String(products.length)}
+          note={`${categories.length} active categories`}
+          icon={<Package className="h-4 w-4 text-amber-400" />}
+          trend="Published products"
           badgeColor="bg-amber-500/10 text-amber-400 border-amber-500/20"
         />
       </div>
@@ -385,27 +364,27 @@ function AdminAnalytics() {
           </div>
         </section>
 
-        {/* CHART 2: PRODUCT AVAILABILITY (Donut PieChart) */}
+        {/* CHART 2: CATALOG BY CATEGORY (Donut PieChart) */}
         <section className="admin-card flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between">
               <ChartHeading
-                icon={<Package className="h-4 w-4 text-amber-400" />}
-                title="Product Availability & Stock Health"
-                description="Warehouse availability across all items"
+                icon={<Layers className="h-4 w-4 text-purple-400" />}
+                title="Catalog Distribution by Category"
+                description="Active products published per category"
               />
               <span className="rounded-full border border-zinc-700 bg-zinc-800/60 px-2.5 py-0.5 text-[11px] font-bold text-zinc-300">
                 {products.length} Products
               </span>
             </div>
 
-            {availabilityData.length > 0 ? (
+            {categoryChartData.length > 0 ? (
               <div className="mt-6 flex flex-col items-center justify-center sm:flex-row sm:gap-6">
                 <div className="relative h-[240px] w-full sm:w-[55%]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={availabilityData}
+                        data={categoryChartData}
                         dataKey="value"
                         nameKey="name"
                         cx="50%"
@@ -414,7 +393,7 @@ function AdminAnalytics() {
                         outerRadius={95}
                         paddingAngle={4}
                       >
-                        {availabilityData.map((entry) => (
+                        {categoryChartData.map((entry) => (
                           <Cell key={entry.name} fill={entry.color} />
                         ))}
                       </Pie>
@@ -429,54 +408,35 @@ function AdminAnalytics() {
                   </ResponsiveContainer>
                   {/* Center Text */}
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-white">{stockHealthPercentage}%</span>
+                    <span className="text-2xl font-black text-white">{products.length}</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      In Stock
+                      Total SKUs
                     </span>
                   </div>
                 </div>
 
-                {/* Stock Legend & Counts */}
-                <div className="mt-4 flex w-full flex-col justify-center gap-3 sm:mt-0 sm:w-[45%]">
-                  <StockLegendItem
-                    label="In Stock"
-                    detail="> 10 units in stock"
-                    count={products.filter((p) => p.stock > 10).length}
-                    color="bg-emerald-500"
-                    percentage={Math.round(
-                      (products.filter((p) => p.stock > 10).length / (products.length || 1)) * 100,
-                    )}
-                  />
-                  <StockLegendItem
-                    label="Low Stock"
-                    detail="1 - 10 units left"
-                    count={products.filter((p) => p.stock > 0 && p.stock <= 10).length}
-                    color="bg-amber-500"
-                    percentage={Math.round(
-                      (products.filter((p) => p.stock > 0 && p.stock <= 10).length /
-                        (products.length || 1)) *
-                        100,
-                    )}
-                  />
-                  <StockLegendItem
-                    label="Out of Stock"
-                    detail="Needs restocking"
-                    count={products.filter((p) => p.stock === 0).length}
-                    color="bg-rose-500"
-                    percentage={Math.round(
-                      (products.filter((p) => p.stock === 0).length / (products.length || 1)) * 100,
-                    )}
-                  />
+                {/* Category Legend & Counts */}
+                <div className="mt-4 flex w-full flex-col justify-center gap-2 sm:mt-0 sm:w-[45%]">
+                  {categoryChartData.slice(0, 4).map((cat) => (
+                    <CategoryLegendItem
+                      key={cat.name}
+                      label={cat.name}
+                      detail="Store category"
+                      count={cat.value}
+                      color={cat.color}
+                      percentage={Math.round((cat.value / (products.length || 1)) * 100)}
+                    />
+                  ))}
                 </div>
               </div>
             ) : (
-              <EmptyChart message="Catalog is empty. Add products to view stock availability." />
+              <EmptyChart message="Catalog is empty. Add products to view category distribution." />
             )}
           </div>
 
           <div className="mt-4 flex items-center justify-between border-t border-zinc-800/80 pt-3 text-xs text-zinc-400">
-            <span>Total Catalog Volume: {totalCatalogUnits} units</span>
-            <span className="text-[11px] text-zinc-500">Live sync with inventory</span>
+            <span>{products.length} Products across {categories.length} Categories</span>
+            <span className="text-[11px] text-zinc-500">Live catalog sync</span>
           </div>
         </section>
       </div>
@@ -675,15 +635,15 @@ function AdminAnalytics() {
         </section>
       </div>
 
-      {/* ── ROW 3: Secondary Category Breakdown Table ── */}
+      {/* ── ROW 3: Category Catalog Breakdown Table ── */}
       <section className="admin-card">
         <ChartHeading
           icon={<Layers className="h-4 w-4 text-purple-400" />}
-          title="Category Stock & Inventory Distribution"
-          description="Total physical units and active products per category"
+          title="Product Catalog by Category"
+          description="Total active products listed in each store category"
         />
         <div className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          {categoryStockData.map((cat) => (
+          {categoryChartData.map((cat) => (
             <div
               key={cat.name}
               className="rounded-lg border border-zinc-800 bg-zinc-950/50 p-3 transition-colors hover:border-zinc-700"
@@ -691,8 +651,10 @@ function AdminAnalytics() {
               <p className="truncate text-xs font-bold text-zinc-300" title={cat.name}>
                 {cat.name}
               </p>
-              <p className="mt-2 text-xl font-black text-white">{cat.units}</p>
-              <p className="mt-0.5 text-[10px] text-zinc-400">{cat.productsCount} products listed</p>
+              <p className="mt-2 text-xl font-black text-white">{cat.value}</p>
+              <p className="mt-0.5 text-[10px] text-zinc-400">
+                {Math.round((cat.value / (products.length || 1)) * 100)}% of catalog
+              </p>
             </div>
           ))}
         </div>
@@ -739,7 +701,7 @@ function MetricCard({
   );
 }
 
-function StockLegendItem({
+function CategoryLegendItem({
   label,
   detail,
   count,
@@ -755,7 +717,10 @@ function StockLegendItem({
   return (
     <div className="flex items-center justify-between rounded-lg border border-zinc-800/60 bg-zinc-950/40 p-2.5">
       <div className="flex items-center gap-2.5">
-        <span className={`h-3 w-3 shrink-0 rounded-full ${color}`} />
+        <span
+          className="h-3 w-3 shrink-0 rounded-full"
+          style={{ backgroundColor: color }}
+        />
         <div>
           <p className="text-xs font-bold text-white">{label}</p>
           <p className="text-[10px] text-zinc-400">{detail}</p>
