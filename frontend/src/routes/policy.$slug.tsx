@@ -134,21 +134,24 @@ export const Route = createFileRoute("/policy/$slug")({
   loader: ({ params }) => {
     const title = POLICIES[params.slug];
     if (!title) throw notFound();
-    return { title };
+    return { title, slug: params.slug };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.title} — Asia Electronics` },
+          { title: `${loaderData.title} — Asiaelectronics` },
           {
             name: "description",
             content:
               loaderData.title === "Delivery Information"
-                ? "Track your Asia Electronics order."
-                : `${loaderData.title} for Asia Electronics — awaiting client content.`,
+                ? "Delivery and order tracking information for Asiaelectronics, Sri Lanka."
+                : `${loaderData.title} and customer policies for Asiaelectronics, Sri Lanka.`,
           },
         ]
-      : [{ title: "Page not found" }, { name: "robots", content: "noindex" }],
+      : [{ title: "Page not found — Asiaelectronics" }, { name: "robots", content: "noindex" }],
+    links: loaderData
+      ? [{ rel: "canonical", href: `https://www.asiaelectronics.lk/policy/${loaderData.slug}` }]
+      : [],
   }),
   component: Policy,
 });

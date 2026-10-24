@@ -156,18 +156,25 @@ export const Route = createFileRoute("/shop")({
   }),
   head: () => ({
     meta: [
-      { title: "Shop Electronics & Parts — Asia Electronics (Demo)" },
+      { title: "Shop Electronics, Components & Parts — Asiaelectronics" },
       {
         name: "description",
         content:
-          "Browse and filter sample electronics: components, audio, lighting, mobile parts and TVs, priced in LKR.",
+          "Browse electronic components, audio, lighting, solar products, mobile repair parts and equipment in Sri Lanka, priced in LKR.",
       },
-      { property: "og:title", content: "Shop — Asia Electronics (Demo)" },
+      { property: "og:title", content: "Shop Electronics & Parts — Asiaelectronics" },
       {
         property: "og:description",
-        content: "Filter sample electronics by category, brand, price and stock.",
+        content: "Filter electronics, components, repair parts, and tools by category, brand, and price.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.asiaelectronics.lk/shop" },
+      { property: "og:image", content: "https://www.asiaelectronics.lk/logo.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Shop Electronics & Parts — Asiaelectronics" },
+      { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
     ],
+    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/shop" }],
   }),
   component: ShopPage,
   errorComponent: () => (

@@ -51,20 +51,75 @@ export const Route = createFileRoute("/product/$slug")({
     const p = await context.queryClient.ensureQueryData(productQuery(params.slug));
     if (!p) throw notFound();
     context.queryClient.ensureQueryData(relatedQuery(params.slug));
-    return { name: p.name, description: p.description };
+    const firstImg = p.images?.[0] || "/assets/imgs/electronic-components.png";
+    const imageUrl = firstImg.startsWith("http")
+      ? firstImg
+      : `https://www.asiaelectronics.lk${firstImg.startsWith("/") ? "" : "/"}${firstImg}`;
+    return {
+      name: p.name,
+      description: p.description,
+      image: imageUrl,
+      price: (p.priceCents / 100).toFixed(2),
+      brand: p.brand || "Asiaelectronics",
+      sku: p.sku,
+      inStock: p.stock > 0,
+      slug: params.slug,
+    };
   },
-  head: ({ loaderData }) =>
-    loaderData
-      ? {
-          meta: [
-            { title: `${loaderData.name} — Asia Electronics (Demo)` },
-            { name: "description", content: loaderData.description },
-            { property: "og:title", content: loaderData.name },
-            { property: "og:description", content: loaderData.description },
-            { property: "og:type", content: "product" },
-          ],
-        }
-      : { meta: [{ title: "Product not found" }, { name: "robots", content: "noindex" }] },
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return { meta: [{ title: "Product not found — Asiaelectronics" }, { name: "robots", content: "noindex" }] };
+    }
+
+    const canonicalUrl = `https://www.asiaelectronics.lk/product/${loaderData.slug}`;
+    const productSchema = {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      name: loaderData.name,
+      image: [loaderData.image],
+      description: loaderData.description,
+      sku: loaderData.sku,
+      brand: {
+        "@type": "Brand",
+        name: loaderData.brand,
+      },
+      offers: {
+        "@type": "Offer",
+        url: canonicalUrl,
+        priceCurrency: "LKR",
+        price: loaderData.price,
+        availability: loaderData.inStock
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
+      },
+    };
+
+    return {
+      meta: [
+        { title: `${loaderData.name} — Asiaelectronics` },
+        { name: "description", content: loaderData.description },
+        { property: "og:title", content: `${loaderData.name} — Asiaelectronics` },
+        { property: "og:description", content: loaderData.description },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: canonicalUrl },
+        { property: "og:image", content: loaderData.image },
+        { property: "product:price:amount", content: loaderData.price },
+        { property: "product:price:currency", content: "LKR" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: `${loaderData.name} — Asiaelectronics` },
+        { name: "twitter:description", content: loaderData.description },
+        { name: "twitter:image", content: loaderData.image },
+      ],
+      links: [{ rel: "canonical", href: canonicalUrl }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(productSchema),
+        },
+      ],
+    };
+  },
   notFoundComponent: ProductNotFound,
   component: ProductPage,
 });

@@ -152,10 +152,10 @@ function slugify(s: string) {
 // â”€â”€â”€ Storage Accessors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function getStoredProducts(): Product[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return defaultProducts;
   try {
     const raw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-    if (raw === null) return [];
+    if (raw === null) return defaultProducts;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
       return parsed.map((p: Product) => ({
@@ -166,9 +166,9 @@ export function getStoredProducts(): Product[] {
             : ["/assets/imgs/electronic-components.png"],
       }));
     }
-    return [];
+    return defaultProducts;
   } catch {
-    return [];
+    return defaultProducts;
   }
 }
 

@@ -33,6 +33,7 @@ export const Route = createFileRoute("/wholesale")({
           "Request a wholesale or bulk quotation for electronics, repair parts, lighting, solar products and equipment.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/wholesale" }],
   }),
   component: WholesalePage,
 });

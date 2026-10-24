@@ -78,6 +78,7 @@ export const Route = createFileRoute("/about")({
           "Electronic components, lighting, audio equipment and mobile repair parts from Colombo 01100, with islandwide delivery available.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/about" }],
   }),
   component: AboutPage,
 });

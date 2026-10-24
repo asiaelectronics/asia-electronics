@@ -92,7 +92,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <div className="container-shop py-3.5 text-center text-[11px] text-muted-foreground">
-          <p>© 2026 Asia Electronics and Cellular Pvt Ltd</p>
+          <p>© 2026 Asia Electronics and Cellular Pvt Ltd. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

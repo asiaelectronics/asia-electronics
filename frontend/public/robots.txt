@@ -1,8 +1,12 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /account
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
+Disallow: /account
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +16,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /account
+
+Sitemap: https://www.asiaelectronics.lk/sitemap.xml

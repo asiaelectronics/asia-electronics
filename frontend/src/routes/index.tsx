@@ -12,19 +12,26 @@ import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asiaelectronics — Electronics, Parts & Accessories" },
+      { title: "Asiaelectronics — Electronics, Components & Repair Parts in Sri Lanka" },
       {
         name: "description",
         content:
           "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment at Asiaelectronics, Sri Lanka.",
       },
-      { property: "og:title", content: "Asiaelectronics" },
+      { property: "og:title", content: "Asiaelectronics — Electronics, Components & Parts" },
       {
         property: "og:description",
         content:
-          "Electronic components, audio, lighting, mobile parts and TVs at Asiaelectronics.",
+          "Shop electronic components, repair parts, audio, lighting, solar products, and tools with islandwide delivery across Sri Lanka.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.asiaelectronics.lk/" },
+      { property: "og:image", content: "https://www.asiaelectronics.lk/logo.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Asiaelectronics — Electronics, Components & Parts" },
+      { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
     ],
+    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/" }],
   }),
   component: Index,
 });

@@ -36,6 +36,7 @@ export const Route = createFileRoute("/contact")({
         content: "Get in touch with Asiaelectronics.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/contact" }],
   }),
   component: Contact,
 });
