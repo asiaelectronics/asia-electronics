@@ -13,6 +13,7 @@ const policies = [
 
 export function SiteFooter() {
   const { settings, whatsappDigits } = useSettings();
+  const mapQuery = encodeURIComponent(settings.address);
 
   return (
     <footer className="mt-10 w-full max-w-full border-t border-border sm:mt-16">
@@ -71,28 +72,28 @@ export function SiteFooter() {
           <h3 className="text-xs font-extrabold uppercase tracking-wider">Store location</h3>
           <div className="relative mt-3 h-44 w-full max-w-full overflow-hidden border border-border bg-tile transition-colors hover:border-primary sm:h-32 lg:h-28">
             <iframe
-              src="https://www.google.com/maps?q=60%201st%20Cross%20St%2C%20Colombo%2001100%2C%20Sri%20Lanka&output=embed"
-              title="Asia Electronics store location"
+              src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+              title={`${settings.storeName} store location`}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="pointer-events-none block h-full w-full max-w-full border-0"
             />
             <a
-              href="https://www.google.com/maps/search/?api=1&query=60%201st%20Cross%20St%2C%20Colombo%2001100%2C%20Sri%20Lanka"
+              href={`https://www.google.com/maps/search/?api=1&query=${mapQuery}`}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute inset-0"
-              aria-label="Open Asia Electronics store location in Google Maps"
+              aria-label={`Open ${settings.storeName} store location in Google Maps`}
             />
           </div>
           <p className="mt-2 text-xs leading-5 text-muted-foreground sm:mt-1.5 sm:text-[11px] sm:leading-4">
-            60 1st Cross St, Colombo 01100
+            {settings.address}
           </p>
         </div>
       </div>
       <div className="border-t border-border">
         <div className="container-shop py-3.5 text-center text-[11px] text-muted-foreground">
-          <p>© 2026 Asia Electronics and Cellular Pvt Ltd. All Rights Reserved.</p>
+          <p>© 2026 {settings.storeName}. All Rights Reserved.</p>
         </div>
       </div>
     </footer>

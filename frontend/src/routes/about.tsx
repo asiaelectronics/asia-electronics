@@ -186,9 +186,7 @@ function AboutPage() {
                 <div>
                   <p className="text-xs font-extrabold uppercase">Address</p>
                   <address className="mt-1 text-sm not-italic leading-6 text-muted-foreground">
-                    60 1st Cross St
-                    <br />
-                    Colombo 01100, Sri Lanka
+                    {settings.address}
                   </address>
                 </div>
               </div>

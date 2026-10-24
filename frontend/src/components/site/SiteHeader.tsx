@@ -16,6 +16,7 @@ import logoImg from "@/assets/imgs/logopng.png";
 import { useCatalog } from "@/services/catalog";
 import { useCart } from "@/context/cart";
 import { useAuth } from "@/context/auth";
+import { useSettings } from "@/context/settings";
 import type { Product } from "@/lib/types";
 import { CategoryMegaMenu, CATEGORY_ICONS } from "./CategoryMegaMenu";
 
@@ -25,15 +26,16 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export function Logo({ className = "" }: { className?: string }) {
+  const { settings } = useSettings();
   return (
     <Link
       to="/"
       className={`flex shrink-0 items-center ${className}`}
-      aria-label="Asia Electronic & Cellular Home"
+      aria-label={`${settings.storeName} Home`}
     >
       <img
         src={logoImg}
-        alt="Asia Electronic & Cellular"
+        alt={settings.storeName}
         className="h-10 sm:h-12 w-auto rounded-lg object-contain transition-transform duration-200 hover:opacity-95"
       />
     </Link>

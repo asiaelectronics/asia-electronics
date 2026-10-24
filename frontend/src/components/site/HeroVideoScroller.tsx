@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide
 import electronicsHero from "@/assets/imgs/hero-electronics-showcase.png";
 import repairHero from "@/assets/imgs/hero-repair-workbench.png";
 import { BUSINESS_WHATSAPP_NUMBER } from "@/lib/config";
+import { useSettings } from "@/context/settings";
 
 /* WhatsApp SVG icon */
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -54,6 +55,7 @@ const SLIDES = [
 ];
 
 export function HeroVideoScroller() {
+  const { buildWhatsAppUrl } = useSettings();
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -170,12 +172,14 @@ export function HeroVideoScroller() {
                       search={slide.primaryCta.search}
                       className="inline-flex w-auto items-center justify-center rounded bg-primary px-3 py-2 text-[10px] leading-tight sm:px-6 sm:py-3 sm:text-sm text-primary-foreground font-display font-black uppercase tracking-wider transition-all hover:bg-primary/90 hover:scale-102 shadow-md"
                     >
-                      {slide.primaryCta.text} â†’
+                      {slide.primaryCta.text} →
                     </Link>
 
                     {slide.whatsappCta ? (
                       <a
-                        href={slide.whatsappCta.url}
+                        href={buildWhatsAppUrl(
+                          "Hello Asia Electronics, I would like to inquire about television and circuit repair parts availability.",
+                        )}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-1 rounded bg-[#25D366] px-3 py-2 text-[10px] sm:gap-2 sm:px-5 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-[#20ba5a] hover:scale-102 shadow-md"
