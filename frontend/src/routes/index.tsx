@@ -10,30 +10,53 @@ import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
 import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Asiaelectronics — Electronics, Components & Repair Parts in Sri Lanka" },
-      {
-        name: "description",
-        content:
-          "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment at Asiaelectronics, Sri Lanka.",
+  head: () => {
+    const localBusinessSchema = {
+      "@context": "https://schema.org",
+      "@type": "ElectronicsStore",
+      name: "Asia Electronics and Cellular Pvt Ltd",
+      alternateName: "Asia Electronics",
+      url: "https://www.asiaelectronics.lk/",
+      logo: "https://www.asiaelectronics.lk/logo.png",
+      image: "https://www.asiaelectronics.lk/logo.png",
+      telephone: "+94 74 106 6017",
+      email: "aecpvt60@gmail.com",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "60 1st Cross Street",
+        addressLocality: "Colombo",
+        postalCode: "01100",
+        addressCountry: "LK",
       },
-      { property: "og:title", content: "Asiaelectronics — Electronics, Components & Parts" },
-      {
-        property: "og:description",
-        content:
-          "Shop electronic components, repair parts, audio, lighting, solar products, and tools with islandwide delivery across Sri Lanka.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://www.asiaelectronics.lk/" },
-      { property: "og:image", content: "https://www.asiaelectronics.lk/logo.png" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Asiaelectronics — Electronics, Components & Parts" },
-      { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
-    ],
-    links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/" }],
-  }),
-  component: Index,
+      areaServed: { "@type": "Country", name: "Sri Lanka" },
+      sameAs: ["https://www.facebook.com/p/Asia-Electronics-And-Cellular-Pvt-Ltd-100067031593071/"],
+    };
+
+    return {
+      meta: [
+        { title: "Asia Electronics | Electronics, Components & Repair Parts in Sri Lanka" },
+        {
+          name: "description",
+          content:
+            "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment at Asia Electronics, Sri Lanka.",
+        },
+        { property: "og:title", content: "Asia Electronics | Electronics, Components & Repair Parts" },
+        {
+          property: "og:description",
+          content:
+            "Shop electronic components, repair parts, audio, lighting, solar products, and tools with islandwide delivery across Sri Lanka.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: "https://www.asiaelectronics.lk/" },
+        { property: "og:image", content: "https://www.asiaelectronics.lk/logo.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Asia Electronics | Electronics, Components & Repair Parts" },
+        { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
+      ],
+      links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/" }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(localBusinessSchema) }],
+    };
+  },  component: Index,
 });
 
 const fade = { initial: { y: 12 }, animate: { y: 0 } };
@@ -334,8 +357,7 @@ function Index() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Asia Electronics and Cellular Pvt Ltd supplies components, audio, lighting, mobile parts
-            and displays. This is a demonstration website â€” company history, certifications and
-            contact details will be added once confirmed by the client.
+            and displays. Asia Electronics and Cellular Pvt Ltd supplies components, audio equipment, lighting, mobile parts and displays for homes, technicians and businesses across Sri Lanka.
           </p>
           <Link
             to="/about"

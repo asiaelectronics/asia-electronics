@@ -31,12 +31,13 @@ type Values = z.infer<typeof checkoutSchema>;
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Request Quotation — Asiaelectronics" },
+      { title: "Request Quotation - Asia Electronics" },
       {
         name: "description",
         content:
           "Fill your details to request a quotation. AEC will respond via WhatsApp with pricing and availability.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: CheckoutPage,

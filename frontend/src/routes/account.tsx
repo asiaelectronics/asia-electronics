@@ -34,16 +34,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/account")({
   head: () => ({
     meta: [
-      { title: "My Account & Orders â€” Asia Electronics" },
-      {
-        name: "description",
-        content: "Customer account, profile details, and live order history.",
-      },
-      { property: "og:title", content: "My Account & Orders â€” Asia Electronics" },
-      {
-        property: "og:description",
-        content: "Customer account, profile details, and live order history.",
-      },
+      { title: "My Account & Orders - Asia Electronics" },
+      { name: "description", content: "Customer account, profile details, and live order history." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: Account,
