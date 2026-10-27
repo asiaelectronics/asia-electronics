@@ -30,7 +30,14 @@ export function getApiBaseUrl(): string {
 
   // 3. Server-side SSR runtime on Vercel: automatically resolve host from Vercel system env vars
   if (typeof process !== "undefined" && process.env) {
+    // Optional server-only override (e.g. API_URL=https://www.asiaelectronics.lk/api)
+    const serverApiUrl = (process.env.API_URL || "").trim();
+    if (serverApiUrl) return serverApiUrl;
+
+    // Prefer the public production domain: the per-deployment VERCEL_URL is usually
+    // behind Vercel Deployment Protection and returns 401 to SSR fetches.
     const vercelHost =
+      (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL) ||
       process.env.VERCEL_URL ||
       process.env.VERCEL_PROJECT_PRODUCTION_URL;
     if (vercelHost) {
