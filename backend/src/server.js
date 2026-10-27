@@ -19,9 +19,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const allowedOrigins = (
-  process.env.FRONTEND_URL || "http://localhost:8080,http://localhost:5173"
-)
+const defaultAllowedOrigins = "http://localhost:8080,http://localhost:5173,https://asiaelectronics.lk,https://www.asiaelectronics.lk";
+const configuredOrigins = process.env.FRONTEND_URL || "";
+const allowedOrigins = `${defaultAllowedOrigins},${configuredOrigins}`
   .split(",")
   .map((url) => url.trim())
   .filter(Boolean);
