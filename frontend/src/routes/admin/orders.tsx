@@ -411,6 +411,8 @@ function AdminOrders() {
   const [orders, setOrders] = useState<MockOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
+  const [selectedPastOrderIds, setSelectedPastOrderIds] = useState<Set<string>>(new Set());
+  const [deletingSelected, setDeletingSelected] = useState(false);
 
   useEffect(() => {
     const filters = ["Active", "Processing", "Shipped", "Past Orders"];
@@ -502,6 +504,11 @@ function AdminOrders() {
     });
   }, [search, statusFilter, orders]);
 
+  const visiblePastOrders = filteredOrders.filter((order) => order.status === "Delivered" || order.status === "Cancelled");
+  const allVisiblePastOrdersSelected = visiblePastOrders.length > 0 && visiblePastOrders.every((order) => selectedPastOrderIds.has(order.id));
+  const togglePastOrderSelection = (id: string) => setSelectedPastOrderIds((current) => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  const toggleAllVisiblePastOrders = () => setSelectedPastOrderIds((current) => { const next = new Set(current); if (allVisiblePastOrdersSelected) visiblePastOrders.forEach((order) => next.delete(order.id)); else visiblePastOrders.forEach((order) => next.add(order.id)); return next; });
+
   const handleStatusChange = async (id: string, status: OrderStatus) => {
     const result = await updateOrderStatusApi(id, status);
     if (!result?.order) {
@@ -534,6 +541,7 @@ function AdminOrders() {
     setSelectedOrder(null);
     toast.success(`Order ${order.id} deleted permanently.`);
   };
+  const handleDeleteSelectedPastOrders = async () => { const ids = Array.from(selectedPastOrderIds); if (!ids.length || !window.confirm(`Permanently delete ${ids.length} selected past orders? This cannot be undone.`)) return; setDeletingSelected(true); const results = await Promise.all(ids.map((id) => deletePastOrderApi(id))); const deleted = new Set(ids.filter((_, i) => results[i]?.success)); if (deleted.size) { setOrders((current) => current.filter((order) => !deleted.has(order.id))); setSelectedPastOrderIds(new Set()); toast.success(`${deleted.size} orders deleted permanently.`); } if (deleted.size !== ids.length) toast.error("Some orders could not be deleted."); setDeletingSelected(false); };
   return (
     <>
       {/* Order Detail Modal */}
@@ -641,6 +649,8 @@ function AdminOrders() {
                 </button>
               ))}
 
+              {selectedPastOrderIds.size > 0 && <button type="button" onClick={() => void handleDeleteSelectedPastOrders()} disabled={deletingSelected} className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300"><Trash2 className="h-3.5 w-3.5" />{deletingSelected ? "Deleting..." : `Delete selected (${selectedPastOrderIds.size})`}</button>}
+
               <button className="admin-btn-ghost flex items-center gap-1.5 ml-auto sm:ml-2 shrink-0">
                 <Download className="h-3.5 w-3.5" /> Export CSV
               </button>
@@ -652,6 +662,7 @@ function AdminOrders() {
             <table className="w-full text-left text-xs">
               <thead className="bg-zinc-900/80 text-zinc-400 uppercase text-[10px] font-bold border-b border-zinc-800">
                 <tr>
+                  <th className="p-3 w-10"><input type="checkbox" checked={allVisiblePastOrdersSelected} onChange={toggleAllVisiblePastOrders} disabled={visiblePastOrders.length === 0 || deletingSelected} aria-label="Select all visible past orders" className="accent-orange-500" /></th>
                   <th className="p-3">Order ID</th>
                   <th className="p-3">Customer</th>
                   <th className="p-3">Date</th>
@@ -664,7 +675,7 @@ function AdminOrders() {
               <tbody className="divide-y divide-zinc-800/60 font-medium">
                 {loading ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-zinc-400">
+                    <td colSpan={8} className="p-8 text-center text-zinc-400">
                       <div className="flex items-center justify-center gap-2">
                         <div className="h-4 w-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
                         <span>Loading live orders from Supabase...</span>
@@ -673,13 +684,14 @@ function AdminOrders() {
                   </tr>
                 ) : filteredOrders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-zinc-500">
+                    <td colSpan={8} className="p-8 text-center text-zinc-500">
                       No orders found in database. Customer orders will appear here in real-time.
                     </td>
                   </tr>
                 ) : (
                   filteredOrders.map((o) => (
                     <tr key={o.id} className="hover:bg-zinc-800/40 transition-colors">
+                      <td className="p-3">{(o.status === "Delivered" || o.status === "Cancelled") && <input type="checkbox" checked={selectedPastOrderIds.has(o.id)} onChange={() => togglePastOrderSelection(o.id)} disabled={deletingSelected} aria-label={`Select order ${o.id}`} className="accent-orange-500" />}</td>
                       <td className="p-3 font-mono font-bold text-orange-400">{o.id}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
