@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   Search,
@@ -407,9 +407,15 @@ function InfoRow({
 function AdminOrders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("Active");
+  const sidebarFilter = useRouterState({ select: (state) => (state.location.search as { filter?: string }).filter });
   const [orders, setOrders] = useState<MockOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
+
+  useEffect(() => {
+    const filters = ["Active", "Processing", "Shipped", "Past Orders"];
+    if (sidebarFilter && filters.includes(sidebarFilter)) setStatusFilter(sidebarFilter);
+  }, [sidebarFilter]);
 
   useEffect(() => {
     async function loadOrders() {

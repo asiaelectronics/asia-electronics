@@ -78,10 +78,13 @@ function AdminLayout() {
     select: (s) => (s.location.search as { action?: string }).action,
   });
   const [productsMenuOpen, setProductsMenuOpen] = useState(pathname.startsWith("/admin/products"));
+  const [ordersMenuOpen, setOrdersMenuOpen] = useState(pathname.startsWith("/admin/orders"));
+  const orderFilter = useRouterState({ select: (s) => (s.location.search as { filter?: string }).filter });
   const title = TITLES[pathname] ?? "Admin";
 
   useEffect(() => {
     if (pathname.startsWith("/admin/products")) setProductsMenuOpen(true);
+    if (pathname.startsWith("/admin/orders")) setOrdersMenuOpen(true);
   }, [pathname]);
 
   useEffect(() => {
@@ -182,6 +185,11 @@ function AdminLayout() {
               </p>
               {NAV.map((item) => {
                 const isActive = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+
+                if (item.to === "/admin/orders") {
+                  const filters = ["Active", "Processing", "Shipped", "Past Orders"] as const;
+                  return <div key={item.to}><button type="button" onClick={() => setOrdersMenuOpen((open) => !open)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold ${isActive ? "text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"}`}><span className={isActive ? "text-orange-400" : ""}>{item.icon}</span>{item.label}{ordersMenuOpen ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}</button>{ordersMenuOpen && <div className="ml-5 mt-1 space-y-0.5 border-l border-zinc-800 pl-3">{filters.map((filter) => <Link key={filter} to="/admin/orders" search={{ filter } as any} onClick={() => setSidebarOpen(false)} className={`flex rounded-md px-3 py-2 text-xs font-semibold ${isActive && orderFilter === filter ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}>{filter}</Link>)}</div>}</div>;
+                }
 
                 if (item.to === "/admin/products") {
                   const addActive = isActive && productAction === "add";
