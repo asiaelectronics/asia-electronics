@@ -93,7 +93,10 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <div className="container-shop py-3.5 text-center text-[11px] text-muted-foreground">
-          <p>© 2026 {settings.storeName}. All Rights Reserved.</p>
+          <p>? 2026 {settings.storeName}. All Rights Reserved.</p>
+          <p className="mt-1 text-[10px] tracking-wide text-muted-foreground/80">
+            Artist signature: Harry ? Website developer
+          </p>
         </div>
       </div>
     </footer>
