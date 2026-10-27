@@ -21,12 +21,16 @@ import {
   Check,
   AlertTriangle,
   ExternalLink,
+  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCatalog, type CreateProductInput } from "@/services/catalog";
 import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
+import { WatermarkPreviewModal } from "@/components/admin/WatermarkPreviewModal";
+import { applyWatermarkToImage } from "@/lib/watermark";
 import type { Category, Product } from "@/lib/types";
 
 const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
@@ -170,6 +174,8 @@ function ProductsPage() {
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
+  const [watermarkModalOpen, setWatermarkModalOpen] = useState(false);
+  const [watermarkTargetProduct, setWatermarkTargetProduct] = useState<Product | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
@@ -446,6 +452,18 @@ function ProductsPage() {
           >
             <Layers className="h-3.5 w-3.5 text-orange-400" />
             Categories ({categories.length})
+          </button>
+
+          <button
+            onClick={() => {
+              setWatermarkTargetProduct(null);
+              setWatermarkModalOpen(true);
+            }}
+            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
+            title="Preview and watermark product images"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-orange-400" />
+            Watermarking
           </button>
 
           <button
@@ -880,6 +898,16 @@ function ProductsPage() {
                           <Eye className="h-3.5 w-3.5" />
                         </Link>
                         <button
+                          onClick={() => {
+                            setWatermarkTargetProduct(p);
+                            setWatermarkModalOpen(true);
+                          }}
+                          className="p-1.5 rounded hover:bg-orange-500/20 text-orange-400 hover:text-orange-300 transition-colors"
+                          title="Preview & watermark this product's images"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                        </button>
+                        <button
                           onClick={() => handleOpenEdit(p)}
                           className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
                           title="Edit product"
@@ -1107,6 +1135,37 @@ function ProductsPage() {
           }}
         />
       )}
+
+      {/* ─── Watermark Preview & Action Modal ─── */}
+      {watermarkModalOpen && (
+        <WatermarkPreviewModal
+          isOpen={watermarkModalOpen}
+          onClose={() => {
+            setWatermarkModalOpen(false);
+            setWatermarkTargetProduct(null);
+          }}
+          products={products}
+          targetProduct={watermarkTargetProduct}
+          onApplyWatermark={async (productId, watermarkedImages, originalImages) => {
+            const product = products.find((p) => p.id === productId);
+            if (!product) return false;
+
+            const updated = updateProduct(productId, {
+              images: watermarkedImages,
+              originalImages: originalImages,
+            });
+
+            if (updated) {
+              toast.success(`Watermarked image(s) saved for SKU: ${product.sku}!`);
+              setWatermarkModalOpen(false);
+              setWatermarkTargetProduct(null);
+              return true;
+            }
+            toast.error("Failed to update watermarked images");
+            return false;
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1183,6 +1242,17 @@ function ProductFormModal({
     }
     return [];
   });
+  const [originalImagesList, setOriginalImagesList] = useState<string[]>(() => {
+    if (
+      editingProduct?.originalImages &&
+      Array.isArray(editingProduct.originalImages) &&
+      editingProduct.originalImages.length > 0
+    ) {
+      return editingProduct.originalImages.filter(Boolean);
+    }
+    return editingProduct?.images || [];
+  });
+  const [autoWatermark, setAutoWatermark] = useState<boolean>(true);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [urlInput, setUrlInput] = useState("");
   const [imageInputMode, setImageInputMode] = useState<"url" | "upload">("upload");
@@ -1262,14 +1332,33 @@ function ProductFormModal({
 
     try {
       const results = await Promise.all(validFiles.map((file) => compressImageFile(file)));
-      const newUrls = results.filter(Boolean);
-      if (newUrls.length > 0) {
+      const rawUrls = results.filter(Boolean);
+
+      if (rawUrls.length > 0) {
+        let finalProcessed = rawUrls;
+        if (autoWatermark) {
+          try {
+            const wmResults = await Promise.all(
+              rawUrls.map((raw) => applyWatermarkToImage(raw)),
+            );
+            finalProcessed = wmResults.map((w) => w.dataUrl);
+            toast.success(`Branded & watermarked ${finalProcessed.length} image(s)!`);
+          } catch (wmErr) {
+            console.warn("Watermarking fallback:", wmErr);
+            finalProcessed = rawUrls;
+          }
+        }
+
+        setOriginalImagesList((prev) => [...prev, ...rawUrls]);
         setImagesList((prev) => {
-          const nextList = [...prev, ...newUrls];
+          const nextList = [...prev, ...finalProcessed];
           setActivePreviewIndex(nextList.length - 1);
           return nextList;
         });
-        toast.success(`Added ${newUrls.length} image(s)`);
+
+        if (!autoWatermark) {
+          toast.success(`Added ${finalProcessed.length} image(s)`);
+        }
       }
     } catch {
       toast.error("Failed to process uploaded images");
@@ -1320,6 +1409,7 @@ function ProductFormModal({
     if (idxToPrimary === 0) return;
     setImagesList((prev) => {
       const target = prev[idxToPrimary];
+      if (!target) return prev;
       const rest = prev.filter((_, idx) => idx !== idxToPrimary);
       return [target, ...rest];
     });
@@ -1385,6 +1475,7 @@ function ProductFormModal({
       description: description.trim() || undefined,
       image: finalImages[0],
       images: finalImages,
+      originalImages: originalImagesList.length > 0 ? originalImagesList : finalImages,
       featured,
       isNew,
       showPrice,
@@ -1611,30 +1702,43 @@ function ProductFormModal({
                 </span>
               </div>
 
-              {/* Mode Switch Tabs */}
-              <div className="flex items-center gap-1 bg-zinc-800/90 p-0.5 rounded-lg text-[11px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => setImageInputMode("upload")}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    imageInputMode === "upload"
-                      ? "bg-orange-500 text-white shadow-xs"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Upload Local
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageInputMode("url")}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    imageInputMode === "url"
-                      ? "bg-orange-500 text-white shadow-xs"
-                      : "text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  Web URL
-                </button>
+              {/* Mode Switch Tabs & Auto-Watermark Toggle */}
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-1.5 cursor-pointer bg-zinc-900 border border-zinc-700/80 px-2.5 py-1 rounded-lg text-[11px] text-zinc-300 hover:border-orange-500/50">
+                  <input
+                    type="checkbox"
+                    checked={autoWatermark}
+                    onChange={(e) => setAutoWatermark(e.target.checked)}
+                    className="accent-orange-500 rounded h-3.5 w-3.5 cursor-pointer"
+                  />
+                  <Sparkles className="h-3 w-3 text-orange-400" />
+                  <span>Auto-Watermark</span>
+                </label>
+
+                <div className="flex items-center gap-1 bg-zinc-800/90 p-0.5 rounded-lg text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setImageInputMode("upload")}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${
+                      imageInputMode === "upload"
+                        ? "bg-orange-500 text-white shadow-xs"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Upload Local
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImageInputMode("url")}
+                    className={`px-2.5 py-1 rounded-md transition-colors ${
+                      imageInputMode === "url"
+                        ? "bg-orange-500 text-white shadow-xs"
+                        : "text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    Web URL
+                  </button>
+                </div>
               </div>
             </div>
 

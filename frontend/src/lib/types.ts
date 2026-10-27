@@ -39,6 +39,8 @@ export interface Product {
   compareAtCents?: number | undefined;
   stock: number;
   images: string[];
+  /** Original unwatermarked images for external feeds/channels */
+  originalImages?: string[] | undefined;
   description: string;
   specs: Record<string, string>;
   attributes: Record<string, string>;

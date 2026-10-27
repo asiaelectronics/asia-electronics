@@ -317,6 +317,7 @@ export interface CreateProductInput {
   description?: string | undefined;
   image?: string | undefined;
   images?: string[] | undefined;
+  originalImages?: string[] | undefined;
   featured?: boolean | undefined;
   isNew?: boolean | undefined;
   showPrice?: boolean | undefined;
@@ -372,6 +373,7 @@ export function createProduct(input: CreateProductInput): Product {
     compareAtCents: input.compareAtLKR ? Math.round(Number(input.compareAtLKR) * 100) : undefined,
     stock: Math.max(0, Math.floor(Number(input.stock) || 0)),
     images: resolvedImages,
+    originalImages: input.originalImages ?? resolvedImages,
     description: input.description?.trim() || "High-quality electronics and repair part.",
     specs: input.specs ?? { Condition: "Brand New", Warranty: "Standard" },
     attributes: input.attributes ?? { Type: "Component" },
@@ -460,6 +462,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
     description:
       updates.description !== undefined ? updates.description.trim() : existing.description,
     images: updatedImages,
+    originalImages: updates.originalImages ?? existing.originalImages ?? updatedImages,
     featured: updates.featured !== undefined ? updates.featured : existing.featured,
     isNew: updates.isNew !== undefined ? updates.isNew : existing.isNew,
     showPrice:
@@ -497,6 +500,7 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
     stock: updatedProduct.stock,
     description: updatedProduct.description,
     images: updatedProduct.images,
+    originalImages: updatedProduct.originalImages,
     featured: updatedProduct.featured,
     isNew: updatedProduct.isNew,
     showPrice: updatedProduct.showPrice,

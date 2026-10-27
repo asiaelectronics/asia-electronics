@@ -35,7 +35,10 @@ function toDbProduct(p) {
     images: p.images,
     description: p.description,
     specs: p.specs,
-    attributes,
+    attributes: {
+      ...attributes,
+      originalImages: p.originalImages || p.attributes?.originalImages || undefined,
+    },
     featured: p.featured,
     is_new: p.isNew,
     created_at: p.createdAt,
@@ -60,6 +63,7 @@ function fromDbProduct(row) {
     compareAtCents: row.compare_at_cents ?? undefined,
     stock: row.stock,
     images: row.images,
+    originalImages: attrs.originalImages || undefined,
     description: row.description,
     specs: row.specs,
     attributes: row.attributes,
@@ -557,8 +561,14 @@ export async function updateProduct(id, updates) {
   try {
     const current = await findProduct(id);
     const baseAttrs = updates.attributes || current?.attributes || {};
+    const origImages =
+      updates.originalImages !== undefined
+        ? updates.originalImages
+        : current?.originalImages || baseAttrs.originalImages;
+
     dbUpdates.attributes = {
       ...baseAttrs,
+      originalImages: origImages,
       visibility: {
         showPrice:
           updates.showPrice !== undefined

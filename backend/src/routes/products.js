@@ -220,6 +220,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       compareAtCents,
       stock,
       images: finalImages,
+      originalImages: Array.isArray(body.originalImages) ? body.originalImages : undefined,
       description,
       specs: body.specs || {},
       attributes: body.attributes || {},
