@@ -2518,6 +2518,8 @@ function BrandManagerModal({
   const [newBrandLogo, setNewBrandLogo] = useState("");
   const [newBrandImageData, setNewBrandImageData] = useState("");
   const [saving, setSaving] = useState(false);
+  const [newLogoDropActive, setNewLogoDropActive] = useState(false);
+  const [editingLogoDropActive, setEditingLogoDropActive] = useState(false);
 
   if (!isOpen) return null;
 
@@ -2578,6 +2580,56 @@ function BrandManagerModal({
     reader.readAsDataURL(file);
   };
 
+  const LogoDropZone = ({
+    imageData,
+    onImageData,
+    isActive,
+    setIsActive,
+    compact = false,
+  }: {
+    imageData: string;
+    onImageData: React.Dispatch<React.SetStateAction<string>>;
+    isActive: boolean;
+    setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
+    compact?: boolean;
+  }) => (
+    <label
+      className={`flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed px-3 text-center transition-colors ${compact ? "min-h-8 py-1.5" : "min-h-24 py-3"} ${isActive ? "border-orange-400 bg-orange-500/10 text-orange-300" : "border-zinc-700 bg-zinc-950/30 text-zinc-400 hover:border-orange-500/70 hover:bg-orange-500/5"}`}
+      onDragOver={(event) => {
+        event.preventDefault();
+        setIsActive(true);
+      }}
+      onDragLeave={(event) => {
+        event.preventDefault();
+        setIsActive(false);
+      }}
+      onDrop={(event) => {
+        event.preventDefault();
+        setIsActive(false);
+        loadImageFile(event.dataTransfer.files?.[0], onImageData);
+      }}
+    >
+      <Upload className={`${compact ? "h-3.5 w-3.5" : "h-5 w-5"} shrink-0 text-orange-400`} />
+      <span className={compact ? "text-[11px] font-semibold" : "text-xs"}>
+        <strong className="text-zinc-200">Drop logo here</strong> or click to browse
+        {!compact && (
+          <span className="mt-0.5 block text-[10px] text-zinc-500">
+            PNG, JPEG, or WebP � max 2 MB
+          </span>
+        )}
+      </span>
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="sr-only"
+        onChange={(event) => {
+          loadImageFile(event.target.files?.[0], onImageData);
+          event.target.value = "";
+        }}
+      />
+      {imageData && <span className="text-[10px] font-bold text-emerald-400">Ready</span>}
+    </label>
+  );
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200"
@@ -2626,27 +2678,27 @@ function BrandManagerModal({
                   className="admin-input w-full text-xs"
                 />
               </div>
-              <div>
-                <label className="block text-[11px] text-zinc-400 font-semibold mb-1">
-                  Brand Logo Image URL
-                </label>
-                <input
-                  value={newBrandLogo}
-                  onChange={(e) => setNewBrandLogo(e.target.value)}
-                  placeholder="https://... or /assets/imgs/..."
-                  className="admin-input w-full text-xs"
-                />
-              </div>
               <div className="sm:col-span-2">
                 <label className="block text-[11px] text-zinc-400 font-semibold mb-1">
-                  Or upload a logo (PNG, JPEG, WebP — max 2 MB)
+                  Brand Logo
                 </label>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => loadImageFile(e.target.files?.[0], setNewBrandImageData)}
-                  className="admin-input w-full text-xs file:mr-3 file:rounded file:border-0 file:bg-orange-500 file:px-3 file:py-1 file:font-bold file:text-white"
+                <LogoDropZone
+                  imageData={newBrandImageData}
+                  onImageData={setNewBrandImageData}
+                  isActive={newLogoDropActive}
+                  setIsActive={setNewLogoDropActive}
                 />
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-[11px] text-zinc-500 hover:text-zinc-300">
+                    Use an image URL instead
+                  </summary>
+                  <input
+                    value={newBrandLogo}
+                    onChange={(e) => setNewBrandLogo(e.target.value)}
+                    placeholder="https://... or /assets/imgs/..."
+                    className="admin-input mt-2 w-full text-xs"
+                  />
+                </details>
                 {newBrandImageData && (
                   <img
                     src={newBrandImageData}
@@ -2736,21 +2788,15 @@ function BrandManagerModal({
                             className="admin-input flex-1 sm:w-60 text-xs py-1"
                             autoFocus
                           />
-                          <label className="flex cursor-pointer items-center gap-1 rounded border border-zinc-700 px-2.5 py-1 font-semibold text-zinc-300 hover:bg-zinc-800">
-                            <Upload className="h-3 w-3" />
-                            Upload
-                            <input
-                              type="file"
-                              accept="image/png,image/jpeg,image/webp"
-                              className="sr-only"
-                              onChange={(e) => loadImageFile(e.target.files?.[0], setLogoImageData)}
+                          <div className="w-full sm:w-48">
+                            <LogoDropZone
+                              imageData={logoImageData}
+                              onImageData={setLogoImageData}
+                              isActive={editingLogoDropActive}
+                              setIsActive={setEditingLogoDropActive}
+                              compact
                             />
-                          </label>
-                          {logoImageData && (
-                            <span className="text-[10px] font-semibold text-emerald-400">
-                              New image ready
-                            </span>
-                          )}
+                          </div>{" "}
                           <button
                             type="button"
                             disabled={saving}

@@ -6,11 +6,11 @@
   "phone": "+94 74 106 6017",
   "currency": "LKR (Rs.)",
   "taxRate": "0%",
-  "address": "60 1st Cross St, Colombo 01100, Sri Lanka",
+  "address": "62 1st Cross St, Colombo 01100, Sri Lanka",
   "notifications": {
-    "lowStock": true,
-    "newOrders": true,
+    "lowStock": false,
+    "newOrders": false,
     "weeklyReport": false
   },
-  "updatedAt": "2026-10-23T06:04:51.508236+00:00"
+  "updatedAt": "2026-10-26T17:40:43.593+00:00"
 }
