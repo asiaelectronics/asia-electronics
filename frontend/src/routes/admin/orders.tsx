@@ -18,6 +18,7 @@ import {
   FileText,
   ChevronRight,
   Save,
+  Trash2,
 } from "lucide-react";
 import { formatLKR, formatRupees } from "@/lib/format";
 import {
@@ -26,7 +27,7 @@ import {
   type MockOrder,
   type OrderStatus,
 } from "@/components/admin/shared";
-import { fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
+import { deletePastOrderApi, fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
 import { syncCatalogWithBackend } from "@/services/catalog";
 import { toast } from "sonner";
 
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/admin/orders")({
   component: AdminOrders,
 });
 
-// â”€â”€ Order Detail Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Order Detail Modal Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const STATUS_OPTIONS: OrderStatus[] = [
   "Processing",
@@ -58,6 +59,7 @@ function OrderDetailModal({
   order,
   onClose,
   onStatusChange,
+  onDelete,
 }: {
   order: MockOrder;
   onClose: () => void;
@@ -65,6 +67,7 @@ function OrderDetailModal({
     id: string,
     status: OrderStatus,
   ) => Promise<{ updated: boolean; emailSent: boolean; emailReason?: string }>;
+  onDelete: (order: MockOrder) => Promise<void>;
 }) {
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order.status);
   const [saving, setSaving] = useState(false);
@@ -92,6 +95,7 @@ function OrderDetailModal({
 
   const subtotal = order.lineItems.reduce((s, l) => s + l.qty * l.unitPrice, 0);
   const deliveryFee = order.total > subtotal ? order.total - subtotal : 0;
+  const isPastOrder = order.status === "Delivered" || order.status === "Cancelled";
 
   return (
     /* Backdrop */
@@ -133,7 +137,7 @@ function OrderDetailModal({
         </div>
 
         <div className="p-6 space-y-5">
-          {/* â”€â”€ Status Changer â”€â”€ */}
+          {/* Ã¢â€â‚¬Ã¢â€â‚¬ Status Changer Ã¢â€â‚¬Ã¢â€â‚¬ */}
           <div
             className="rounded-xl p-4 space-y-3"
             style={{
@@ -162,13 +166,13 @@ function OrderDetailModal({
             </div>
             {selectedStatus !== order.status && (
               <p className="text-[11px] text-orange-400 font-semibold">
-                Status will change from <strong>{order.status}</strong> â†’{" "}
+                Status will change from <strong>{order.status}</strong> Ã¢â€ â€™{" "}
                 <strong>{selectedStatus}</strong>
               </p>
             )}
           </div>
 
-          {/* â”€â”€ Customer Details â”€â”€ */}
+          {/* Ã¢â€â‚¬Ã¢â€â‚¬ Customer Details Ã¢â€â‚¬Ã¢â€â‚¬ */}
           <div
             className="rounded-xl p-4 space-y-3"
             style={{
@@ -222,7 +226,7 @@ function OrderDetailModal({
             </div>
           </div>
 
-          {/* â”€â”€ Order Line Items â”€â”€ */}
+          {/* Ã¢â€â‚¬Ã¢â€â‚¬ Order Line Items Ã¢â€â‚¬Ã¢â€â‚¬ */}
           <div
             className="rounded-xl overflow-hidden"
             style={{ border: "1px solid oklch(0.25 0.004 270)" }}
@@ -255,7 +259,7 @@ function OrderDetailModal({
                         border: "1px solid oklch(0.25 0.004 270)",
                       }}
                     >
-                      {item.qty}Ã—
+                      {item.qty}Ãƒâ€”
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-white truncate">{item.name}</p>
@@ -313,7 +317,7 @@ function OrderDetailModal({
             </div>
           </div>
 
-          {/* â”€â”€ Notes â”€â”€ */}
+          {/* Ã¢â€â‚¬Ã¢â€â‚¬ Notes Ã¢â€â‚¬Ã¢â€â‚¬ */}
           {order.notes && (
             <div
               className="rounded-xl p-4 flex gap-3"
@@ -342,23 +346,34 @@ function OrderDetailModal({
           <button onClick={onClose} className="admin-btn-ghost text-xs">
             Cancel
           </button>
-          <button
-            onClick={handleSave}
-            disabled={saving || selectedStatus === order.status}
-            className="admin-btn-primary text-xs flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {saving ? (
-              <>
-                <div className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-3.5 w-3.5" />
-                Update Status
-              </>
+          <div className="flex items-center gap-2">
+            {isPastOrder && (
+              <button
+                onClick={() => void onDelete(order)}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Delete order
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || selectedStatus === order.status}
+              className="admin-btn-primary text-xs flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <>
+                  <div className="h-3.5 w-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" />
+                  Update Status
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -387,7 +402,7 @@ function InfoRow({
   );
 }
 
-// â”€â”€ Main Orders Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Main Orders Page Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function AdminOrders() {
   const [search, setSearch] = useState("");
@@ -407,27 +422,27 @@ function AdminOrders() {
           const itemCount = items.reduce((s, it) => s + (Number(it.qty) || 1), 0);
           const productSummary =
             items.length > 0
-              ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ã— ` : ""}${it.name}`).join(", ")
-              : "â€”";
+              ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ãƒâ€” ` : ""}${it.name}`).join(", ")
+              : "Ã¢â‚¬â€";
 
           return {
             id: o.id,
             customer: o.customerName,
-            email: o.email || "â€”",
-            phone: o.phone || "â€”",
+            email: o.email || "Ã¢â‚¬â€",
+            phone: o.phone || "Ã¢â‚¬â€",
             product: productSummary,
             items: itemCount,
             total: Number(o.totalLKR) || 0,
             status: (o.status as MockOrder["status"]) || "Processing",
             date: new Date(o.createdAt).toLocaleDateString("en-GB"),
             paymentMethod: "Direct / WhatsApp",
-            address: o.address || "â€”",
-            city: o.city || "â€”",
-            district: o.city || "â€”", // DB has no separate district; use city
+            address: o.address || "Ã¢â‚¬â€",
+            city: o.city || "Ã¢â‚¬â€",
+            district: o.city || "Ã¢â‚¬â€", // DB has no separate district; use city
             notes: o.notes || undefined,
             lineItems: items.map((it) => ({
               name: it.name || "Unknown Item",
-              sku: it.sku || "â€”",
+              sku: it.sku || "Ã¢â‚¬â€",
               qty: Number(it.qty) || 1,
               unitPrice: Number(it.priceLKR) || 0,
             })),
@@ -497,7 +512,22 @@ function AdminOrders() {
 
     return { updated: true, emailSent: result.emailSent, emailReason: result.emailReason };
   };
+  const handleDeletePastOrder = async (order: MockOrder) => {
+    const confirmed = window.confirm(
+      `Permanently delete ${order.id}? This cannot be undone and will remove the customer order details.`,
+    );
+    if (!confirmed) return;
 
+    const result = await deletePastOrderApi(order.id);
+    if (!result.success) {
+      toast.error(result.error || "Could not delete the order. Please try again.");
+      return;
+    }
+
+    setOrders((previous) => previous.filter((item) => item.id !== order.id));
+    setSelectedOrder(null);
+    toast.success(`Order ${order.id} deleted permanently.`);
+  };
   return (
     <>
       {/* Order Detail Modal */}
@@ -506,6 +536,7 @@ function AdminOrders() {
           order={selectedOrder}
           onClose={() => setSelectedOrder(null)}
           onStatusChange={handleStatusChange}
+          onDelete={handleDeletePastOrder}
         />
       )}
 
@@ -662,7 +693,7 @@ function AdminOrders() {
                             {o.lineItems.slice(0, 2).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-1.5">
                                 <span className="rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 shrink-0 leading-none">
-                                  {item.qty}Ã—
+                                  {item.qty}Ãƒâ€”
                                 </span>
                                 <span
                                   className="text-zinc-200 text-xs font-semibold truncate max-w-[180px]"
@@ -670,7 +701,7 @@ function AdminOrders() {
                                 >
                                   {item.name}
                                 </span>
-                                {item.sku && item.sku !== "â€”" && (
+                                {item.sku && item.sku !== "Ã¢â‚¬â€" && (
                                   <span className="text-[9px] font-mono text-zinc-500 bg-zinc-800/80 px-1 py-0.5 rounded shrink-0">
                                     {item.sku}
                                   </span>
@@ -714,6 +745,16 @@ function AdminOrders() {
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </button>
+                        {(o.status === "Delivered" || o.status === "Cancelled") && (
+                          <button
+                            onClick={() => void handleDeletePastOrder(o)}
+                            className="ml-1 p-1.5 text-zinc-400 hover:text-red-400 rounded hover:bg-red-500/10 transition-colors"
+                            title="Delete past order permanently"
+                            aria-label={`Delete order ${o.id}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))

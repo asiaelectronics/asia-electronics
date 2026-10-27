@@ -1,5 +1,13 @@
 import express from "express";
-import { readOrders, readProducts, createOrderWithInventory, updateOrderStatus, updateOrder, restoreOrderInventory } from "../data/db.js";
+import {
+  readOrders,
+  readProducts,
+  createOrderWithInventory,
+  updateOrderStatus,
+  updateOrder,
+  restoreOrderInventory,
+  deletePastOrder,
+} from "../data/db.js";
 import { sendOrderStatusEmail } from "../services/orderStatusEmail.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 
@@ -198,6 +206,25 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       notification,
       message: `Order status updated to ${status}`,
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/orders/:id
+// Keep active orders intact. Delivered and cancelled orders may be permanently
+// removed by an administrator when they are no longer needed.
+router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const deleted = await deletePastOrder(req.params.id);
+    if (!deleted) {
+      return res.status(400).json({
+        success: false,
+        error: "Only delivered or cancelled orders can be deleted.",
+      });
+    }
+
+    res.json({ success: true, data: deleted, message: "Past order deleted permanently" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
