@@ -547,6 +547,13 @@ export function SiteHeader() {
                       Contact
                     </Link>
                     <Link
+                      to="/blog"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      Guides & Blog
+                    </Link>
+                    <Link
                       to="/account"
                       onClick={() => setMobileOpen(false)}
                       className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
@@ -813,6 +820,13 @@ export function SiteHeader() {
                   activeProps={{ className: "border-b-2 border-primary text-white bg-white/5" }}
                 >
                   Wholesale
+                </Link>
+                <Link
+                  to="/blog"
+                  className="flex items-center px-3 xl:px-4 text-[11px] xl:text-xs font-bold uppercase tracking-wider text-zinc-200 hover:bg-white/10 hover:text-white transition-colors shrink-0"
+                  activeProps={{ className: "border-b-2 border-primary text-white bg-white/5" }}
+                >
+                  Guides
                 </Link>
                 <Link
                   to="/shop"

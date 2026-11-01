@@ -9,7 +9,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 
 import { MotionConfig } from "motion/react";
 import appCss from "../styles.css?url";
@@ -22,8 +22,30 @@ import { SiteFooter } from "@/components/site/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { FullScreenLoader } from "@/components/site/FullScreenLoader";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import { Analytics } from "@vercel/analytics/react";
+
+type ObservabilityComponents = {
+  Analytics: ComponentType;
+  SpeedInsights: ComponentType;
+};
+
+function Observability() {
+  const [components, setComponents] = useState<ObservabilityComponents | null>(null);
+
+  // These are useful after the page is interactive, but should not increase
+  // the critical JavaScript needed to render a product or category page.
+  useEffect(() => {
+    void Promise.all([
+      import("@vercel/analytics/react"),
+      import("@vercel/speed-insights/react"),
+    ]).then(([analytics, speedInsights]) => {
+      setComponents({ Analytics: analytics.Analytics, SpeedInsights: speedInsights.SpeedInsights });
+    });
+  }, []);
+
+  if (!components) return null;
+  const { Analytics, SpeedInsights } = components;
+  return <><SpeedInsights /><Analytics /></>;
+}
 
 function NotFoundComponent() {
   return (
@@ -137,8 +159,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         {children}
-        <SpeedInsights />
-        <Analytics />
+        <Observability />
         <Scripts />
       </body>
     </html>

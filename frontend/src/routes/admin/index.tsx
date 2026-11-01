@@ -15,6 +15,7 @@ import { fetchOrdersApi, type ApiOrder } from "@/services/api";
 export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Overview — Admin" }] }),
   component: OverviewPage,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function OverviewPage() {

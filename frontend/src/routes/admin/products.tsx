@@ -133,6 +133,7 @@ export const Route = createFileRoute("/admin/products")({
   }),
   head: () => ({ meta: [{ title: "Products & 800+ SKUs — Admin" }] }),
   component: ProductsPage,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function ProductsPage() {

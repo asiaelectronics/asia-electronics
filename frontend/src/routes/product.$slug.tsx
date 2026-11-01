@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { productQuery, relatedQuery, categories } from "@/services/catalog";
+import { productQuery, relatedQuery, categories, sanitizeAssetPath } from "@/services/catalog";
+import { fetchProductForSeo } from "@/services/api";
 import { useCart } from "@/context/cart";
 import { useSettings } from "@/context/settings";
 import { formatLKR } from "@/lib/format";
@@ -48,19 +49,24 @@ function buildWhatsAppUrl(productName: string, quantity: number, phoneDigits: st
 
 export const Route = createFileRoute("/product/$slug")({
   loader: async ({ context, params }) => {
-    const p = await context.queryClient.ensureQueryData(productQuery(params.slug));
+    const p = typeof window === "undefined"
+      ? await fetchProductForSeo(params.slug)
+      : await context.queryClient.ensureQueryData(productQuery(params.slug));
     if (!p) {
       // On the server (fresh page load, e.g. a link opened from WhatsApp) there is no
       // localStorage cache and the backend may be unreachable from the SSR runtime.
       // Don't hard-fail with notFound — defer the lookup to the browser instead.
       if (typeof window === "undefined") {
         context.queryClient.removeQueries({ queryKey: productQuery(params.slug).queryKey });
-        return { pending: true as const, slug: params.slug };
+        throw notFound();
       }
       throw notFound();
     }
+    if (typeof window === "undefined") {
+      context.queryClient.setQueryData(productQuery(params.slug).queryKey, p);
+    }
     context.queryClient.ensureQueryData(relatedQuery(params.slug));
-    const firstImg = p.images?.[0] || "/assets/imgs/electronic-components.png";
+    const firstImg = sanitizeAssetPath(p.images?.[0]);
     const imageUrl = firstImg.startsWith("http")
       ? firstImg
       : `https://www.asiaelectronics.lk${firstImg.startsWith("/") ? "" : "/"}${firstImg}`;
@@ -73,14 +79,13 @@ export const Route = createFileRoute("/product/$slug")({
       sku: p.sku,
       inStock: p.stock > 0,
       slug: params.slug,
-      pending: false as const,
     };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
       return { meta: [{ title: "Product not found — Asiaelectronics" }, { name: "robots", content: "noindex" }] };
     }
-    if (loaderData.pending) {
+    if ("pending" in loaderData && loaderData.pending) {
       return {
         meta: [{ title: "Product — Asiaelectronics" }],
         links: [
@@ -154,27 +159,10 @@ function ProductNotFound() {
 }
 
 function ProductPage() {
-  const loaderData = Route.useLoaderData();
-  if (loaderData.pending) return <DeferredProductPage />;
   return <ProductDetails />;
 }
 
 /** Resolves the product in the browser when the server-side lookup missed. */
-function DeferredProductPage() {
-  const { slug } = Route.useParams();
-  const { data: product, isPending } = useQuery(productQuery(slug));
-
-  if (isPending) {
-    return (
-      <div className="container-shop py-20 flex justify-center" aria-busy="true">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-  if (!product) return <ProductNotFound />;
-  return <ProductDetails />;
-}
-
 function ProductDetails() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();

@@ -10,6 +10,7 @@ import { adjustInventoryApi } from "@/services/api";
 export const Route = createFileRoute("/admin/inventory")({
   head: () => ({ meta: [{ title: "Inventory Management â€” Admin" }] }),
   component: AdminInventory,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 const LOW_STOCK_THRESHOLD = 5;

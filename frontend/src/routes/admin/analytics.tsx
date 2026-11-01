@@ -38,6 +38,7 @@ import { fetchOrdersApi, type ApiOrder } from "@/services/api";
 export const Route = createFileRoute("/admin/analytics")({
   head: () => ({ meta: [{ title: "Analytics & Reports — Admin" }] }),
   component: AdminAnalytics,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 // Color constants for charts

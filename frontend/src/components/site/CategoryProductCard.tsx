@@ -71,6 +71,7 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
               src={product.images[0]}
               alt={product.name}
               loading="lazy"
+              decoding="async"
               onError={() => setImageError(true)}
               className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
             />

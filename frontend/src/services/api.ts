@@ -44,6 +44,12 @@ export function getApiBaseUrl(): string {
       const cleanHost = vercelHost.replace(/^https?:\/\//, "").replace(/\/+$/, "");
       return `https://${cleanHost}/api`;
     }
+
+    // Production SSR must never fall back to localhost: crawlers need the
+    // same product data that a browser receives.
+    if (process.env.VERCEL === "1" || process.env.VERCEL_ENV === "production") {
+      return "https://www.asiaelectronics.lk/api";
+    }
   }
 
   return "http://localhost:5000/api";
@@ -163,6 +169,24 @@ export async function fetchProductApi(identifier: string): Promise<Product | nul
     console.warn("Backend API fetchProduct error:", err);
     return null;
   }
+}
+
+/** A strict API lookup for server-rendered, indexable product pages. */
+export async function fetchProductForSeo(identifier: string): Promise<Product | null> {
+  const base = getApiBaseUrl();
+  const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost:5000";
+  const prefix = base.startsWith("http://") || base.startsWith("https://")
+    ? base
+    : `${fallbackOrigin}${base.startsWith("/") ? "" : "/"}${base}`;
+  const res = await fetch(`${prefix}/products/${encodeURIComponent(identifier)}`, {
+    headers: authHeaders(false),
+  });
+
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`Product API returned ${res.status}`);
+
+  const json = await res.json();
+  return json.data || null;
 }
 export async function createProductApi(
   data: Partial<Product> & { priceLKR?: number },

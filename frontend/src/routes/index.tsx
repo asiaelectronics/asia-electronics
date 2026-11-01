@@ -128,6 +128,8 @@ function Index() {
                   alt="Soundbar with subwoofer"
                   width={1024}
                   height={768}
+                  loading="lazy"
+                  decoding="async"
                   className="absolute right-0 top-0 h-full w-1/2 object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
                 />
               </Link>
@@ -170,6 +172,7 @@ function Index() {
                       width={816}
                       height={816}
                       loading="lazy"
+                      decoding="async"
                       className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
                     />
                   </Link>
@@ -200,6 +203,7 @@ function Index() {
                 width={768}
                 height={1152}
                 loading="lazy"
+                decoding="async"
                 className="mt-auto w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
               />
             </Link>
@@ -243,6 +247,8 @@ function Index() {
                     <img
                       src={b.logo}
                       alt={b.name}
+                      loading="lazy"
+                      decoding="async"
                       className="max-h-10 max-w-full object-contain filter group-hover:scale-105 transition-transform"
                       onError={(e) => {
                         (e.target as HTMLElement).style.display = "none";
@@ -319,6 +325,7 @@ function Index() {
                 width={816}
                 height={816}
                 loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.src = "/assets/imgs/electronic-components.png";
                 }}

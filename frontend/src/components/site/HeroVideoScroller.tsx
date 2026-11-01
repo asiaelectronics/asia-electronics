@@ -132,6 +132,9 @@ export function HeroVideoScroller() {
                 <motion.img
                   src={slide.poster}
                   alt=""
+                  loading={idx === 0 ? "eager" : "lazy"}
+                  fetchPriority={idx === 0 ? "high" : "low"}
+                  decoding="async"
                   initial={{ scale: 1.06 }}
                   animate={isActive ? { scale: 1 } : { scale: 1.06 }}
                   transition={{ duration: 6.5, ease: "easeOut" }}

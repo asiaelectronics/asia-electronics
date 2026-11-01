@@ -161,6 +161,7 @@ export function ProductCard({ product }: { product: Product }) {
             src={product.images[0] || "/assets/imgs/electronic-components.png"}
             alt={product.name}
             loading="lazy"
+            decoding="async"
             width={816}
             height={816}
             onError={(e) => {

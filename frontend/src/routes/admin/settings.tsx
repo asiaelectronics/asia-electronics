@@ -22,6 +22,7 @@ import { cleanWhatsAppNumber } from "@/lib/config";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function AdminSettings() {

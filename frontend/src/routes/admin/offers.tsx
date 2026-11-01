@@ -34,6 +34,7 @@ import {
 export const Route = createFileRoute("/admin/offers")({
   head: () => ({ meta: [{ title: "Homepage Offers — Admin" }] }),
   component: OffersPage,
+  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 // ─── Image uploader sub-component ────────────────────────────────────────────

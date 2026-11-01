@@ -55,6 +55,7 @@ export function SiteFooter() {
           <FooterNavLink to="/cart">Cart</FooterNavLink>
           <FooterNavLink to="/contact">Contact us</FooterNavLink>
           <FooterNavLink to="/about">About us</FooterNavLink>
+          <FooterNavLink to="/blog">Guides & blog</FooterNavLink>
           <FooterNavLink to="/wholesale">Wholesale & bulk orders</FooterNavLink>
         </FooterCol>
         <FooterCol title="Policies">
