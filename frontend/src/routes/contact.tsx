@@ -92,7 +92,14 @@ function Contact() {
               <dt className="flex items-center gap-2 font-bold">
                 <Phone className="h-4 w-4 text-muted-foreground" /> Voice Hotline
               </dt>
-              <dd className="font-mono text-muted-foreground">{settings.phone}</dd>
+              <dd>
+                <a
+                  href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
+                  className="font-mono text-muted-foreground hover:text-primary hover:underline"
+                >
+                  {settings.phone}
+                </a>
+              </dd>
             </div>
 
             <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">

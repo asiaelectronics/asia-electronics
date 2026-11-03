@@ -233,6 +233,8 @@ export function SiteHeader() {
   const { count } = useCart();
   const { categories, products, brandLogos } = useCatalog();
   const { user, logout, isAdmin } = useAuth();
+  const { settings } = useSettings();
+  const officePhoneLink = `tel:${settings.phone.replace(/[^\d+]/g, "")}`;
   const [activeMenu, setActiveMenu] = useState<"categories" | "brands" | null>(null);
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -567,8 +569,8 @@ export function SiteHeader() {
                     <p className="font-bold text-zinc-800">Support & Orders</p>
                     <div className="flex items-center gap-1.5">
                       <Phone className="h-3.5 w-3.5 text-primary" />
-                      <a href="tel:+94112222888" className="hover:underline font-medium">
-                        +94 112 222 888
+                      <a href={officePhoneLink} className="hover:underline font-medium">
+                        {settings.phone}
                       </a>
                     </div>
                     <div className="flex items-center gap-1.5">
@@ -848,11 +850,11 @@ export function SiteHeader() {
                   <span>Track your order</span>
                 </Link>
                 <a
-                  href="tel:+94112222888"
+                  href={officePhoneLink}
                   className="flex items-center gap-1.5 text-white font-bold hover:text-primary transition-colors whitespace-nowrap"
                 >
                   <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
-                  <span>+94 112 222 888</span>
+                  <span>{settings.phone}</span>
                 </a>
               </div>
             </div>

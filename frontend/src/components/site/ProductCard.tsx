@@ -5,7 +5,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@/context/cart";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { BUSINESS_WHATSAPP_NUMBER } from "@/lib/config";
 import { formatLKR, stockLabel } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";

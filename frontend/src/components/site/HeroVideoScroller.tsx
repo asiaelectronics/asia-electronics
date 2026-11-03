@@ -4,7 +4,6 @@ import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide-react";
 import electronicsHero from "@/assets/imgs/hero-electronics-showcase.png";
 import repairHero from "@/assets/imgs/hero-repair-workbench.png";
-import { BUSINESS_WHATSAPP_NUMBER } from "@/lib/config";
 import { useSettings } from "@/context/settings";
 
 /* WhatsApp SVG icon */
@@ -45,12 +44,7 @@ const SLIDES = [
       to: "/shop" as const,
       search: { category: "components" },
     },
-    whatsappCta: {
-      text: "WhatsApp Parts Inquiry",
-      url: `https://web.whatsapp.com/send?phone=${BUSINESS_WHATSAPP_NUMBER}&text=${encodeURIComponent(
-        "Hello Asia Electronics, I would like to inquire about television and circuit repair parts availability.",
-      )}`,
-    },
+    whatsappCta: { text: "WhatsApp Parts Inquiry" },
   },
 ];
 
