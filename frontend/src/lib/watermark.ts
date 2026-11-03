@@ -15,11 +15,18 @@ export const WATERMARK_LOGO_URL =
 
 export const LOCAL_FALLBACK_LOGO_URL = "/assets/imgs/logopng.png";
 
+export type WatermarkLogoPosition =
+  "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
+
+export type WatermarkTextPosition = "bottom-left" | "bottom-center" | "bottom-right";
+
 export interface WatermarkOptions {
   logoUrl?: string;
   websiteText?: string;
   logoOpacity?: number;
   textOpacity?: number;
+  logoPosition?: WatermarkLogoPosition;
+  textPosition?: WatermarkTextPosition;
   quality?: number; // 0.85 default
 }
 
@@ -38,12 +45,9 @@ export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageEl
     return logoLoadPromise;
   }
 
-  const urlsToTry = [
-    customUrl,
-    WATERMARK_LOGO_URL,
-    LOCAL_FALLBACK_LOGO_URL,
-    "/logo.png",
-  ].filter(Boolean) as string[];
+  const urlsToTry = [customUrl, WATERMARK_LOGO_URL, LOCAL_FALLBACK_LOGO_URL, "/logo.png"].filter(
+    Boolean,
+  ) as string[];
 
   logoLoadPromise = (async () => {
     for (const url of urlsToTry) {
@@ -142,7 +146,7 @@ export async function applyWatermarkToImage(
   ctx.clearRect(0, 0, width, height);
   ctx.drawImage(baseImg, 0, 0, width, height);
 
-  // 1. TOP-LEFT LOGO WATERMARK
+  // 1. LOGO WATERMARK
   try {
     const logoImg = await loadWatermarkLogo(options.logoUrl);
     if (logoImg && logoImg.naturalWidth > 0) {
@@ -158,10 +162,21 @@ export async function applyWatermarkToImage(
       const logoAspect = logoImg.naturalHeight / logoImg.naturalWidth;
       const targetLogoHeight = Math.round(targetLogoWidth * logoAspect);
 
-      // Offset padding from top-left (proportional, ~3.5% of shortest side)
+      // Offset padding from the chosen corner (proportional, ~3.5% of shortest side)
       const padding = Math.max(12, Math.round(minDimension * 0.035));
-      const logoX = padding;
-      const logoY = padding;
+      const logoPosition = options.logoPosition ?? "top-left";
+      const logoX =
+        logoPosition === "top-right" || logoPosition === "bottom-right"
+          ? width - targetLogoWidth - padding
+          : logoPosition === "center"
+            ? Math.round((width - targetLogoWidth) / 2)
+            : padding;
+      const logoY =
+        logoPosition === "bottom-left" || logoPosition === "bottom-right"
+          ? height - targetLogoHeight - padding
+          : logoPosition === "center"
+            ? Math.round((height - targetLogoHeight) / 2)
+            : padding;
 
       ctx.save();
       ctx.globalAlpha = options.logoOpacity ?? 0.88;
@@ -189,10 +204,6 @@ export async function applyWatermarkToImage(
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  const textX = Math.round(width / 2);
-  // Position in the lower section (around 90% down)
-  const textY = Math.round(height - Math.max(fontSize * 1.5, height * 0.08));
-
   // Subtle translucent pill background for consistent readability across high-contrast images
   const textMetrics = ctx.measureText(watermarkText);
   const textW = textMetrics.width;
@@ -201,6 +212,15 @@ export async function applyWatermarkToImage(
   const pillW = textW + pillPaddingX * 2;
   const pillH = fontSize + pillPaddingY * 2;
   const pillRadius = Math.round(pillH / 2);
+  const textPosition = options.textPosition ?? "bottom-center";
+  const textPadding = Math.max(fontSize * 1.5, height * 0.08);
+  const textX =
+    textPosition === "bottom-left"
+      ? Math.round(pillW / 2 + textPadding)
+      : textPosition === "bottom-right"
+        ? Math.round(width - pillW / 2 - textPadding)
+        : Math.round(width / 2);
+  const textY = Math.round(height - textPadding);
 
   ctx.globalAlpha = options.textOpacity ?? 0.28;
   ctx.fillStyle = "rgba(0, 0, 0, 0.55)";

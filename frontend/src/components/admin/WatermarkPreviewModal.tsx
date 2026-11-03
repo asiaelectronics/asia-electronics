@@ -16,6 +16,8 @@ import {
   applyWatermarkToImage,
   WATERMARK_LOGO_URL,
   LOCAL_FALLBACK_LOGO_URL,
+  type WatermarkLogoPosition,
+  type WatermarkTextPosition,
 } from "@/lib/watermark";
 
 interface WatermarkPreviewModalProps {
@@ -49,11 +51,16 @@ export function WatermarkPreviewModal({
   const [zoomSide, setZoomSide] = useState<"split" | "watermarked" | "original">("split");
   const [logoOpacity, setLogoOpacity] = useState<number>(0.9);
   const [textOpacity, setTextOpacity] = useState<number>(0.32);
+  const [logoPosition, setLogoPosition] = useState<WatermarkLogoPosition>("top-left");
+  const [textPosition, setTextPosition] = useState<WatermarkTextPosition>("bottom-center");
 
   // Sample mock items for testing geometry (square, portrait, landscape, transparent)
-  const [sampleMode, setSampleMode] = useState<"product" | "square" | "portrait" | "landscape" | "transparent">("product");
+  const [sampleMode, setSampleMode] = useState<
+    "product" | "square" | "portrait" | "landscape" | "transparent"
+  >("product");
 
-  const currentProduct = products.find((p) => p.id === selectedProductId) || targetProduct || products[0];
+  const currentProduct =
+    products.find((p) => p.id === selectedProductId) || targetProduct || products[0];
 
   // Resolve source image based on mode
   useEffect(() => {
@@ -67,12 +74,14 @@ export function WatermarkPreviewModal({
     } else if (sampleMode === "transparent") {
       source = "/assets/imgs/logopng.png";
     } else if (currentProduct) {
-      const origs = currentProduct.originalImages && currentProduct.originalImages.length > 0
-        ? currentProduct.originalImages
-        : currentProduct.images;
+      const origs =
+        currentProduct.originalImages && currentProduct.originalImages.length > 0
+          ? currentProduct.originalImages
+          : currentProduct.images;
       source = origs[activeImgIndex] || origs[0] || "/assets/imgs/electronic-components.png";
     }
 
+    setWatermarkedSrc("");
     setOriginalSrc(source);
   }, [selectedProductId, activeImgIndex, sampleMode, currentProduct]);
 
@@ -85,6 +94,8 @@ export function WatermarkPreviewModal({
     applyWatermarkToImage(originalSrc, {
       logoOpacity,
       textOpacity,
+      logoPosition,
+      textPosition,
       logoUrl: WATERMARK_LOGO_URL,
     })
       .then((res) => {
@@ -99,6 +110,8 @@ export function WatermarkPreviewModal({
         applyWatermarkToImage(originalSrc, {
           logoOpacity,
           textOpacity,
+          logoPosition,
+          textPosition,
           logoUrl: LOCAL_FALLBACK_LOGO_URL,
         })
           .then((res) => {
@@ -115,7 +128,7 @@ export function WatermarkPreviewModal({
     return () => {
       cancelled = true;
     };
-  }, [originalSrc, logoOpacity, textOpacity]);
+  }, [originalSrc, logoOpacity, textOpacity, logoPosition, textPosition]);
 
   if (!isOpen) return null;
 
@@ -123,9 +136,10 @@ export function WatermarkPreviewModal({
     if (!currentProduct || !watermarkedSrc) return;
     setIsApplying(true);
     try {
-      const origImages = currentProduct.originalImages && currentProduct.originalImages.length > 0
-        ? [...currentProduct.originalImages]
-        : [...currentProduct.images];
+      const origImages =
+        currentProduct.originalImages && currentProduct.originalImages.length > 0
+          ? [...currentProduct.originalImages]
+          : [...currentProduct.images];
 
       // Prepare watermarked image array (watermark current active index)
       const currentImgs = [...currentProduct.images];
@@ -157,7 +171,9 @@ export function WatermarkPreviewModal({
                 </span>
               </h2>
               <p className="text-xs text-zinc-400">
-                Top-left brand logo + subtle bottom <span className="text-zinc-200 font-mono">asiaelectronics.lk</span> watermark. Baked permanently into pixel data.
+                Position the brand logo and{" "}
+                <span className="text-zinc-200 font-mono">asiaelectronics.lk</span> watermark, then
+                bake the selected layout permanently into the image.
               </p>
             </div>
           </div>
@@ -173,10 +189,10 @@ export function WatermarkPreviewModal({
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* Controls Bar: Test Samples & Product Select */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-zinc-900/80 p-3.5 rounded-xl border border-zinc-800 text-xs">
-            {/* Test Geometry Samples */}
+            {/* Preview image-shape samples only */}
             <div className="md:col-span-5 space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-orange-400" /> Test Geometry Types:
+                <Layers className="h-3.5 w-3.5 text-orange-400" /> Preview Image Shape:
               </label>
               <div className="flex flex-wrap gap-1">
                 {(
@@ -190,6 +206,7 @@ export function WatermarkPreviewModal({
                 ).map((t) => (
                   <button
                     key={t.id}
+                    type="button"
                     onClick={() => setSampleMode(t.id)}
                     className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
                       sampleMode === t.id
@@ -219,7 +236,8 @@ export function WatermarkPreviewModal({
                 >
                   {products.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.sku} — {p.name} ({p.images?.length || 1} image{p.images?.length === 1 ? "" : "s"})
+                      {p.sku} — {p.name} ({p.images?.length || 1} image
+                      {p.images?.length === 1 ? "" : "s"})
                     </option>
                   ))}
                 </select>
@@ -230,7 +248,9 @@ export function WatermarkPreviewModal({
           {/* Comparison Viewport */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Left: Original (Clean, Unwatermarked) */}
-            <div className={`space-y-2 ${zoomSide === "watermarked" ? "hidden md:block opacity-40" : ""}`}>
+            <div
+              className={`space-y-2 ${zoomSide === "watermarked" ? "hidden md:block opacity-40" : ""}`}
+            >
               <div className="flex items-center justify-between text-xs font-bold text-zinc-400 px-1">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-zinc-500" />
@@ -255,7 +275,9 @@ export function WatermarkPreviewModal({
             </div>
 
             {/* Right: Watermarked Preview (Branded with Logo & Text) */}
-            <div className={`space-y-2 ${zoomSide === "original" ? "hidden md:block opacity-40" : ""}`}>
+            <div
+              className={`space-y-2 ${zoomSide === "original" ? "hidden md:block opacity-40" : ""}`}
+            >
               <div className="flex items-center justify-between text-xs font-bold text-orange-400 px-1">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
@@ -287,11 +309,39 @@ export function WatermarkPreviewModal({
             </div>
           </div>
 
-          {/* Opacity and Fine-tuning Sliders */}
+          {/* Watermark layout and fine-tuning controls */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/80 text-xs">
             <div>
+              <label className="mb-1.5 block font-semibold text-zinc-300">Logo Position</label>
+              <select
+                value={logoPosition}
+                onChange={(e) => setLogoPosition(e.target.value as WatermarkLogoPosition)}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white focus:outline-hidden focus:border-orange-500"
+              >
+                <option value="top-left">Top left</option>
+                <option value="top-right">Top right</option>
+                <option value="bottom-left">Bottom left</option>
+                <option value="bottom-right">Bottom right</option>
+                <option value="center">Center</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block font-semibold text-zinc-300">
+                Website Text Position
+              </label>
+              <select
+                value={textPosition}
+                onChange={(e) => setTextPosition(e.target.value as WatermarkTextPosition)}
+                className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-xs text-white focus:outline-hidden focus:border-orange-500"
+              >
+                <option value="bottom-left">Bottom left</option>
+                <option value="bottom-center">Bottom center</option>
+                <option value="bottom-right">Bottom right</option>
+              </select>
+            </div>
+            <div>
               <div className="flex justify-between font-semibold text-zinc-300 mb-1.5">
-                <span>Top-Left Logo Opacity:</span>
+                <span>Logo Opacity:</span>
                 <span className="text-orange-400 font-mono">{Math.round(logoOpacity * 100)}%</span>
               </div>
               <input
@@ -306,7 +356,7 @@ export function WatermarkPreviewModal({
             </div>
             <div>
               <div className="flex justify-between font-semibold text-zinc-300 mb-1.5">
-                <span>Lower Watermark ("asiaelectronics.lk") Opacity:</span>
+                <span>Website Text Opacity:</span>
                 <span className="text-orange-400 font-mono">{Math.round(textOpacity * 100)}%</span>
               </div>
               <input
@@ -350,7 +400,10 @@ export function WatermarkPreviewModal({
           <div className="flex items-start gap-2.5 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs text-orange-300/90 leading-relaxed">
             <AlertTriangle className="h-4 w-4 shrink-0 text-orange-400 mt-0.5" />
             <p>
-              <strong>Safety Protected:</strong> Bulk watermarking of production images is locked until preview is confirmed. Original clean photos are safely archived in the database record (<code className="text-white">originalImages</code>) so watermark-free copies remain available for external marketplaces or marketing feeds.
+              <strong>Safety Protected:</strong> Bulk watermarking of production images is locked
+              until preview is confirmed. Original clean photos are safely archived in the database
+              record (<code className="text-white">originalImages</code>) so watermark-free copies
+              remain available for external marketplaces or marketing feeds.
             </p>
           </div>
         </div>
@@ -375,7 +428,8 @@ export function WatermarkPreviewModal({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-3.5 w-3.5" /> Watermark This Product ({currentProduct.sku})
+                    <Sparkles className="h-3.5 w-3.5" /> Watermark This Product (
+                    {currentProduct.sku})
                   </>
                 )}
               </button>
