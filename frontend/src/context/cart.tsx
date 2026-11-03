@@ -9,6 +9,7 @@ import {
 } from "react";
 import { getStoredProducts } from "@/services/catalog";
 import type { Product } from "@/lib/types";
+import { trackProductAnalyticsEvent } from "@/services/api";
 
 export interface CartLine {
   key: string;
@@ -115,7 +116,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal,
       delivery,
       total: subtotal + delivery,
-      add: (productId, qty = 1, variant) => dispatch({ type: "add", productId, qty, variant }),
+      add: (productId, qty = 1, variant) => {
+        dispatch({ type: "add", productId, qty, variant });
+        trackProductAnalyticsEvent(productId, "add_to_cart");
+      },
       setQty: (key, qty) => dispatch({ type: "set", key, qty }),
       remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),

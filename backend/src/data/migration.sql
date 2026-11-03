@@ -319,3 +319,16 @@ CREATE TABLE IF NOT EXISTS banners (
 );
 CREATE INDEX IF NOT EXISTS idx_banners_display_order ON banners(display_order);
 ALTER TABLE banners ADD COLUMN IF NOT EXISTS size TEXT NOT NULL DEFAULT 'medium';
+
+-- Anonymous storefront engagement events. No customer name, email, phone, or IP is stored.
+CREATE TABLE IF NOT EXISTS product_analytics_events (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  product_id TEXT NOT NULL,
+  event_type TEXT NOT NULL CHECK (event_type IN ('view', 'add_to_cart')),
+  session_id TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_product_analytics_events_product_date
+  ON product_analytics_events(product_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_product_analytics_events_type_date
+  ON product_analytics_events(event_type, created_at DESC);

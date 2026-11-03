@@ -37,7 +37,8 @@ function toDbProduct(p) {
     specs: p.specs,
     attributes: {
       ...attributes,
-      originalImages: p.originalImages || p.attributes?.originalImages || undefined,
+      originalImages:
+        p.originalImages || p.attributes?.originalImages || undefined,
     },
     featured: p.featured,
     is_new: p.isNew,
@@ -115,8 +116,15 @@ function fromDbCategory(row) {
 }
 
 async function replaceCategorySubcategories(categorySlug, subcategories) {
-  const names = [...new Set((subcategories || []).map((item) => String(item).trim()).filter(Boolean))];
-  const { error: deleteError } = await supabase.from("subcategories").delete().eq("category_slug", categorySlug);
+  const names = [
+    ...new Set(
+      (subcategories || []).map((item) => String(item).trim()).filter(Boolean),
+    ),
+  ];
+  const { error: deleteError } = await supabase
+    .from("subcategories")
+    .delete()
+    .eq("category_slug", categorySlug);
   if (deleteError) throw new Error(deleteError.message);
   if (names.length === 0) return [];
   const { error: insertError } = await supabase
@@ -531,7 +539,8 @@ export async function updateProduct(id, updates) {
   if (updates.brand !== undefined) dbUpdates.brand = updates.brand;
   if (updates.model !== undefined) dbUpdates.model = updates.model;
   if (updates.category !== undefined) dbUpdates.category = updates.category;
-  if (updates.subcategory !== undefined) dbUpdates.subcategory = updates.subcategory || null;
+  if (updates.subcategory !== undefined)
+    dbUpdates.subcategory = updates.subcategory || null;
   if (updates.priceLKR !== undefined)
     dbUpdates.price_cents = Math.round(Number(updates.priceLKR) * 100);
   if (updates.priceCents !== undefined)
@@ -635,11 +644,16 @@ export async function findProduct(identifier) {
   if (!/^[a-zA-Z0-9_-]{1,300}$/.test(value)) return null;
 
   // Safe PostgREST filters: user input is never interpolated into a filter string.
-  for (const [column, operator] of [["id", "eq"], ["slug", "eq"], ["sku", "ilike"]]) {
+  for (const [column, operator] of [
+    ["id", "eq"],
+    ["slug", "eq"],
+    ["sku", "ilike"],
+  ]) {
     const query = supabase.from("products").select("*").limit(1);
-    const { data, error } = operator === "ilike"
-      ? await query.ilike(column, value).maybeSingle()
-      : await query.eq(column, value).maybeSingle();
+    const { data, error } =
+      operator === "ilike"
+        ? await query.ilike(column, value).maybeSingle()
+        : await query.eq(column, value).maybeSingle();
     if (error) throw new Error(error.message);
     if (data) return fromDbProduct(data);
   }
@@ -703,7 +717,10 @@ export async function insertCategory(cat) {
 
   if (error) throw new Error(error.message);
   const saved = fromDbCategory(data);
-  saved.subcategories = await replaceCategorySubcategories(saved.slug, cat.subcategories);
+  saved.subcategories = await replaceCategorySubcategories(
+    saved.slug,
+    cat.subcategories,
+  );
   return saved;
 }
 
@@ -721,7 +738,9 @@ export async function updateCategoryInDb(slug, updates) {
   if (updates.image !== undefined) dbUpdates.image = updates.image;
   if (updates.filterKey !== undefined) dbUpdates.filter_key = updates.filterKey;
   if (updates.subcategories !== undefined) {
-    dbUpdates.subcategories = Array.isArray(updates.subcategories) ? updates.subcategories : [];
+    dbUpdates.subcategories = Array.isArray(updates.subcategories)
+      ? updates.subcategories
+      : [];
   }
 
   const { data, error } = await supabase
@@ -734,7 +753,10 @@ export async function updateCategoryInDb(slug, updates) {
   if (error) throw new Error(error.message);
   const saved = fromDbCategory(data);
   if (updates.subcategories !== undefined) {
-    saved.subcategories = await replaceCategorySubcategories(saved.slug, updates.subcategories);
+    saved.subcategories = await replaceCategorySubcategories(
+      saved.slug,
+      updates.subcategories,
+    );
   }
   return saved;
 }
@@ -868,6 +890,37 @@ export async function deletePastOrder(id) {
   if (error) throw new Error(error.message);
   return data || null;
 }
+
+// ─── Anonymous product engagement analytics ──────────────────────────────────
+export async function recordProductAnalyticsEvent({
+  productId,
+  eventType,
+  sessionId,
+}) {
+  const { error } = await supabase.from("product_analytics_events").insert({
+    product_id: productId,
+    event_type: eventType,
+    session_id: sessionId,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function readProductAnalyticsEvents() {
+  const { data, error } = await supabase
+    .from("product_analytics_events")
+    .select("product_id, event_type, session_id, created_at")
+    .gte(
+      "created_at",
+      new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    );
+  if (error) {
+    // Preserve the existing sales dashboard until the analytics migration is
+    // applied to a production Supabase project.
+    console.error("Supabase readProductAnalyticsEvents error:", error.message);
+    return [];
+  }
+  return data || [];
+}
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ SETTINGS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export const defaultSettings = {
   id: "default",
@@ -987,8 +1040,11 @@ export async function updateSettings(updates) {
   return merged;
 }
 
-export async function adjustInventory(productId, { mode, quantity, reason, reference = null }) {
-  const { data, error } = await supabase.rpc('adjust_inventory', {
+export async function adjustInventory(
+  productId,
+  { mode, quantity, reason, reference = null },
+) {
+  const { data, error } = await supabase.rpc("adjust_inventory", {
     p_product_id: productId,
     p_mode: mode,
     p_quantity: quantity,
@@ -1001,20 +1057,26 @@ export async function adjustInventory(productId, { mode, quantity, reason, refer
 
 export async function readInventoryHistory(productId) {
   const { data, error } = await supabase
-    .from('inventory_history')
-    .select('id, quantity_change, previous_quantity, new_quantity, reason, reference, created_at')
-    .eq('product_id', productId)
-    .order('created_at', { ascending: false });
+    .from("inventory_history")
+    .select(
+      "id, quantity_change, previous_quantity, new_quantity, reason, reference, created_at",
+    )
+    .eq("product_id", productId)
+    .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return data || [];
 }
 
 export async function createOrderWithInventory(order) {
-  const { data, error } = await supabase.rpc('create_order_with_inventory', { p_order: order });
+  const { data, error } = await supabase.rpc("create_order_with_inventory", {
+    p_order: order,
+  });
   if (error) throw new Error(error.message);
   return data;
 }
 export async function restoreOrderInventory(orderId) {
-  const { error } = await supabase.rpc('restore_order_inventory', { p_order_id: orderId });
+  const { error } = await supabase.rpc("restore_order_inventory", {
+    p_order_id: orderId,
+  });
   if (error) throw new Error(error.message);
 }

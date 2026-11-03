@@ -10,10 +10,10 @@ import {
   Truck,
   Store,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { productQuery, relatedQuery, categories, sanitizeAssetPath } from "@/services/catalog";
-import { fetchProductForSeo } from "@/services/api";
+import { fetchProductForSeo, trackProductAnalyticsEvent } from "@/services/api";
 import { useCart } from "@/context/cart";
 import { useSettings } from "@/context/settings";
 import { formatLKR } from "@/lib/format";
@@ -49,9 +49,10 @@ function buildWhatsAppUrl(productName: string, quantity: number, phoneDigits: st
 
 export const Route = createFileRoute("/product/$slug")({
   loader: async ({ context, params }) => {
-    const p = typeof window === "undefined"
-      ? await fetchProductForSeo(params.slug)
-      : await context.queryClient.ensureQueryData(productQuery(params.slug));
+    const p =
+      typeof window === "undefined"
+        ? await fetchProductForSeo(params.slug)
+        : await context.queryClient.ensureQueryData(productQuery(params.slug));
     if (!p) {
       // On the server (fresh page load, e.g. a link opened from WhatsApp) there is no
       // localStorage cache and the backend may be unreachable from the SSR runtime.
@@ -83,7 +84,12 @@ export const Route = createFileRoute("/product/$slug")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Product not found — Asiaelectronics" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [
+          { title: "Product not found — Asiaelectronics" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
     }
     if ("pending" in loaderData && loaderData.pending) {
       return {
@@ -173,6 +179,9 @@ function ProductDetails() {
   const [img, setImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [variant, setVariant] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (product?.id) trackProductAnalyticsEvent(product.id, "view");
+  }, [product?.id]);
   if (!product) return <ProductNotFound />;
 
   const cat = categories.find((c) => c.slug === product.category);

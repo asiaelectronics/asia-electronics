@@ -33,7 +33,12 @@ import {
 } from "recharts";
 import { formatLKR, formatRupees } from "@/lib/format";
 import { useCatalog } from "@/services/catalog";
-import { fetchOrdersApi, type ApiOrder } from "@/services/api";
+import {
+  fetchAnalyticsApi,
+  fetchOrdersApi,
+  type ApiAnalytics,
+  type ApiOrder,
+} from "@/services/api";
 
 export const Route = createFileRoute("/admin/analytics")({
   head: () => ({ meta: [{ title: "Analytics & Reports — Admin" }] }),
@@ -75,13 +80,15 @@ const darkTooltipStyle = {
 function AdminAnalytics() {
   const { products, categories } = useCatalog();
   const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [apiAnalytics, setApiAnalytics] = useState<ApiAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await fetchOrdersApi();
-      if (data) setOrders(data);
+      const [orderData, analyticsData] = await Promise.all([fetchOrdersApi(), fetchAnalyticsApi()]);
+      if (orderData) setOrders(orderData);
+      if (analyticsData) setApiAnalytics(analyticsData);
     } finally {
       setLoading(false);
     }
@@ -102,10 +109,7 @@ function AdminAnalytics() {
     [validOrders],
   );
 
-  const deliveredOrders = useMemo(
-    () => orders.filter((o) => o.status === "Delivered"),
-    [orders],
-  );
+  const deliveredOrders = useMemo(() => orders.filter((o) => o.status === "Delivered"), [orders]);
 
   const deliveredRevenueLKR = useMemo(
     () => deliveredOrders.reduce((sum, o) => sum + (Number(o.totalLKR) || 0), 0),
@@ -295,6 +299,85 @@ function AdminAnalytics() {
       </div>
 
       {/* ── ROW 1: Revenue Timeline & Product Availability ── */}
+      <section className="admin-card space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+              Product demand & insights
+            </h2>
+            <p className="mt-1 text-xs text-zinc-400">
+              Anonymous views and add-to-cart activity from the last 90 days.
+            </p>
+          </div>
+          <div className="flex gap-2 text-xs font-bold">
+            <span className="rounded bg-sky-500/10 px-2 py-1 text-sky-300">
+              {apiAnalytics?.engagement?.totalViews ?? 0} views
+            </span>
+            <span className="rounded bg-violet-500/10 px-2 py-1 text-violet-300">
+              {apiAnalytics?.engagement?.totalAddToCart ?? 0} cart adds
+            </span>
+          </div>
+        </div>
+        {apiAnalytics?.engagement?.insights?.length ? (
+          <div className="grid gap-2 lg:grid-cols-2">
+            {apiAnalytics.engagement.insights.map((insight) => (
+              <p
+                key={insight}
+                className="rounded border border-amber-500/20 bg-amber-500/5 p-3 text-xs leading-5 text-amber-100"
+              >
+                {insight}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-zinc-500">
+            Insights will appear after customers view products and add them to cart.
+          </p>
+        )}
+        <div className="overflow-x-auto rounded border border-zinc-800">
+          <table className="w-full min-w-[680px] text-left text-xs">
+            <thead className="bg-zinc-900 text-[10px] uppercase tracking-wider text-zinc-400">
+              <tr>
+                <th className="p-3">Product</th>
+                <th className="p-3 text-right">Views</th>
+                <th className="p-3 text-right">Cart adds</th>
+                <th className="p-3 text-right">Rate</th>
+                <th className="p-3 text-right">Requests</th>
+                <th className="p-3 text-right">Delivered</th>
+                <th className="p-3 text-right">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(apiAnalytics?.engagement?.popularProducts ?? []).map((item) => (
+                <tr key={item.id} className="border-t border-zinc-800 text-zinc-300">
+                  <td className="p-3">
+                    <p className="font-bold text-white">{item.name}</p>
+                    <p className="font-mono text-[10px] text-zinc-500">{item.sku}</p>
+                  </td>
+                  <td className="p-3 text-right">{item.views}</td>
+                  <td className="p-3 text-right">{item.addToCart}</td>
+                  <td className="p-3 text-right">{item.cartRate}%</td>
+                  <td className="p-3 text-right">{item.quotationRequests}</td>
+                  <td className="p-3 text-right">{item.deliveredOrders}</td>
+                  <td
+                    className={`p-3 text-right font-bold ${item.stock <= 5 ? "text-amber-400" : "text-emerald-400"}`}
+                  >
+                    {item.stock}
+                  </td>
+                </tr>
+              ))}
+              {(apiAnalytics?.engagement?.popularProducts ?? []).length === 0 && (
+                <tr>
+                  <td colSpan={7} className="p-5 text-center text-zinc-500">
+                    No product activity has been recorded yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* CHART 1: REVENUE TRENDS (AreaChart) */}
         <section className="admin-card flex flex-col justify-between">
@@ -436,7 +519,9 @@ function AdminAnalytics() {
           </div>
 
           <div className="mt-4 flex items-center justify-between border-t border-zinc-800/80 pt-3 text-xs text-zinc-400">
-            <span>{products.length} Products across {categories.length} Categories</span>
+            <span>
+              {products.length} Products across {categories.length} Categories
+            </span>
             <span className="text-[11px] text-zinc-500">Live catalog sync</span>
           </div>
         </section>
@@ -511,14 +596,12 @@ function AdminAnalytics() {
                   className="rounded-lg border border-zinc-800/60 bg-zinc-950/40 p-2"
                 >
                   <p className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-400">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: st.color }}
-                    />
+                    <span className="h-2 w-2 rounded-full" style={{ backgroundColor: st.color }} />
                     {st.name}
                   </p>
                   <p className="mt-1 text-sm font-extrabold text-white">
-                    {st.orders} <span className="text-[10px] font-normal text-zinc-400">orders</span>
+                    {st.orders}{" "}
+                    <span className="text-[10px] font-normal text-zinc-400">orders</span>
                   </p>
                   <p className="text-[10px] text-zinc-400">{formatRupees(st.revenueLKR)}</p>
                 </div>
@@ -606,7 +689,10 @@ function AdminAnalytics() {
               </div>
               <div className="mt-2 divide-y divide-zinc-800/50">
                 {bestSellingData.slice(0, 3).map((item, idx) => (
-                  <div key={item.sku + idx} className="flex items-center justify-between py-1.5 text-xs">
+                  <div
+                    key={item.sku + idx}
+                    className="flex items-center justify-between py-1.5 text-xs"
+                  >
                     <div className="flex items-center gap-2 overflow-hidden pr-2">
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black ${
@@ -718,10 +804,7 @@ function CategoryLegendItem({
   return (
     <div className="flex items-center justify-between rounded-lg border border-zinc-800/60 bg-zinc-950/40 p-2.5">
       <div className="flex items-center gap-2.5">
-        <span
-          className="h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: color }}
-        />
+        <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
         <div>
           <p className="text-xs font-bold text-white">{label}</p>
           <p className="text-[10px] text-zinc-400">{detail}</p>
