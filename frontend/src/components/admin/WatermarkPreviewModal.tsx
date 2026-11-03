@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ShieldCheck,
   Sparkles,
@@ -33,7 +33,6 @@ interface WatermarkPreviewModalProps {
 }
 
 type SampleMode = "product" | "square" | "portrait" | "landscape" | "transparent";
-type UploadedSampleMode = Exclude<SampleMode, "product">;
 
 export function WatermarkPreviewModal({
   isOpen,
@@ -57,31 +56,24 @@ export function WatermarkPreviewModal({
   const [logoPosition, setLogoPosition] = useState<WatermarkLogoPosition>("top-left");
   const [textPosition, setTextPosition] = useState<WatermarkTextPosition>("bottom-center");
 
-  // Each test shape uses an administrator-uploaded image, never a stock placeholder.
+  // Output shape applied to the selected catalog product image.
   const [sampleMode, setSampleMode] = useState<SampleMode>("product");
-  const [uploadedSampleSources, setUploadedSampleSources] = useState<
-    Partial<Record<UploadedSampleMode, string>>
-  >({});
-  const sampleImageInputRef = useRef<HTMLInputElement>(null);
-  const sampleObjectUrlsRef = useRef<string[]>([]);
 
   const currentProduct =
     products.find((p) => p.id === selectedProductId) || targetProduct || products[0];
-  const uploadedSampleSrc = sampleMode === "product" ? "" : uploadedSampleSources[sampleMode];
-
-  useEffect(() => {
-    const urlsToRevoke = sampleObjectUrlsRef.current;
-    return () => {
-      urlsToRevoke.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, []);
+  const outputAspectRatio =
+    sampleMode === "square"
+      ? 1
+      : sampleMode === "landscape"
+        ? 16 / 9
+        : sampleMode === "portrait"
+          ? 3 / 4
+          : undefined;
 
   // Resolve source image based on mode
   useEffect(() => {
     let source = "";
-    if (sampleMode !== "product") {
-      source = uploadedSampleSrc || "";
-    } else if (currentProduct) {
+    if (currentProduct) {
       const origs =
         currentProduct.originalImages && currentProduct.originalImages.length > 0
           ? currentProduct.originalImages
@@ -92,17 +84,7 @@ export function WatermarkPreviewModal({
     setWatermarkedSrc("");
     if (!source) setIsProcessing(false);
     setOriginalSrc(source);
-  }, [selectedProductId, activeImgIndex, sampleMode, currentProduct, uploadedSampleSrc]);
-
-  const handleSampleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || sampleMode === "product") return;
-
-    const nextUrl = URL.createObjectURL(file);
-    sampleObjectUrlsRef.current.push(nextUrl);
-    setUploadedSampleSources((previous) => ({ ...previous, [sampleMode]: nextUrl }));
-    event.target.value = "";
-  };
+  }, [selectedProductId, activeImgIndex, currentProduct]);
 
   // Run watermark generation on preview
   useEffect(() => {
@@ -115,6 +97,7 @@ export function WatermarkPreviewModal({
       textOpacity,
       logoPosition,
       textPosition,
+      outputAspectRatio,
       logoUrl: WATERMARK_LOGO_URL,
     })
       .then((res) => {
@@ -131,6 +114,7 @@ export function WatermarkPreviewModal({
           textOpacity,
           logoPosition,
           textPosition,
+          outputAspectRatio,
           logoUrl: LOCAL_FALLBACK_LOGO_URL,
         })
           .then((res) => {
@@ -147,7 +131,7 @@ export function WatermarkPreviewModal({
     return () => {
       cancelled = true;
     };
-  }, [originalSrc, logoOpacity, textOpacity, logoPosition, textPosition]);
+  }, [originalSrc, logoOpacity, textOpacity, logoPosition, textPosition, outputAspectRatio]);
 
   if (!isOpen) return null;
 
@@ -206,12 +190,12 @@ export function WatermarkPreviewModal({
 
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-          {/* Controls Bar: Test Samples & Product Select */}
+          {/* Controls Bar: Output Shape & Product Select */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 bg-zinc-900/80 p-3.5 rounded-xl border border-zinc-800 text-xs">
-            {/* Preview image-shape samples only */}
+            {/* Output shape for the selected catalog product image */}
             <div className="md:col-span-5 space-y-1.5">
               <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Layers className="h-3.5 w-3.5 text-orange-400" /> Preview Image Shape:
+                <Layers className="h-3.5 w-3.5 text-orange-400" /> Product Image Output Shape:
               </label>
               <div className="flex flex-wrap gap-1">
                 {(
@@ -237,54 +221,29 @@ export function WatermarkPreviewModal({
                   </button>
                 ))}
               </div>
-              {sampleMode !== "product" && (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <input
-                    ref={sampleImageInputRef}
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleSampleImageUpload}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => sampleImageInputRef.current?.click()}
-                    className="rounded-md border border-orange-500/50 bg-orange-500/10 px-2.5 py-1 text-[11px] font-semibold text-orange-300 hover:bg-orange-500/20"
-                  >
-                    {uploadedSampleSrc ? "Replace uploaded image" : "Upload image for this shape"}
-                  </button>
-                  <span className="text-[10px] text-zinc-500">
-                    {uploadedSampleSrc
-                      ? "Using your uploaded image"
-                      : "No image uploaded for this shape yet"}
-                  </span>
-                </div>
-              )}
             </div>
 
             {/* Product Selector */}
-            {sampleMode === "product" && (
-              <div className="md:col-span-7 space-y-1.5">
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                  Select Product to Preview:
-                </label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => {
-                    setSelectedProductId(e.target.value);
-                    setActiveImgIndex(0);
-                  }}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-orange-500"
-                >
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.sku} — {p.name} ({p.images?.length || 1} image
-                      {p.images?.length === 1 ? "" : "s"})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <div className="md:col-span-7 space-y-1.5">
+              <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                Select Product to Preview:
+              </label>
+              <select
+                value={selectedProductId}
+                onChange={(e) => {
+                  setSelectedProductId(e.target.value);
+                  setActiveImgIndex(0);
+                }}
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-orange-500"
+              >
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.sku} — {p.name} ({p.images?.length || 1} image
+                    {p.images?.length === 1 ? "" : "s"})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Comparison Viewport */}
@@ -305,7 +264,10 @@ export function WatermarkPreviewModal({
                   <img
                     src={originalSrc}
                     alt="Original"
-                    className="max-h-full max-w-full object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-102"
+                    className={`max-h-full max-w-full drop-shadow-sm transition-transform duration-200 group-hover:scale-102 ${
+                      outputAspectRatio ? "h-full object-cover" : "object-contain"
+                    }`}
+                    style={outputAspectRatio ? { aspectRatio: outputAspectRatio } : undefined}
                   />
                 ) : (
                   <span className="text-xs text-zinc-500">
@@ -346,11 +308,7 @@ export function WatermarkPreviewModal({
                     className="max-h-full max-w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-102"
                   />
                 ) : (
-                  <span className="text-xs text-zinc-500">
-                    {sampleMode === "product"
-                      ? "Failed to render watermark"
-                      : "Upload an image above to see the watermark preview"}
-                  </span>
+                  <span className="text-xs text-zinc-500">Failed to render watermark</span>
                 )}
                 <span className="absolute bottom-2 right-2 text-[10px] bg-orange-600/90 text-white font-bold px-2 py-0.5 rounded shadow-sm">
                   STOREFRONT VERSION
@@ -464,7 +422,7 @@ export function WatermarkPreviewModal({
             Cancel / Close Preview
           </button>
 
-          {sampleMode === "product" && currentProduct ? (
+          {currentProduct ? (
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -486,7 +444,7 @@ export function WatermarkPreviewModal({
             </div>
           ) : (
             <span className="text-xs text-zinc-500 italic">
-              Switch to "Catalog Product" to watermark specific inventory items.
+              Select a catalog product to watermark its image.
             </span>
           )}
         </div>
