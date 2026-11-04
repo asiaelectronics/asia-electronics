@@ -516,6 +516,23 @@ export function updateProduct(id: string, updates: Partial<CreateProductInput>):
   return updatedProduct;
 }
 
+/** Saves generated assets only after the backend confirms the database write. */
+export async function updateProductInDatabase(
+  id: string,
+  updates: Partial<Product>,
+): Promise<Product | null> {
+  const saved = await updateProductApi(id, updates);
+  if (!saved) return null;
+
+  const current = getStoredProducts();
+  const index = current.findIndex((product) => product.id === id);
+  if (index >= 0) {
+    current[index] = { ...current[index], ...saved };
+    saveStoredProducts(current);
+  }
+  return saved;
+}
+
 export function deleteProduct(id: string): boolean {
   const current = getStoredProducts();
   const filtered = current.filter((p) => p.id !== id);
@@ -1162,6 +1179,7 @@ export function useCatalog() {
     deleteBrandLogo,
     createProduct,
     updateProduct,
+    updateProductInDatabase,
     deleteProduct,
     createCategory,
     updateCategory,

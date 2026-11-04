@@ -550,7 +550,7 @@ export function WatermarkPreviewModal({
                   Branded / Watermarked (Customer Storefront)
                 </span>
                 <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" /> Permanent in Downloads
+                  <CheckCircle2 className="h-3 w-3" /> Saved to database on confirmation
                 </span>
               </div>
               <div className="relative h-[280px] sm:h-[350px] w-full rounded-xl border border-orange-500/30 bg-zinc-900/70 flex items-center justify-center p-3 overflow-hidden group shadow-lg shadow-orange-500/5">
@@ -668,7 +668,7 @@ export function WatermarkPreviewModal({
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-3.5 w-3.5" /> Watermark Image #{activeImgIndex + 1} ({currentProduct.sku})
+                    <Sparkles className="h-3.5 w-3.5" /> Save Watermarked Image #{activeImgIndex + 1} ({currentProduct.sku})
                   </>
                 )}
               </button>

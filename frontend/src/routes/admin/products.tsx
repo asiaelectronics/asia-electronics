@@ -148,6 +148,7 @@ function ProductsPage() {
     deleteBrandLogo,
     createProduct,
     updateProduct,
+    updateProductInDatabase,
     deleteProduct,
     createCategory,
     updateCategory,
@@ -1151,7 +1152,7 @@ function ProductsPage() {
             const product = products.find((p) => p.id === productId);
             if (!product) return false;
 
-            const updated = updateProduct(productId, {
+            const updated = await updateProductInDatabase(productId, {
               images: watermarkedImages,
               originalImages: originalImages,
             });
