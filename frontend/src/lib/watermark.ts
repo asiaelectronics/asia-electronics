@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Asia Electronics & Cellular - Automatic Product Image Watermarking Utility
  *
  * Requirements:
@@ -15,49 +15,35 @@ export const WATERMARK_LOGO_URL =
 
 export const LOCAL_FALLBACK_LOGO_URL = "/assets/imgs/logopng.png";
 
-export type WatermarkLogoPosition =
-  "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
-
-export type WatermarkTextPosition = "bottom-left" | "bottom-center" | "bottom-right";
-
 export interface WatermarkOptions {
-  logoUrl?: string | undefined;
-  websiteText?: string | undefined;
-  logoOpacity?: number | undefined;
-  textOpacity?: number | undefined;
-  logoPosition?: WatermarkLogoPosition | undefined;
-  textPosition?: WatermarkTextPosition | undefined;
-  /** Optional output width/height ratio; the source is centre-cropped without distortion. */
-  outputAspectRatio?: number | undefined;
-  quality?: number | undefined; // 0.85 default
+  logoUrl?: string;
+  websiteText?: string;
+  logoOpacity?: number;
+  textOpacity?: number;
+  quality?: number; // 0.85 default
 }
 
 let cachedLogoImage: HTMLImageElement | null = null;
-let cachedLogoUrl: string | null = null;
 let logoLoadPromise: Promise<HTMLImageElement | null> | null = null;
-let logoLoadPromiseUrl: string | null = null;
 
 /**
  * Loads the Asia Electronics brand logo image with CORS support and fallback
  */
 export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageElement | null> {
-  const requestedUrl = customUrl || WATERMARK_LOGO_URL;
-  if (
-    cachedLogoUrl === requestedUrl &&
-    cachedLogoImage &&
-    cachedLogoImage.complete &&
-    cachedLogoImage.naturalWidth > 0
-  ) {
+  if (cachedLogoImage && cachedLogoImage.complete && cachedLogoImage.naturalWidth > 0) {
     return cachedLogoImage;
   }
 
-  if (logoLoadPromise && logoLoadPromiseUrl === requestedUrl) {
+  if (logoLoadPromise) {
     return logoLoadPromise;
   }
 
-  const urlsToTry = [customUrl, WATERMARK_LOGO_URL, LOCAL_FALLBACK_LOGO_URL, "/logo.png"].filter(
-    Boolean,
-  ) as string[];
+  const urlsToTry = [
+    customUrl,
+    WATERMARK_LOGO_URL,
+    LOCAL_FALLBACK_LOGO_URL,
+    "/logo.png",
+  ].filter(Boolean) as string[];
 
   logoLoadPromise = (async () => {
     for (const url of urlsToTry) {
@@ -71,7 +57,6 @@ export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageEl
         });
         if (img.naturalWidth > 0) {
           cachedLogoImage = img;
-          cachedLogoUrl = url;
           return img;
         }
       } catch {
@@ -80,11 +65,9 @@ export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageEl
     }
     return null;
   })();
-  logoLoadPromiseUrl = requestedUrl;
 
   const result = await logoLoadPromise;
   logoLoadPromise = null;
-  logoLoadPromiseUrl = null;
   return result;
 }
 
@@ -139,28 +122,12 @@ export async function applyWatermarkToImage(
 
   // Load the source product image
   const baseImg = await loadImageSource(sourceUrl);
-  const sourceWidth = baseImg.naturalWidth || baseImg.width;
-  const sourceHeight = baseImg.naturalHeight || baseImg.height;
+  const width = baseImg.naturalWidth || baseImg.width;
+  const height = baseImg.naturalHeight || baseImg.height;
 
-  if (!sourceWidth || !sourceHeight) {
+  if (!width || !height) {
     throw new Error("Invalid image dimensions for watermarking");
   }
-
-  const requestedRatio = options.outputAspectRatio;
-  const sourceRatio = sourceWidth / sourceHeight;
-  const useCustomRatio = Boolean(requestedRatio && requestedRatio > 0);
-  const width = useCustomRatio
-    ? Math.max(
-        1,
-        Math.round(sourceRatio > requestedRatio! ? sourceHeight * requestedRatio! : sourceWidth),
-      )
-    : sourceWidth;
-  const height = useCustomRatio
-    ? Math.max(
-        1,
-        Math.round(sourceRatio > requestedRatio! ? sourceHeight : sourceWidth / requestedRatio!),
-      )
-    : sourceHeight;
 
   // Prepare canvas
   const canvas = document.createElement("canvas");
@@ -171,15 +138,11 @@ export async function applyWatermarkToImage(
     throw new Error("Could not acquire 2D canvas context");
   }
 
-  // Draw the original product image. A requested output shape is centre-cropped without distortion.
+  // Draw the original product image at 100% scale (no distortion, no cropping)
   ctx.clearRect(0, 0, width, height);
-  const cropWidth = sourceRatio > (requestedRatio || sourceRatio) ? width : sourceWidth;
-  const cropHeight = sourceRatio > (requestedRatio || sourceRatio) ? sourceHeight : height;
-  const cropX = Math.max(0, Math.round((sourceWidth - cropWidth) / 2));
-  const cropY = Math.max(0, Math.round((sourceHeight - cropHeight) / 2));
-  ctx.drawImage(baseImg, cropX, cropY, cropWidth, cropHeight, 0, 0, width, height);
+  ctx.drawImage(baseImg, 0, 0, width, height);
 
-  // 1. LOGO WATERMARK
+  // 1. TOP-LEFT LOGO WATERMARK
   try {
     const logoImg = await loadWatermarkLogo(options.logoUrl);
     if (logoImg && logoImg.naturalWidth > 0) {
@@ -195,21 +158,10 @@ export async function applyWatermarkToImage(
       const logoAspect = logoImg.naturalHeight / logoImg.naturalWidth;
       const targetLogoHeight = Math.round(targetLogoWidth * logoAspect);
 
-      // Offset padding from the chosen corner (proportional, ~3.5% of shortest side)
+      // Offset padding from top-left (proportional, ~3.5% of shortest side)
       const padding = Math.max(12, Math.round(minDimension * 0.035));
-      const logoPosition = options.logoPosition ?? "top-left";
-      const logoX =
-        logoPosition === "top-right" || logoPosition === "bottom-right"
-          ? width - targetLogoWidth - padding
-          : logoPosition === "center"
-            ? Math.round((width - targetLogoWidth) / 2)
-            : padding;
-      const logoY =
-        logoPosition === "bottom-left" || logoPosition === "bottom-right"
-          ? height - targetLogoHeight - padding
-          : logoPosition === "center"
-            ? Math.round((height - targetLogoHeight) / 2)
-            : padding;
+      const logoX = padding;
+      const logoY = padding;
 
       ctx.save();
       ctx.globalAlpha = options.logoOpacity ?? 0.88;
@@ -237,6 +189,10 @@ export async function applyWatermarkToImage(
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
+  const textX = Math.round(width / 2);
+  // Position in the lower section (around 90% down)
+  const textY = Math.round(height - Math.max(fontSize * 1.5, height * 0.08));
+
   // Subtle translucent pill background for consistent readability across high-contrast images
   const textMetrics = ctx.measureText(watermarkText);
   const textW = textMetrics.width;
@@ -245,15 +201,6 @@ export async function applyWatermarkToImage(
   const pillW = textW + pillPaddingX * 2;
   const pillH = fontSize + pillPaddingY * 2;
   const pillRadius = Math.round(pillH / 2);
-  const textPosition = options.textPosition ?? "bottom-center";
-  const textPadding = Math.max(fontSize * 1.5, height * 0.08);
-  const textX =
-    textPosition === "bottom-left"
-      ? Math.round(pillW / 2 + textPadding)
-      : textPosition === "bottom-right"
-        ? Math.round(width - pillW / 2 - textPadding)
-        : Math.round(width / 2);
-  const textY = Math.round(height - textPadding);
 
   ctx.globalAlpha = options.textOpacity ?? 0.28;
   ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
