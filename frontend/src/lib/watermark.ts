@@ -33,17 +33,25 @@ export interface WatermarkOptions {
 }
 
 let cachedLogoImage: HTMLImageElement | null = null;
+let cachedLogoUrl: string | null = null;
 let logoLoadPromise: Promise<HTMLImageElement | null> | null = null;
+let logoLoadPromiseUrl: string | null = null;
 
 /**
  * Loads the Asia Electronics brand logo image with CORS support and fallback
  */
 export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageElement | null> {
-  if (cachedLogoImage && cachedLogoImage.complete && cachedLogoImage.naturalWidth > 0) {
+  const requestedUrl = customUrl || WATERMARK_LOGO_URL;
+  if (
+    cachedLogoUrl === requestedUrl &&
+    cachedLogoImage &&
+    cachedLogoImage.complete &&
+    cachedLogoImage.naturalWidth > 0
+  ) {
     return cachedLogoImage;
   }
 
-  if (logoLoadPromise) {
+  if (logoLoadPromise && logoLoadPromiseUrl === requestedUrl) {
     return logoLoadPromise;
   }
 
@@ -63,6 +71,7 @@ export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageEl
         });
         if (img.naturalWidth > 0) {
           cachedLogoImage = img;
+          cachedLogoUrl = url;
           return img;
         }
       } catch {
@@ -71,9 +80,11 @@ export async function loadWatermarkLogo(customUrl?: string): Promise<HTMLImageEl
     }
     return null;
   })();
+  logoLoadPromiseUrl = requestedUrl;
 
   const result = await logoLoadPromise;
   logoLoadPromise = null;
+  logoLoadPromiseUrl = null;
   return result;
 }
 

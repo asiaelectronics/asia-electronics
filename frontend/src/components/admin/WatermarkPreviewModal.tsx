@@ -15,7 +15,6 @@ import type { Product } from "@/lib/types";
 import { fetchProductApi } from "@/services/api";
 import {
   applyWatermarkToImage,
-  WATERMARK_LOGO_URL,
   LOCAL_FALLBACK_LOGO_URL,
   type WatermarkLogoPosition,
   type WatermarkTextPosition,
@@ -60,6 +59,7 @@ export function WatermarkPreviewModal({
   const [activeImgIndex, setActiveImgIndex] = useState<number>(0);
   const [originalSrc, setOriginalSrc] = useState<string>("");
   const [watermarkedSrc, setWatermarkedSrc] = useState<string>("");
+  const [renderError, setRenderError] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isApplying, setIsApplying] = useState<boolean>(false);
   const [logoOpacity, setLogoOpacity] = useState<number>(0.9);
@@ -148,6 +148,7 @@ export function WatermarkPreviewModal({
       source = resolvedOriginals[safeIdx] || resolvedOriginals[0] || "";
     }
     setWatermarkedSrc("");
+    setRenderError("");
     if (!source) setIsProcessing(false);
     setOriginalSrc(source);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -165,7 +166,9 @@ export function WatermarkPreviewModal({
       logoPosition,
       textPosition,
       ...(outputAspectRatio ? { outputAspectRatio } : {}),
-      logoUrl: WATERMARK_LOGO_URL,
+      // Use the same-origin asset. A remote logo can taint the canvas and
+      // prevent it from exporting the rendered preview.
+      logoUrl: LOCAL_FALLBACK_LOGO_URL,
     })
       .then((res) => {
         if (!cancelled) {
@@ -189,8 +192,15 @@ export function WatermarkPreviewModal({
               setIsProcessing(false);
             }
           })
-          .catch(() => {
-            if (!cancelled) setIsProcessing(false);
+          .catch((fallbackError) => {
+            if (!cancelled) {
+              setRenderError(
+                fallbackError instanceof Error
+                  ? fallbackError.message
+                  : "The image could not be rendered.",
+              );
+              setIsProcessing(false);
+            }
           });
       });
 
@@ -556,7 +566,9 @@ export function WatermarkPreviewModal({
                     className="max-h-full max-w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-102"
                   />
                 ) : (
-                  <span className="text-xs text-zinc-500">Failed to render watermark</span>
+                  <span className="max-w-xs text-center text-xs text-zinc-500">
+                    {renderError || "Failed to render watermark"}
+                  </span>
                 )}
                 <span className="absolute bottom-2 right-2 text-[10px] bg-orange-600/90 text-white font-bold px-2 py-0.5 rounded shadow-sm">
                   STOREFRONT VERSION
