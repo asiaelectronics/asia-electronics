@@ -25,12 +25,19 @@ function WhatsAppIcon({ className }: { className?: string }) {
 /* ------------------------------------------------------------------ */
 /*  Build a WhatsApp click-to-chat URL                                */
 /* ------------------------------------------------------------------ */
-function buildWhatsAppUrl(productName: string, quantity: number, phoneDigits: string): string {
+function buildWhatsAppUrl(product: Product, quantity: number, phoneDigits: string): string {
   const message = [
-    "Hello, I would like to request this product.",
-    `Product Name: ${productName}`,
-    `Quantity: ${quantity}`,
-    "Please confirm availability and price.",
+    "Hello AEC Team!",
+    "",
+    "I'm interested in purchasing the following product:",
+    "",
+    `Product: ${product.name}`,
+    `Quantity: ${quantity} ${quantity === 1 ? "Unit" : "Units"}`,
+    `Product link: https://www.asiaelectronics.lk/product/${product.slug}`,
+    `Code: ${product.sku}`,
+    "Please let me know if this item is currently available and share your best price.",
+    "",
+    "Thank you! Looking forward to your response.",
   ].join("\n");
 
   return `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
@@ -232,7 +239,7 @@ export function ProductCard({ product }: { product: Product }) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <a
-                  href={buildWhatsAppUrl(product.name, quantity, whatsappDigits)}
+                  href={buildWhatsAppUrl(product, quantity, whatsappDigits)}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Request ${product.name} on WhatsApp`}

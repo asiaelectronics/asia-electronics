@@ -34,15 +34,23 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-function buildWhatsAppUrl(productName: string, quantity: number, phoneDigits: string): string {
+function buildWhatsAppUrl(
+  product: { name: string; slug: string; sku: string },
+  quantity: number,
+  phoneDigits: string,
+): string {
   const message = [
-    "Hello, I would like to inquire about the following product:",
+    "Hello AEC Team!",
     "",
-    `Product: ${productName}`,
-    `Requested Quantity: ${quantity}`,
+    "I'm interested in purchasing the following product:",
     "",
-    "Could you please confirm availability and pricing for this quantity?",
-    "Thank you.",
+    `Product: ${product.name}`,
+    `Quantity: ${quantity} ${quantity === 1 ? "Unit" : "Units"}`,
+    `Product link: https://www.asiaelectronics.lk/product/${product.slug}`,
+    `Code: ${product.sku}`,
+    "Please let me know if this item is currently available and share your best price.",
+    "",
+    "Thank you! Looking forward to your response.",
   ].join("\n");
   return `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
 }
@@ -422,7 +430,7 @@ function ProductDetails() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <a
-                    href={buildWhatsAppUrl(product.name, qty, whatsappDigits)}
+                    href={buildWhatsAppUrl(product, qty, whatsappDigits)}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Inquire about ${product.name} on WhatsApp`}
