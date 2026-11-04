@@ -49,8 +49,11 @@ app.use(
 );
 
 app.use(securityHeaders);
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ limit: "1mb", extended: false }));
+// Product galleries are sent as compressed data URLs. Keep this below the
+// serverless request ceiling, while allowing a small, multi-image gallery.
+const requestBodyLimit = "4mb";
+app.use(express.json({ limit: requestBodyLimit }));
+app.use(express.urlencoded({ limit: requestBodyLimit, extended: false }));
 app.use(sanitizeRequestInput);
 app.use(requireTrustedOrigin(allowedOrigins));
 app.use(createRateLimiter());
@@ -111,6 +114,12 @@ app.get("/", (req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({
+      success: false,
+      error: "Product images are too large. Use fewer images or smaller images and try again.",
+    });
+  }
   res.status(err.status || 500).json({
     success: false,
     error: err.message || "Internal Server Error",

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo, useRef } from "react";
 import {
   Search,
@@ -1262,9 +1262,9 @@ function ProductFormModal({
 
   const compressImageFile = (
     file: File,
-    maxWidth = 1200,
-    maxHeight = 1200,
-    quality = 0.82,
+    maxWidth = 900,
+    maxHeight = 900,
+    quality = 0.72,
   ): Promise<string> => {
     return new Promise((resolve) => {
       if (file.type === "image/svg+xml" || file.size < 50 * 1024) {
@@ -1300,7 +1300,13 @@ function ProductFormModal({
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+        // JPEG keeps product-photo data URLs compact enough for the API request.
+        // A white background avoids turning transparent PNG pixels black.
+        ctx.fillStyle = "#ffffff";
+        ctx.globalCompositeOperation = "destination-over";
+        ctx.fillRect(0, 0, width, height);
+        ctx.globalCompositeOperation = "source-over";
+        const mime = "image/jpeg";
         resolve(canvas.toDataURL(mime, quality));
       };
       img.onerror = () => {
@@ -1322,8 +1328,8 @@ function ProductFormModal({
     }
 
     const validFiles = imageFiles.filter((f) => {
-      if (f.size > 20 * 1024 * 1024) {
-        toast.error(`"${f.name}" exceeds 20MB limit`);
+      if (f.size > 5 * 1024 * 1024) {
+        toast.error(`"${f.name}" exceeds the 5MB limit`);
         return false;
       }
       return true;
@@ -1340,7 +1346,7 @@ function ProductFormModal({
         if (autoWatermark) {
           try {
             const wmResults = await Promise.all(
-              rawUrls.map((raw) => applyWatermarkToImage(raw)),
+              rawUrls.map((raw) => applyWatermarkToImage(raw, { quality: 0.72 })),
             );
             finalProcessed = wmResults.map((w) => w.dataUrl);
             toast.success(`Branded & watermarked ${finalProcessed.length} image(s)!`);
@@ -1387,6 +1393,9 @@ function ProductFormModal({
       toast.error("Please enter an image URL");
       return;
     }
+    // Track the URL as the original too — URL images aren't locally watermarked,
+    // so both lists should stay in sync at this index.
+    setOriginalImagesList((prev) => [...prev, trimmed]);
     setImagesList((prev) => {
       const nextList = [...prev, trimmed];
       setActivePreviewIndex(nextList.length - 1);
@@ -1397,6 +1406,9 @@ function ProductFormModal({
   };
 
   const handleRemoveImage = (idxToRemove: number) => {
+    // Keep originalImagesList in sync — removing at the same index ensures the
+    // watermark modal always reads the correct original for each display image.
+    setOriginalImagesList((prev) => prev.filter((_, idx) => idx !== idxToRemove));
     setImagesList((prev) => {
       const updated = prev.filter((_, idx) => idx !== idxToRemove);
       if (activePreviewIndex >= updated.length) {
@@ -1408,6 +1420,13 @@ function ProductFormModal({
 
   const handleSetPrimary = (idxToPrimary: number) => {
     if (idxToPrimary === 0) return;
+    // Reorder originalImagesList in the same way so indices stay in sync.
+    setOriginalImagesList((prev) => {
+      const target = prev[idxToPrimary];
+      if (!target) return prev;
+      const rest = prev.filter((_, idx) => idx !== idxToPrimary);
+      return [target, ...rest];
+    });
     setImagesList((prev) => {
       const target = prev[idxToPrimary];
       if (!target) return prev;
@@ -1458,6 +1477,20 @@ function ProductFormModal({
     }
 
     const finalImages = imagesList.length > 0 ? imagesList : [images.catComponents];
+    const finalOriginalImages =
+      originalImagesList.length > 0 ? originalImagesList : finalImages;
+    // Vercel caps request bodies. Images are Base64 strings and are sent twice
+    // when watermarking is enabled (display + original), so measure the actual
+    // JSON payload before submitting rather than waiting for a 413 response.
+    const imagePayloadBytes = new Blob([
+      JSON.stringify({ images: finalImages, originalImages: finalOriginalImages }),
+    ]).size;
+    if (imagePayloadBytes > 3 * 1024 * 1024) {
+      toast.error(
+        "This image gallery is too large to save. Remove some images or use smaller files (up to 5MB each).",
+      );
+      return;
+    }
 
     onSave({
       name: name.trim(),
@@ -1476,7 +1509,7 @@ function ProductFormModal({
       description: description.trim() || undefined,
       image: finalImages[0],
       images: finalImages,
-      originalImages: originalImagesList.length > 0 ? originalImagesList : finalImages,
+      originalImages: finalOriginalImages,
       featured,
       isNew,
       showPrice,

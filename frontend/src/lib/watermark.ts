@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Asia Electronics & Cellular - Automatic Product Image Watermarking Utility
  *
  * Requirements:
@@ -21,15 +21,15 @@ export type WatermarkLogoPosition =
 export type WatermarkTextPosition = "bottom-left" | "bottom-center" | "bottom-right";
 
 export interface WatermarkOptions {
-  logoUrl?: string;
-  websiteText?: string;
-  logoOpacity?: number;
-  textOpacity?: number;
-  logoPosition?: WatermarkLogoPosition;
-  textPosition?: WatermarkTextPosition;
+  logoUrl?: string | undefined;
+  websiteText?: string | undefined;
+  logoOpacity?: number | undefined;
+  textOpacity?: number | undefined;
+  logoPosition?: WatermarkLogoPosition | undefined;
+  textPosition?: WatermarkTextPosition | undefined;
   /** Optional output width/height ratio; the source is centre-cropped without distortion. */
-  outputAspectRatio?: number;
-  quality?: number; // 0.85 default
+  outputAspectRatio?: number | undefined;
+  quality?: number | undefined; // 0.85 default
 }
 
 let cachedLogoImage: HTMLImageElement | null = null;
