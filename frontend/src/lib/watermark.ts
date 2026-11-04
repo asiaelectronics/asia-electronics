@@ -20,6 +20,8 @@ export interface WatermarkOptions {
   websiteText?: string;
   logoOpacity?: number;
   textOpacity?: number;
+  /** Output width/height ratio. The source is centre-cropped without distortion. */
+  outputAspectRatio?: number;
   quality?: number; // 0.85 default
 }
 
@@ -122,12 +124,22 @@ export async function applyWatermarkToImage(
 
   // Load the source product image
   const baseImg = await loadImageSource(sourceUrl);
-  const width = baseImg.naturalWidth || baseImg.width;
-  const height = baseImg.naturalHeight || baseImg.height;
+  const sourceWidth = baseImg.naturalWidth || baseImg.width;
+  const sourceHeight = baseImg.naturalHeight || baseImg.height;
 
-  if (!width || !height) {
+  if (!sourceWidth || !sourceHeight) {
     throw new Error("Invalid image dimensions for watermarking");
   }
+
+  const requestedRatio = options.outputAspectRatio;
+  const sourceRatio = sourceWidth / sourceHeight;
+  const useCustomRatio = Boolean(requestedRatio && requestedRatio > 0);
+  const width = useCustomRatio
+    ? Math.max(1, Math.round(sourceRatio > requestedRatio! ? sourceHeight * requestedRatio! : sourceWidth))
+    : sourceWidth;
+  const height = useCustomRatio
+    ? Math.max(1, Math.round(sourceRatio > requestedRatio! ? sourceHeight : sourceWidth / requestedRatio!))
+    : sourceHeight;
 
   // Prepare canvas
   const canvas = document.createElement("canvas");
@@ -138,9 +150,13 @@ export async function applyWatermarkToImage(
     throw new Error("Could not acquire 2D canvas context");
   }
 
-  // Draw the original product image at 100% scale (no distortion, no cropping)
+  // Crop from the centre to the selected geometry without stretching the product.
   ctx.clearRect(0, 0, width, height);
-  ctx.drawImage(baseImg, 0, 0, width, height);
+  const cropWidth = sourceRatio > (requestedRatio || sourceRatio) ? width : sourceWidth;
+  const cropHeight = sourceRatio > (requestedRatio || sourceRatio) ? sourceHeight : height;
+  const cropX = Math.max(0, Math.round((sourceWidth - cropWidth) / 2));
+  const cropY = Math.max(0, Math.round((sourceHeight - cropHeight) / 2));
+  ctx.drawImage(baseImg, cropX, cropY, cropWidth, cropHeight, 0, 0, width, height);
 
   // 1. TOP-LEFT LOGO WATERMARK
   try {

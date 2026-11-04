@@ -54,19 +54,21 @@ export function WatermarkPreviewModal({
   const [sampleMode, setSampleMode] = useState<"product" | "square" | "portrait" | "landscape" | "transparent">("product");
 
   const currentProduct = products.find((p) => p.id === selectedProductId) || targetProduct || products[0];
+  const savedOriginals = currentProduct?.originalImages ?? [];
+  const savedOriginal = savedOriginals[activeImgIndex];
+  const currentDisplayImage = currentProduct?.images?.[activeImgIndex];
+  const canRemoveWatermark = Boolean(
+    savedOriginal && currentDisplayImage && savedOriginal !== currentDisplayImage,
+  );
+  const outputAspectRatio =
+    sampleMode === "square" ? 1 : sampleMode === "landscape" ? 16 / 9 : sampleMode === "portrait" ? 3 / 4 : undefined;
+  const geometryFrameStyle = outputAspectRatio ? { aspectRatio: outputAspectRatio } : undefined;
+  const geometryFrameClass = outputAspectRatio ? "h-auto" : "h-[280px] sm:h-[350px]";
 
   // Resolve source image based on mode
   useEffect(() => {
     let source = "";
-    if (sampleMode === "square") {
-      source = "/assets/imgs/electronic-components.png";
-    } else if (sampleMode === "landscape") {
-      source = "/assets/imgs/hero-electronics-showcase.png";
-    } else if (sampleMode === "portrait") {
-      source = "/assets/imgs/ics-repair-components-v1.png";
-    } else if (sampleMode === "transparent") {
-      source = "/assets/imgs/logopng.png";
-    } else if (currentProduct) {
+    if (currentProduct) {
       const origs = currentProduct.originalImages && currentProduct.originalImages.length > 0
         ? currentProduct.originalImages
         : currentProduct.images;
@@ -86,6 +88,7 @@ export function WatermarkPreviewModal({
       logoOpacity,
       textOpacity,
       logoUrl: WATERMARK_LOGO_URL,
+      ...(outputAspectRatio ? { outputAspectRatio } : {}),
     })
       .then((res) => {
         if (!cancelled) {
@@ -100,6 +103,7 @@ export function WatermarkPreviewModal({
           logoOpacity,
           textOpacity,
           logoUrl: LOCAL_FALLBACK_LOGO_URL,
+          ...(outputAspectRatio ? { outputAspectRatio } : {}),
         })
           .then((res) => {
             if (!cancelled) {
@@ -115,7 +119,7 @@ export function WatermarkPreviewModal({
     return () => {
       cancelled = true;
     };
-  }, [originalSrc, logoOpacity, textOpacity]);
+  }, [originalSrc, logoOpacity, textOpacity, outputAspectRatio]);
 
   if (!isOpen) return null;
 
@@ -132,6 +136,18 @@ export function WatermarkPreviewModal({
       currentImgs[activeImgIndex] = watermarkedSrc;
 
       await onApplyWatermark(currentProduct.id, currentImgs, origImages);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleRemoveWatermark = async () => {
+    if (!currentProduct || !savedOriginal) return;
+    setIsApplying(true);
+    try {
+      const restoredImages = [...currentProduct.images];
+      restoredImages[activeImgIndex] = savedOriginal;
+      await onApplyWatermark(currentProduct.id, restoredImages, [...savedOriginals]);
     } finally {
       setIsApplying(false);
     }
@@ -238,12 +254,12 @@ export function WatermarkPreviewModal({
                 </span>
                 <span className="text-[10px] text-zinc-500 font-normal">Clean raw source</span>
               </div>
-              <div className="relative h-[280px] sm:h-[350px] w-full rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center justify-center p-3 overflow-hidden group">
+              <div style={geometryFrameStyle} className={`relative ${geometryFrameClass} w-full rounded-xl border border-zinc-800 bg-zinc-900/50 flex items-center justify-center p-3 overflow-hidden group`}>
                 {originalSrc ? (
                   <img
                     src={originalSrc}
                     alt="Original"
-                    className="max-h-full max-w-full object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-102"
+                    className={outputAspectRatio ? "h-full w-full object-cover drop-shadow-sm transition-transform duration-200 group-hover:scale-102" : "max-h-full max-w-full object-contain drop-shadow-sm transition-transform duration-200 group-hover:scale-102"}
                   />
                 ) : (
                   <span className="text-xs text-zinc-500">No original image available</span>
@@ -265,7 +281,7 @@ export function WatermarkPreviewModal({
                   <CheckCircle2 className="h-3 w-3" /> Permanent in Downloads
                 </span>
               </div>
-              <div className="relative h-[280px] sm:h-[350px] w-full rounded-xl border border-orange-500/30 bg-zinc-900/70 flex items-center justify-center p-3 overflow-hidden group shadow-lg shadow-orange-500/5">
+              <div style={geometryFrameStyle} className={`relative ${geometryFrameClass} w-full rounded-xl border border-orange-500/30 bg-zinc-900/70 flex items-center justify-center p-3 overflow-hidden group shadow-lg shadow-orange-500/5`}>
                 {isProcessing ? (
                   <div className="flex flex-col items-center gap-2 text-zinc-400">
                     <RefreshCw className="h-6 w-6 animate-spin text-orange-500" />
@@ -275,7 +291,7 @@ export function WatermarkPreviewModal({
                   <img
                     src={watermarkedSrc}
                     alt="Watermarked Preview"
-                    className="max-h-full max-w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-102"
+                    className={outputAspectRatio ? "h-full w-full object-cover drop-shadow-md transition-transform duration-200 group-hover:scale-102" : "max-h-full max-w-full object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-102"}
                   />
                 ) : (
                   <span className="text-xs text-zinc-500">Failed to render watermark</span>
@@ -363,6 +379,16 @@ export function WatermarkPreviewModal({
 
           {sampleMode === "product" && currentProduct ? (
             <div className="flex items-center gap-2">
+              {canRemoveWatermark && (
+                <button
+                  type="button"
+                  disabled={isApplying}
+                  onClick={handleRemoveWatermark}
+                  className="admin-btn-ghost border border-amber-500/40 text-xs font-bold text-amber-300 hover:bg-amber-500/10"
+                >
+                  Remove Watermark
+                </button>
+              )}
               <button
                 type="button"
                 disabled={isApplying || !watermarkedSrc}
