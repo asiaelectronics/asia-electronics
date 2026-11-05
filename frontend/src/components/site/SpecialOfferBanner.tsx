@@ -66,9 +66,13 @@ function BannerSlide({ banner }: { banner: Banner }) {
         <img
           src={banner.imageUrl}
           alt={banner.altText || banner.title}
+          width={1600}
+          height={900}
+          sizes="(max-width: 639px) 100vw, 80vw"
           className="absolute inset-0 h-full w-full object-cover"
-          loading="eager"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
+          decoding="async"
         />
       </picture>
 
@@ -130,11 +134,7 @@ function BannerSlide({ banner }: { banner: Banner }) {
     );
   }
 
-  return (
-    <div className={`block w-full ${cfg.heightClass}`}>
-      {inner}
-    </div>
-  );
+  return <div className={`block w-full ${cfg.heightClass}`}>{inner}</div>;
 }
 
 // Carousel wrapper
@@ -231,11 +231,6 @@ export function SpecialOfferBanner() {
   });
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    if (!banners?.length) return;
-    setIsOpen(true);
-  }, [banners]);
-
   const close = () => {
     setIsOpen(false);
   };
@@ -246,46 +241,55 @@ export function SpecialOfferBanner() {
   const cfg = BANNER_SIZES[resolveSize(currentBanner?.size)];
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Special offers"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) close();
-          }}
-        >
-          <motion.section
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.97 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative w-full ${cfg.maxWClass} overflow-hidden rounded-xl bg-black shadow-2xl transition-all duration-300`}
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="fixed bottom-20 left-4 z-50 rounded-full border border-primary/40 bg-background px-3 py-2 text-[10px] font-extrabold uppercase tracking-wide text-primary shadow-lg lg:bottom-6"
+      >
+        View offers
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Special offers"
+            onClick={(event) => {
+              if (event.target === event.currentTarget) close();
+            }}
           >
-            <button
-              type="button"
-              onClick={close}
-              aria-label="Close special offers"
-              className="absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm transition-colors hover:bg-primary"
+            <motion.section
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.97 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className={`relative w-full ${cfg.maxWClass} overflow-hidden rounded-xl bg-black shadow-2xl transition-all duration-300`}
             >
-              <X className="h-4 w-4" />
-            </button>
-            <BannerCarousel banners={banners} />
-            <button
-              type="button"
-              onClick={close}
-              className="absolute bottom-3 right-4 z-30 text-[11px] font-semibold text-white/80 underline-offset-2 hover:text-white hover:underline"
-            >
-              No thanks
-            </button>
-          </motion.section>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              <button
+                type="button"
+                onClick={close}
+                aria-label="Close special offers"
+                className="absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full bg-black/65 text-white backdrop-blur-sm transition-colors hover:bg-primary"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <BannerCarousel banners={banners} />
+              <button
+                type="button"
+                onClick={close}
+                className="absolute bottom-3 right-4 z-30 text-[11px] font-semibold text-white/80 underline-offset-2 hover:text-white hover:underline"
+              >
+                No thanks
+              </button>
+            </motion.section>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

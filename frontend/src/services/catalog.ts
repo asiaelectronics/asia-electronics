@@ -32,51 +32,35 @@ const PRODUCTS_STORAGE_KEY = "ae_products_catalog_v6";
 const CATEGORIES_STORAGE_KEY = "ae_categories_catalog_v8";
 const CATALOG_UPDATED_EVENT = "ae-catalog-updated";
 
+// Category records saved before image optimisation refer to public PNG paths.
+// Resolve those paths to Vite's hashed WebP assets so old database/local-storage
+// data cannot make the browser download the legacy multi-megabyte files.
+const OPTIMIZED_ASSET_PATHS: Array<[string[], string]> = [
+  [["cat-components", "electronic-components"], images.catElectronicComponents],
+  [["cat-audio", "audio-music"], images.catAudioMusic],
+  [["cat-lighting", "lighting"], images.catLighting],
+  [["cat-mobile", "mobile-parts"], images.catMobileParts],
+  [["cat-tv", "home-appliances"], images.catHomeAppliances],
+  [["kitchen-appliances"], images.catKitchenAppliances],
+  [["appliance-spare-parts", "cat-spares"], images.catApplianceSpareParts],
+  [["power-solar", "cat-power"], images.catPowerSolarBatteries],
+  [["laboratory-equipment", "cat-lab"], images.catLabEquipment],
+  [["tools-installation", "cat-tools"], images.catToolsInstallation],
+  [["name-boards"], images.catNameBoards],
+  [["magnet-bars"], images.catMagnetBars],
+  [["other-equipment", "cat-equipment"], images.catOtherEquipment],
+];
+
 export function sanitizeAssetPath(
   path?: string,
-  defaultFallback = "/assets/imgs/electronic-components.png",
+  defaultFallback = images.catElectronicComponents,
 ): string {
   if (!path) return defaultFallback;
   const p = path.trim();
-  if (p.includes("cat-components") || p.includes("electronic-components")) {
-    return "/assets/imgs/electronic-components.png";
-  }
-  if (p.includes("cat-audio") || p.includes("audio-music")) {
-    return "/assets/imgs/audio-music.png";
-  }
-  if (p.includes("cat-lighting") || p.includes("lighting")) {
-    return "/assets/imgs/lighting.png";
-  }
-  if (p.includes("cat-mobile") || p.includes("mobile-parts")) {
-    return "/assets/imgs/mobile-parts-accessories.png";
-  }
-  if (p.includes("cat-tv") || p.includes("home-appliances")) {
-    return "/assets/imgs/home-appliances.png";
-  }
-  if (p.includes("kitchen-appliances")) {
-    return "/assets/imgs/kitchen-appliances.png";
-  }
-  if (p.includes("appliance-spare-parts") || p.includes("cat-spares")) {
-    return "/assets/imgs/appliance-spare-parts.png";
-  }
-  if (p.includes("power-solar") || p.includes("cat-power")) {
-    return "/assets/imgs/power-solar-batteries.png";
-  }
-  if (p.includes("laboratory-equipment") || p.includes("cat-lab")) {
-    return "/assets/imgs/laboratory-equipment.png";
-  }
-  if (p.includes("tools-installation") || p.includes("cat-tools")) {
-    return "/assets/imgs/tools-installation-supplies.png";
-  }
-  if (p.includes("name-boards")) {
-    return "/assets/imgs/name-boards.png";
-  }
-  if (p.includes("magnet-bars")) {
-    return "/assets/imgs/magnet-bars.png";
-  }
-  if (p.includes("other-equipment") || p.includes("cat-equipment")) {
-    return "/assets/imgs/other-equipment.png";
-  }
+  const optimizedAsset = OPTIMIZED_ASSET_PATHS.find(([matchers]) =>
+    matchers.some((matcher) => p.includes(matcher)),
+  );
+  if (optimizedAsset) return optimizedAsset[1];
   if (p.startsWith("/src/assets/")) {
     return p.replace(/^\/src\/assets\//, "/assets/");
   }
@@ -1093,9 +1077,7 @@ export async function getProduct(slug: string): Promise<Product | null> {
       if (typeof window !== "undefined") {
         try {
           const current = getStoredProducts();
-          const idx = current.findIndex(
-            (p) => p.id === sanitized.id || p.slug === sanitized.slug,
-          );
+          const idx = current.findIndex((p) => p.id === sanitized.id || p.slug === sanitized.slug);
           if (idx >= 0) {
             current[idx] = sanitized;
           } else {
@@ -1121,10 +1103,7 @@ export async function getRelated(slug: string): Promise<Product[]> {
   await delay(50);
   const products = getStoredProducts();
   let p = products.find(
-    (x) =>
-      x.slug === slug ||
-      x.id === slug ||
-      x.sku.toLowerCase() === slug.toLowerCase(),
+    (x) => x.slug === slug || x.id === slug || x.sku.toLowerCase() === slug.toLowerCase(),
   );
 
   if (!p) {

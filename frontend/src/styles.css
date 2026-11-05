@@ -1,3 +1,11 @@
+@import "@fontsource/manrope/latin-400.css";
+@import "@fontsource/manrope/latin-500.css";
+@import "@fontsource/manrope/latin-600.css";
+@import "@fontsource/manrope/latin-700.css";
+@import "@fontsource/montserrat/latin-600.css";
+@import "@fontsource/montserrat/latin-700.css";
+@import "@fontsource/montserrat/latin-800.css";
+@import "@fontsource/montserrat/latin-900.css";
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -130,7 +138,10 @@
   iframe {
     max-width: 100%;
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
   }
   :focus-visible {
@@ -174,7 +185,8 @@
 }
 
 @keyframes aec-dot-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.25;
     transform: translateY(0);
   }
