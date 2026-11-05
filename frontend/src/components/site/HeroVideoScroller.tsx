@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide-react";
-import electronicsHero from "@/assets/imgs/hero-electronics-showcase.png";
-import repairHero from "@/assets/imgs/hero-repair-workbench.png";
+import electronicsHero from "@/assets/imgs/hero-electronics-showcase.webp";
+import repairHero from "@/assets/imgs/hero-repair-workbench.webp";
 import { useSettings } from "@/context/settings";
 
 /* WhatsApp SVG icon */
@@ -123,16 +122,16 @@ export function HeroVideoScroller() {
                 className="relative h-full w-full min-w-full shrink-0 overflow-hidden"
               >
                 {/* Background Video with Poster fallback */}
-                <motion.img
+                <img
                   src={slide.poster}
                   alt=""
+                  width={1600}
+                  height={900}
+                  sizes="100vw"
                   loading={idx === 0 ? "eager" : "lazy"}
                   fetchPriority={idx === 0 ? "high" : "low"}
                   decoding="async"
-                  initial={{ scale: 1.06 }}
-                  animate={isActive ? { scale: 1 } : { scale: 1.06 }}
-                  transition={{ duration: 6.5, ease: "easeOut" }}
-                  className="absolute inset-0 h-full w-full object-cover object-center brightness-[0.78] contrast-[1.05]"
+                  className={`absolute inset-0 h-full w-full object-cover object-center brightness-[0.78] contrast-[1.05] transition-transform duration-[6500ms] ease-out motion-reduce:transition-none ${isActive ? "scale-100" : "scale-[1.06]"}`}
                 />
 
                 {/* Rich dark gradient overlay for crystal-clear readability */}
@@ -140,11 +139,8 @@ export function HeroVideoScroller() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
 
                 {/* Slide Content */}
-                <motion.div
-                  initial={{ opacity: 0, y: 22 }}
-                  animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0, y: 22 }}
-                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                  className="relative z-20 flex h-full max-w-2xl flex-col justify-center px-5 py-8 text-white sm:px-12 sm:py-12 lg:px-16"
+                <div
+                  className={`relative z-20 flex h-full max-w-2xl flex-col justify-center px-5 py-8 text-white transition-all duration-500 motion-reduce:transition-none sm:px-12 sm:py-12 lg:px-16 ${isActive ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}
                 >
                   {/* Badge */}
                   <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-sm w-fit mb-2 sm:mb-4">
@@ -197,7 +193,7 @@ export function HeroVideoScroller() {
                       )
                     )}
                   </div>
-                </motion.div>
+                </div>
               </div>
             );
           })}

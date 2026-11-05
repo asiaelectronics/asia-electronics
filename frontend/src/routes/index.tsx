@@ -1,13 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "motion/react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { images } from "@/data/catalog";
 import { useCatalog } from "@/services/catalog";
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { CategoryProductSection } from "@/components/site/CategoryProductSection";
 import { ProductCard } from "@/components/site/ProductCard";
 import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
-import { SpecialOfferBanner } from "@/components/site/SpecialOfferBanner";
+import homepageHero from "@/assets/imgs/hero-electronics-showcase.webp";
+
+const SpecialOfferBanner = lazy(() =>
+  import("@/components/site/SpecialOfferBanner").then((module) => ({
+    default: module.SpecialOfferBanner,
+  })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -40,7 +45,10 @@ export const Route = createFileRoute("/")({
           content:
             "Shop electronic components, repair parts, lighting, solar products, mobile accessories and equipment at Asia Electronics, Sri Lanka.",
         },
-        { property: "og:title", content: "Asia Electronics | Electronics, Components & Repair Parts" },
+        {
+          property: "og:title",
+          content: "Asia Electronics | Electronics, Components & Repair Parts",
+        },
         {
           property: "og:description",
           content:
@@ -50,21 +58,34 @@ export const Route = createFileRoute("/")({
         { property: "og:url", content: "https://www.asiaelectronics.lk/" },
         { property: "og:image", content: "https://www.asiaelectronics.lk/logo.png" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "Asia Electronics | Electronics, Components & Repair Parts" },
+        {
+          name: "twitter:title",
+          content: "Asia Electronics | Electronics, Components & Repair Parts",
+        },
         { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
       ],
-      links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/" }],
+      links: [
+        { rel: "canonical", href: "https://www.asiaelectronics.lk/" },
+        { rel: "preload", as: "image", href: homepageHero, fetchPriority: "high" },
+      ],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(localBusinessSchema) }],
     };
-  },  component: Index,
+  },
+  component: Index,
 });
-
-const fade = { initial: { y: 12 }, animate: { y: 0 } };
 
 function Index() {
   const { categories, products: allProducts, brandLogos } = useCatalog();
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [loadOffers, setLoadOffers] = useState(false);
+
+  useEffect(() => {
+    const schedule = window.requestIdleCallback?.(() => setLoadOffers(true), { timeout: 2500 });
+    if (schedule !== undefined) return () => window.cancelIdleCallback?.(schedule);
+    const timer = window.setTimeout(() => setLoadOffers(true), 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Derive ONLY brands that actually exist in the current store products
   const existingBrands = useMemo(() => {
@@ -97,7 +118,11 @@ function Index() {
 
   return (
     <>
-      <SpecialOfferBanner />
+      {loadOffers && (
+        <Suspense fallback={null}>
+          <SpecialOfferBanner />
+        </Suspense>
+      )}
       <HeroVideoScroller />
 
       {/* Promo grid */}
@@ -105,7 +130,7 @@ function Index() {
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Left 2 columns */}
           <div className="flex flex-col gap-4 lg:col-span-2">
-            <motion.div {...fade} transition={{ duration: 0.4 }} className="flex-1">
+            <div className="flex-1">
               <Link
                 to="/shop"
                 search={{ category: "audio" }}
@@ -133,7 +158,7 @@ function Index() {
                   className="absolute right-0 top-0 h-full w-1/2 object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
                 />
               </Link>
-            </motion.div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {[
                 {
@@ -151,11 +176,7 @@ function Index() {
                   img: images.catLighting,
                 },
               ].map((t, i) => (
-                <motion.div
-                  key={t.cat}
-                  {...fade}
-                  transition={{ duration: 0.4, delay: 0.15 + i * 0.05 }}
-                >
+                <div key={t.cat}>
                   <Link
                     to="/shop"
                     search={{ category: t.cat }}
@@ -176,13 +197,13 @@ function Index() {
                       className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
                     />
                   </Link>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
 
           {/* Right column: TV card */}
-          <motion.div {...fade} transition={{ duration: 0.4, delay: 0.1 }} className="h-full">
+          <div className="h-full">
             <Link
               to="/shop"
               search={{ category: "tv" }}
@@ -207,7 +228,7 @@ function Index() {
                 className="mt-auto w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
               />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -364,7 +385,9 @@ function Index() {
           </p>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             Asia Electronics and Cellular Pvt Ltd supplies components, audio, lighting, mobile parts
-            and displays. Asia Electronics and Cellular Pvt Ltd supplies components, audio equipment, lighting, mobile parts and displays for homes, technicians and businesses across Sri Lanka.
+            and displays. Asia Electronics and Cellular Pvt Ltd supplies components, audio
+            equipment, lighting, mobile parts and displays for homes, technicians and businesses
+            across Sri Lanka.
           </p>
           <Link
             to="/about"

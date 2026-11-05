@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import componentsImg from "@/assets/imgs/ics-repair-components-v1.png";
-import solarImg from "@/assets/imgs/power-solar-batteries.png";
-import repairImg from "@/assets/imgs/tools-installation-supplies.png";
-import lightingImg from "@/assets/imgs/lighting.png";
-import audioImg from "@/assets/imgs/audio-music.png";
-import mobileImg from "@/assets/imgs/mobile-parts-accessories.png";
+import componentsImg from "@/assets/imgs/ics-repair-components-v1.webp";
+import solarImg from "@/assets/imgs/power-solar-batteries.webp";
+import repairImg from "@/assets/imgs/tools-installation-supplies.webp";
+import lightingImg from "@/assets/imgs/lighting.webp";
+import audioImg from "@/assets/imgs/audio-music.webp";
+import mobileImg from "@/assets/imgs/mobile-parts-accessories.webp";
 import {
   ArrowRight,
   Clock3,
@@ -175,9 +175,9 @@ function AboutPage() {
             </p>
             <h2 className="mt-2 font-display text-2xl font-black uppercase">Find us in Colombo</h2>
             <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">
-              Visit our 1st Cross Street store to explore the range and speak with our team, or contact
-              us before your visit to confirm availability. Islandwide delivery is also available
-              for selected orders.
+              Visit our 1st Cross Street store to explore the range and speak with our team, or
+              contact us before your visit to confirm availability. Islandwide delivery is also
+              available for selected orders.
             </p>
 
             <div className="mt-7 grid gap-4 sm:grid-cols-2">

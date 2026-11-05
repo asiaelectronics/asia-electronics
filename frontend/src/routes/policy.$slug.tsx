@@ -15,7 +15,7 @@ import {
   Truck,
   XCircle,
 } from "lucide-react";
-import deliveryVisual from "@/assets/imgs/hero-electronics-showcase.png";
+import deliveryVisual from "@/assets/imgs/hero-electronics-showcase.webp";
 import { PageHeading } from "@/components/site/PageHeading";
 import { useSettings } from "@/context/settings";
 import { fetchOrderStatusApi, type ApiOrder } from "@/services/api";

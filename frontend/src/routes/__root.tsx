@@ -11,7 +11,6 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 
-import { MotionConfig } from "motion/react";
 import appCss from "../styles.css?url";
 import { CartProvider } from "@/context/cart";
 import { SettingsProvider, useSettings } from "@/context/settings";
@@ -44,7 +43,12 @@ function Observability() {
 
   if (!components) return null;
   const { Analytics, SpeedInsights } = components;
-  return <><SpeedInsights /><Analytics /></>;
+  return (
+    <>
+      <SpeedInsights />
+      <Analytics />
+    </>
+  );
 }
 
 function NotFoundComponent() {
@@ -192,7 +196,7 @@ function RootComponent() {
       <AuthProvider>
         <SettingsProvider>
           <CartProvider>
-            <MotionConfig reducedMotion="user">
+            <>
               <FullScreenLoader />
               <a
                 href="#main"
@@ -218,7 +222,7 @@ function RootComponent() {
               <FloatingWhatsAppButton />
 
               <Toaster position="bottom-right" />
-            </MotionConfig>
+            </>
           </CartProvider>
         </SettingsProvider>
       </AuthProvider>
