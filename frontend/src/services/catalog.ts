@@ -291,8 +291,27 @@ export async function saveBrandLogo(brand: string, logoUrl: string, imageData?: 
 export async function deleteBrandLogo(brand: string) {
   if (typeof window === "undefined") return false;
   try {
-    const saved = await upsertBrandApi({ name: brand.trim(), removeImage: true });
+    const cleanBrand = brand.trim();
+    if (!cleanBrand) return false;
+
+    const saved = await upsertBrandApi({ name: cleanBrand, removeImage: true });
     if (!saved) return false;
+
+    // Remove any pre-migration cache entry too, so a deleted logo cannot
+    // reappear locally while the current brand record has no image.
+    const legacyRaw = localStorage.getItem(BRAND_LOGOS_STORAGE_KEY);
+    if (legacyRaw) {
+      try {
+        const legacy = JSON.parse(legacyRaw);
+        if (legacy && typeof legacy === "object") {
+          delete legacy[cleanBrand];
+          localStorage.setItem(BRAND_LOGOS_STORAGE_KEY, JSON.stringify(legacy));
+        }
+      } catch {
+        // Ignore a malformed legacy cache; the persisted server record is authoritative.
+      }
+    }
+
     const current = getStoredBrandRecords().filter((item) => item.slug !== saved.slug);
     saveStoredBrandRecords([...current, saved].sort((a, b) => a.name.localeCompare(b.name)));
     return true;

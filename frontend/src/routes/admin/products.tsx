@@ -2657,6 +2657,7 @@ function BrandManagerModal({
   const [newBrandLogo, setNewBrandLogo] = useState("");
   const [newBrandImageData, setNewBrandImageData] = useState("");
   const [saving, setSaving] = useState(false);
+  const [deletingLogoFor, setDeletingLogoFor] = useState<string | null>(null);
   const [newLogoDropActive, setNewLogoDropActive] = useState(false);
   const [editingLogoDropActive, setEditingLogoDropActive] = useState(false);
 
@@ -2697,6 +2698,17 @@ function BrandManagerModal({
       setNewBrandName("");
       setNewBrandLogo("");
       setNewBrandImageData("");
+    }
+  };
+
+  const handleDeleteLogo = async (brand: string) => {
+    if (!window.confirm(`Remove the logo for \"${brand}\"? This cannot be undone.`)) return;
+
+    setDeletingLogoFor(brand);
+    try {
+      await onDeleteLogo(brand);
+    } finally {
+      setDeletingLogoFor(null);
     }
   };
 
@@ -2962,11 +2974,15 @@ function BrandManagerModal({
                           </button>
                           {logo && (
                             <button
-                              onClick={() => void onDeleteLogo(b)}
-                              className="px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs flex items-center gap-1"
+                              type="button"
+                              onClick={() => void handleDeleteLogo(b)}
+                              disabled={deletingLogoFor === b}
+                              className="px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs flex items-center gap-1 disabled:cursor-not-allowed disabled:opacity-50"
                               title="Remove brand logo"
+                              aria-label={`Remove logo for ${b}`}
                             >
                               <Trash2 className="h-3 w-3" />
+                              {deletingLogoFor === b ? "Removing…" : "Remove"}
                             </button>
                           )}
                         </div>
