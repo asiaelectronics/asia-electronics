@@ -142,8 +142,10 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
   const [idx, setIdx] = useState(0);
   const [dir, setDir] = useState<1 | -1>(1);
 
-  const currentBanner = banners[idx] || banners[0];
-  const cfg = BANNER_SIZES[resolveSize(currentBanner?.size)];
+  const currentBanner = banners[idx] ?? banners[0];
+  if (!currentBanner) return null;
+
+  const cfg = BANNER_SIZES[resolveSize(currentBanner.size)];
 
   const go = useCallback(
     (delta: 1 | -1) => {
@@ -170,7 +172,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
     <div className={`relative overflow-hidden transition-all duration-300 ${cfg.heightClass}`}>
       <AnimatePresence initial={false} custom={dir} mode="popLayout">
         <motion.div
-          key={banners[idx].id}
+          key={currentBanner.id}
           custom={dir}
           variants={variants}
           initial="enter"
@@ -179,7 +181,7 @@ function BannerCarousel({ banners }: { banners: Banner[] }) {
           transition={{ type: "tween", duration: 0.4, ease: "easeInOut" }}
           className="w-full"
         >
-          <BannerSlide banner={banners[idx]} />
+          <BannerSlide banner={currentBanner} />
         </motion.div>
       </AnimatePresence>
 

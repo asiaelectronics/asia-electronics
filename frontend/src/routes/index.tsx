@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { images } from "@/data/catalog";
+import type { SortKey } from "@/lib/types";
 import { useCatalog } from "@/services/catalog";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { CategoryProductSection } from "@/components/site/CategoryProductSection";
@@ -97,13 +98,13 @@ function Index() {
         map.set(b, {
           name: b,
           count: 1,
-          logo: brandLogos?.[b] || p.attributes.brandLogo || "",
+          logo: brandLogos?.[b] || p.attributes["brandLogo"] || "",
         });
       } else {
         const item = map.get(b)!;
         item.count += 1;
-        if (!item.logo && p.attributes.brandLogo) {
-          item.logo = p.attributes.brandLogo;
+        if (!item.logo && p.attributes["brandLogo"]) {
+          item.logo = p.attributes["brandLogo"];
         }
       }
     });
@@ -424,7 +425,7 @@ function SectionHead({
   title: string;
   to: "/shop";
   cta: string;
-  search?: { sort?: "newest" };
+  search: { sort: SortKey };
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
