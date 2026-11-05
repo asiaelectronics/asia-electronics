@@ -18,5 +18,14 @@ for (const fileName of await readdir(imageDirectory)) {
     .webp({ quality: isHero ? 78 : 76, effort: 6 })
     .toFile(output);
 
+  if (isHero) {
+    const mobileOutput = input.replace(/\.png$/i, "-mobile.webp");
+    await sharp(input)
+      .resize({ width: 768, withoutEnlargement: true })
+      .webp({ quality: 72, effort: 6 })
+      .toFile(mobileOutput);
+    console.log(`Optimized mobile ${fileName} → ${path.basename(mobileOutput)}`);
+  }
+
   console.log(`Optimized ${fileName} → ${path.basename(output)}`);
 }

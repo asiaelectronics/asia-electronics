@@ -3,6 +3,8 @@ import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles, Wrench } from "lucide-react";
 import electronicsHero from "@/assets/imgs/hero-electronics-showcase.webp";
 import repairHero from "@/assets/imgs/hero-repair-workbench.webp";
+import electronicsHeroMobile from "@/assets/imgs/hero-electronics-showcase-mobile.webp";
+import repairHeroMobile from "@/assets/imgs/hero-repair-workbench-mobile.webp";
 import { useSettings } from "@/context/settings";
 
 /* WhatsApp SVG icon */
@@ -18,6 +20,7 @@ const SLIDES = [
   {
     id: "tv-showcase",
     poster: electronicsHero,
+    mobilePoster: electronicsHeroMobile,
     badge: "SMART HOME ENTERTAINMENT",
     badgeIcon: Sparkles,
     title: "Cinematic 4K QLED & Smart Displays",
@@ -33,6 +36,7 @@ const SLIDES = [
   {
     id: "repair-components",
     poster: repairHero,
+    mobilePoster: repairHeroMobile,
     badge: "GENUINE ELECTRONICS & REPAIR",
     badgeIcon: Wrench,
     title: "Precision Parts & Component Repair",
@@ -122,17 +126,20 @@ export function HeroVideoScroller() {
                 className="relative h-full w-full min-w-full shrink-0 overflow-hidden"
               >
                 {/* Background Video with Poster fallback */}
-                <img
-                  src={slide.poster}
-                  alt=""
-                  width={1600}
-                  height={900}
-                  sizes="100vw"
-                  loading={idx === 0 ? "eager" : "lazy"}
-                  fetchPriority={idx === 0 ? "high" : "low"}
-                  decoding="async"
-                  className={`absolute inset-0 h-full w-full object-cover object-center brightness-[0.78] contrast-[1.05] transition-transform duration-[6500ms] ease-out motion-reduce:transition-none ${isActive ? "scale-100" : "scale-[1.06]"}`}
-                />
+                <picture>
+                  <source media="(max-width: 639px)" srcSet={slide.mobilePoster} />
+                  <img
+                    src={slide.poster}
+                    alt=""
+                    width={1600}
+                    height={900}
+                    sizes="100vw"
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    fetchPriority={idx === 0 ? "high" : "low"}
+                    decoding="async"
+                    className={`absolute inset-0 h-full w-full object-cover object-center brightness-[0.78] contrast-[1.05] transition-transform duration-[6500ms] ease-out motion-reduce:transition-none ${isActive ? "scale-100" : "scale-[1.06]"}`}
+                  />
+                </picture>
 
                 {/* Rich dark gradient overlay for crystal-clear readability */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent sm:via-black/40" />
