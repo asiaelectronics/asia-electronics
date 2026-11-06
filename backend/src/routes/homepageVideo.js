@@ -25,7 +25,19 @@ router.post("/upload-url", requireAuth, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, error: "Upload an MP4 or WebM video no larger than 25 MB." });
     }
     await ensureBucket();
-    const path = `homepage/${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-120)}`;
+    // The homepage supports one active video. Remove every previous upload
+    // before issuing the next signed upload URL, keeping Storage tidy.
+    const { data: existingFiles, error: listError } = await supabase.storage.from(BUCKET).list("homepage");
+    if (listError) throw new Error(listError.message);
+    const oldPaths = (existingFiles || [])
+      .filter((file) => file.name && file.name !== ".emptyFolderPlaceholder")
+      .map((file) => `homepage/${file.name}`);
+    if (oldPaths.length) {
+      const { error: removeError } = await supabase.storage.from(BUCKET).remove(oldPaths);
+      if (removeError) throw new Error(removeError.message);
+    }
+    const extension = contentType === "video/webm" ? "webm" : "mp4";
+    const path = `homepage/current.${extension}`;
     const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(path);
     if (error || !data) throw new Error(error?.message || "Could not prepare video upload");
     const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
