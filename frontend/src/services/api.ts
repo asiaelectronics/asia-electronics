@@ -153,6 +153,19 @@ export async function updateWholesaleRequestStatusApi(id: string, status: Wholes
   };
 }
 
+export async function deleteWholesaleRequestApi(id: string) {
+  try {
+    const res = await fetch(`${API_BASE}/wholesale-requests/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: authHeaders(false),
+    });
+    const json = await res.json().catch(() => ({}));
+    return { success: res.ok, error: json.error as string | undefined };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Network error" };
+  }
+}
+
 export interface ApiAnalytics {
   totalRevenueLKR: number;
   totalOrders: number;

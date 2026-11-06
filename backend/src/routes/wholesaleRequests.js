@@ -96,12 +96,6 @@ router.post("/", async (req, res) => {
     const id =
       req.wholesaleId ||
       `WR-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const { data: existing, error: existingError } = await supabase
-      .from("wholesale_requests")
-      .select("*")
-      .eq("id", req.params.id)
-      .single();
-    if (existingError) throw new Error(existingError.message);
     const { data, error } = await supabase
       .from("wholesale_requests")
       .insert({
@@ -165,6 +159,12 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: "Invalid wholesale request status" });
+    const { data: existing, error: existingError } = await supabase
+      .from("wholesale_requests")
+      .select("*")
+      .eq("id", req.params.id)
+      .single();
+    if (existingError) throw new Error(existingError.message);
     const { data, error } = await supabase
       .from("wholesale_requests")
       .update({ status, updated_at: new Date().toISOString() })
@@ -182,6 +182,44 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       success: false,
       error: err.message || "Could not update request",
     });
+  }
+});
+
+router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const { data: existing, error: lookupError } = await supabase
+      .from("wholesale_requests")
+      .select("id, file_path")
+      .eq("id", req.params.id)
+      .single();
+    if (lookupError || !existing) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Wholesale request not found" });
+    }
+    const { error } = await supabase
+      .from("wholesale_requests")
+      .delete()
+      .eq("id", existing.id);
+    if (error) throw new Error(error.message);
+    if (existing.file_path) {
+      const { error: storageError } = await supabase.storage
+        .from(BUCKET)
+        .remove([existing.file_path]);
+      if (storageError)
+        console.warn(
+          "Could not remove wholesale request PDF:",
+          storageError.message,
+        );
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        error: err.message || "Could not delete wholesale request",
+      });
   }
 });
 

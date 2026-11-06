@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ExternalLink, FileText, LoaderCircle, RefreshCw } from "lucide-react";
+import { ExternalLink, FileText, LoaderCircle, RefreshCw, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   type ApiWholesaleRequest,
   type WholesaleRequestStatus,
+  deleteWholesaleRequestApi,
   fetchWholesaleRequestsApi,
   updateWholesaleRequestStatusApi,
 } from "@/services/api";
@@ -48,6 +49,20 @@ function WholesaleRequestsPage() {
         `Status updated, but email was not sent: ${result.emailReason || "unknown reason"}`,
       );
     }
+  };
+  const deleteRequest = async (id: string) => {
+    if (
+      !window.confirm(
+        "Delete this wholesale request permanently? Its attached PDF will also be deleted.",
+      )
+    )
+      return;
+    setUpdatingId(id);
+    const result = await deleteWholesaleRequestApi(id);
+    setUpdatingId(null);
+    if (!result.success) return toast.error(result.error || "Could not delete request");
+    setRequests((items) => items.filter((item) => item.id !== id));
+    toast.success("Wholesale request deleted.");
   };
 
   return (
@@ -113,21 +128,33 @@ function WholesaleRequestsPage() {
                     Received {new Date(request.created_at).toLocaleString()}
                   </p>
                 </div>
-                <label className="shrink-0 text-xs font-bold uppercase tracking-wide text-zinc-500">
-                  Status
-                  <select
+                <div className="flex shrink-0 items-end gap-2">
+                  <label className="text-xs font-bold uppercase tracking-wide text-zinc-500">
+                    Status
+                    <select
+                      disabled={updatingId === request.id}
+                      value={request.status}
+                      onChange={(event) =>
+                        void updateStatus(request.id, event.target.value as WholesaleRequestStatus)
+                      }
+                      className="mt-2 block w-36 rounded-md border border-zinc-700 bg-zinc-950 px-2 py-2 text-sm font-semibold text-white outline-none disabled:opacity-50"
+                    >
+                      {statuses.map((status) => (
+                        <option key={status}>{status}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <button
+                    type="button"
                     disabled={updatingId === request.id}
-                    value={request.status}
-                    onChange={(event) =>
-                      void updateStatus(request.id, event.target.value as WholesaleRequestStatus)
-                    }
-                    className="mt-2 block w-36 rounded-md border border-zinc-700 bg-zinc-950 px-2 py-2 text-sm font-semibold text-white outline-none disabled:opacity-50"
+                    onClick={() => void deleteRequest(request.id)}
+                    className="rounded-md border border-red-500/30 p-2.5 text-red-400 hover:bg-red-500/10 disabled:opacity-50"
+                    title="Delete wholesale request"
+                    aria-label={`Delete wholesale request ${request.id}`}
                   >
-                    {statuses.map((status) => (
-                      <option key={status}>{status}</option>
-                    ))}
-                  </select>
-                </label>
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </article>
           ))}
