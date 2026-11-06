@@ -87,6 +87,67 @@ export interface ApiOrder {
   updatedAt?: string;
 }
 
+export type WholesaleRequestStatus = "New" | "Reviewing" | "Quote Sent" | "Accepted" | "Declined";
+
+export interface ApiWholesaleRequest {
+  id: string;
+  customer_name: string;
+  company_name: string;
+  phone: string;
+  email: string;
+  request_details: string;
+  file_name: string | null;
+  file_url?: string | null;
+  status: WholesaleRequestStatus;
+  created_at: string;
+  updated_at?: string | null;
+}
+
+export async function submitWholesaleRequestApi(data: {
+  customerName: string;
+  companyName: string;
+  phone: string;
+  email: string;
+  requestDetails: string;
+  pdfData?: string;
+  pdfName?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/wholesale-requests`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json().catch(() => ({}));
+    return res.ok
+      ? { success: true }
+      : { success: false, error: json.error || "Could not submit your request" };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Network error" };
+  }
+}
+
+export async function fetchWholesaleRequestsApi(): Promise<ApiWholesaleRequest[] | null> {
+  try {
+    const res = await fetch(`${API_BASE}/wholesale-requests`, { headers: authHeaders(false) });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data || [];
+  } catch {
+    return null;
+  }
+}
+
+export async function updateWholesaleRequestStatusApi(id: string, status: WholesaleRequestStatus) {
+  const res = await fetch(`${API_BASE}/wholesale-requests/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify({ status }),
+  });
+  const json = await res.json().catch(() => ({}));
+  return { success: res.ok, error: json.error as string | undefined };
+}
+
 export interface ApiAnalytics {
   totalRevenueLKR: number;
   totalOrders: number;

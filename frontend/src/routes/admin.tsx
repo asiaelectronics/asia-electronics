@@ -16,6 +16,7 @@ import {
   List,
   PlusCircle,
   Tag,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { adminStyles } from "@/components/admin/shared";
@@ -62,6 +63,7 @@ const TITLES: Record<string, string> = {
   "/admin": "Dashboard Overview",
   "/admin/products": "Product Management",
   "/admin/orders": "Order Management",
+  "/admin/wholesale": "Wholesale Requests",
   "/admin/inventory": "Inventory",
   "/admin/analytics": "Analytics",
   "/admin/offers": "Homepage Offers",
@@ -78,13 +80,18 @@ function AdminLayout() {
     select: (s) => (s.location.search as { action?: string }).action,
   });
   const [productsMenuOpen, setProductsMenuOpen] = useState(pathname.startsWith("/admin/products"));
-  const [ordersMenuOpen, setOrdersMenuOpen] = useState(pathname.startsWith("/admin/orders"));
-  const orderFilter = useRouterState({ select: (s) => (s.location.search as { filter?: string }).filter });
+  const [ordersMenuOpen, setOrdersMenuOpen] = useState(
+    pathname.startsWith("/admin/orders") || pathname === "/admin/wholesale",
+  );
+  const orderFilter = useRouterState({
+    select: (s) => (s.location.search as { filter?: string }).filter,
+  });
   const title = TITLES[pathname] ?? "Admin";
 
   useEffect(() => {
     if (pathname.startsWith("/admin/products")) setProductsMenuOpen(true);
-    if (pathname.startsWith("/admin/orders")) setOrdersMenuOpen(true);
+    if (pathname.startsWith("/admin/orders") || pathname === "/admin/wholesale")
+      setOrdersMenuOpen(true);
   }, [pathname]);
 
   useEffect(() => {
@@ -188,7 +195,49 @@ function AdminLayout() {
 
                 if (item.to === "/admin/orders") {
                   const filters = ["Active", "Processing", "Shipped", "Past Orders"] as const;
-                  return <div key={item.to}><button type="button" onClick={() => setOrdersMenuOpen((open) => !open)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold ${isActive ? "text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"}`}><span className={isActive ? "text-orange-400" : ""}>{item.icon}</span>{item.label}{ordersMenuOpen ? <ChevronDown className="h-3 w-3 ml-auto" /> : <ChevronRight className="h-3 w-3 ml-auto" />}</button>{ordersMenuOpen && <div className="ml-5 mt-1 space-y-0.5 border-l border-zinc-800 pl-3">{filters.map((filter) => <Link key={filter} to="/admin/orders" search={{ filter } as any} onClick={() => setSidebarOpen(false)} className={`flex rounded-md px-3 py-2 text-xs font-semibold ${isActive && orderFilter === filter ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}>{filter}</Link>)}</div>}</div>;
+                  const wholesaleActive = pathname === "/admin/wholesale";
+                  return (
+                    <div key={item.to}>
+                      <button
+                        type="button"
+                        onClick={() => setOrdersMenuOpen((open) => !open)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold ${isActive || wholesaleActive ? "text-white" : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"}`}
+                      >
+                        <span className={isActive || wholesaleActive ? "text-orange-400" : ""}>
+                          {item.icon}
+                        </span>
+                        {item.label}
+                        {ordersMenuOpen ? (
+                          <ChevronDown className="h-3 w-3 ml-auto" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 ml-auto" />
+                        )}
+                      </button>
+                      {ordersMenuOpen && (
+                        <div className="ml-5 mt-1 space-y-0.5 border-l border-zinc-800 pl-3">
+                          {filters.map((filter) => (
+                            <Link
+                              key={filter}
+                              to="/admin/orders"
+                              search={{ filter } as any}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`flex rounded-md px-3 py-2 text-xs font-semibold ${isActive && orderFilter === filter ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}
+                            >
+                              {filter}
+                            </Link>
+                          ))}
+                          <Link
+                            to="/admin/wholesale"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold ${wholesaleActive ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}
+                          >
+                            <FileText className="h-3.5 w-3.5" />
+                            Wholesale Requests
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  );
                 }
 
                 if (item.to === "/admin/products") {
@@ -374,9 +423,7 @@ function AdminLayout() {
                   >
                     {title}
                   </h1>
-                  <p className="text-[10px] text-zinc-500">
-                    Asiaelectronics · Admin Portal
-                  </p>
+                  <p className="text-[10px] text-zinc-500">Asiaelectronics · Admin Portal</p>
                 </div>
               </div>
               <div className="ml-auto flex items-center gap-3">

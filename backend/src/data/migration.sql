@@ -148,6 +148,23 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at      TIMESTAMPTZ
 );
 
+-- Wholesale quotation requests are intentionally separate from retail orders.
+-- They never reserve or deduct product inventory.
+CREATE TABLE IF NOT EXISTS wholesale_requests (
+  id              TEXT PRIMARY KEY,
+  customer_name   TEXT NOT NULL,
+  company_name    TEXT DEFAULT '',
+  phone           TEXT NOT NULL,
+  email           TEXT NOT NULL,
+  request_details TEXT NOT NULL,
+  file_path       TEXT,
+  file_name       TEXT,
+  status          TEXT NOT NULL DEFAULT 'New' CHECK (status IN ('New', 'Reviewing', 'Quote Sent', 'Accepted', 'Declined')),
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at      TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_wholesale_requests_created_at ON wholesale_requests(created_at DESC);
+
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STORE SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CREATE TABLE IF NOT EXISTS store_settings (
   id              TEXT PRIMARY KEY DEFAULT 'default',

@@ -2,7 +2,12 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
-import { createRateLimiter, requireTrustedOrigin, sanitizeRequestInput, securityHeaders } from "./middleware/security.js";
+import {
+  createRateLimiter,
+  requireTrustedOrigin,
+  sanitizeRequestInput,
+  securityHeaders,
+} from "./middleware/security.js";
 
 import productsRouter from "./routes/products.js";
 import categoriesRouter from "./routes/categories.js";
@@ -12,6 +17,7 @@ import settingsRouter from "./routes/settings.js";
 import authRouter from "./routes/auth.js";
 import brandsRouter from "./routes/brands.js";
 import bannersRouter from "./routes/banners.js";
+import wholesaleRequestsRouter from "./routes/wholesaleRequests.js";
 
 dotenv.config();
 
@@ -19,7 +25,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-const defaultAllowedOrigins = "http://localhost:8080,http://localhost:5173,https://asiaelectronics.lk,https://www.asiaelectronics.lk";
+const defaultAllowedOrigins =
+  "http://localhost:8080,http://localhost:5173,https://asiaelectronics.lk,https://www.asiaelectronics.lk";
 const configuredOrigins = process.env.FRONTEND_URL || "";
 const allowedOrigins = `${defaultAllowedOrigins},${configuredOrigins}`
   .split(",")
@@ -30,9 +37,15 @@ export function isAllowedOrigin(origin) {
   if (!origin) return true;
   if (allowedOrigins.includes(origin)) return true;
   // Allow all Vercel domains (production & branch preview URLs)
-  if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin)) return true;
+  if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin))
+    return true;
   // Allow localhost & LAN IP addresses
-  if (/^http:\/\/(localhost|127\.0\.0\.1|(\d{1,3}\.){3}\d{1,3})(:\d+)?$/i.test(origin)) return true;
+  if (
+    /^http:\/\/(localhost|127\.0\.0\.1|(\d{1,3}\.){3}\d{1,3})(:\d+)?$/i.test(
+      origin,
+    )
+  )
+    return true;
   return false;
 }
 
@@ -86,8 +99,10 @@ app.use("/api/auth", authRouter);
 app.use("/auth", authRouter);
 app.use("/api/brands", brandsRouter);
 app.use("/api/banners", bannersRouter);
+app.use("/api/wholesale-requests", wholesaleRequestsRouter);
 app.use("/brands", brandsRouter);
 app.use("/banners", bannersRouter);
+app.use("/wholesale-requests", wholesaleRequestsRouter);
 
 // 404 handler for undefined API routes
 app.use("/api/*", (req, res) => {
@@ -117,7 +132,8 @@ app.use((err, req, res, next) => {
   if (err.type === "entity.too.large") {
     return res.status(413).json({
       success: false,
-      error: "Product images are too large. Use fewer images or smaller images and try again.",
+      error:
+        "Product images are too large. Use fewer images or smaller images and try again.",
     });
   }
   res.status(err.status || 500).json({
