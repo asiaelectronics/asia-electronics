@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ShieldCheck,
   Sparkles,
@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import type { Product } from "@/lib/types";
+import { sanitizeAssetPath } from "@/services/catalog";
 import {
   applyWatermarkToImage,
   WATERMARK_LOGO_URL,
@@ -54,7 +55,16 @@ export function WatermarkPreviewModal({
   const [sampleMode, setSampleMode] = useState<"product" | "square" | "portrait" | "landscape" | "transparent">("product");
 
   const currentProduct = products.find((p) => p.id === selectedProductId) || targetProduct || products[0];
-  const savedOriginals = currentProduct?.originalImages ?? [];
+  // Older product records may contain a Vite-hashed asset from a previous
+  // deployment. Resolve it before loading or persisting it so watermarking
+  // never tries to fetch a now-missing /assets/...-hash.png URL.
+  const savedOriginals = useMemo(
+    () =>
+      currentProduct?.originalImages?.length
+        ? currentProduct.originalImages.map((image) => sanitizeAssetPath(image))
+        : [],
+    [currentProduct?.originalImages],
+  );
   const savedOriginal = savedOriginals[activeImgIndex];
   const currentDisplayImage = currentProduct?.images?.[activeImgIndex];
   const canRemoveWatermark = Boolean(
@@ -69,14 +79,12 @@ export function WatermarkPreviewModal({
   useEffect(() => {
     let source = "";
     if (currentProduct) {
-      const origs = currentProduct.originalImages && currentProduct.originalImages.length > 0
-        ? currentProduct.originalImages
-        : currentProduct.images;
-      source = origs[activeImgIndex] || origs[0] || "/assets/imgs/electronic-components.png";
+      const origs = savedOriginals.length > 0 ? savedOriginals : currentProduct.images;
+      source = sanitizeAssetPath(origs[activeImgIndex] || origs[0]);
     }
 
     setOriginalSrc(source);
-  }, [selectedProductId, activeImgIndex, sampleMode, currentProduct]);
+  }, [selectedProductId, activeImgIndex, sampleMode, currentProduct, savedOriginals]);
 
   // Run watermark generation on preview
   useEffect(() => {
@@ -127,9 +135,10 @@ export function WatermarkPreviewModal({
     if (!currentProduct || !watermarkedSrc) return;
     setIsApplying(true);
     try {
-      const origImages = currentProduct.originalImages && currentProduct.originalImages.length > 0
-        ? [...currentProduct.originalImages]
-        : [...currentProduct.images];
+      const origImages =
+        savedOriginals.length > 0
+          ? [...savedOriginals]
+          : currentProduct.images.map((image) => sanitizeAssetPath(image));
 
       // Prepare watermarked image array (watermark current active index)
       const currentImgs = [...currentProduct.images];

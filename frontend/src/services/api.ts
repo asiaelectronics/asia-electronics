@@ -331,6 +331,12 @@ export async function updateProductApi(
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      if (res.status === 401) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem("ae_auth_user_v1");
+        toast.error("Your admin session has expired. Please sign in again, then retry watermarking.");
+        return null;
+      }
       const msg = err.error || `Failed to update product in database (${res.status})`;
       console.error("Backend API updateProduct error:", res.status, err);
       toast.error(msg);
