@@ -10,7 +10,15 @@
   "notifications": {
     "lowStock": false,
     "newOrders": false,
-    "weeklyReport": false
+    "weeklyReport": false,
+    "homepageVideo": {
+      "url": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-videos/homepage/1793964237755-bgvideo.mp4",
+      "title": ""
+    }
   },
-  "updatedAt": "2026-11-03T05:59:29.406+00:00"
+  "homepageVideo": {
+    "url": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-videos/homepage/1793964237755-bgvideo.mp4",
+    "title": ""
+  },
+  "updatedAt": "2026-11-06T11:25:33.729+00:00"
 }

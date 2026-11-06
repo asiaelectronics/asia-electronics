@@ -1,4 +1,6 @@
-import { useState, type MouseEvent } from "react";
+
+GET / api / settings 304 460.712 ms - -
+  GET / api / settings 304 196.184 ms - -import { useState, type MouseEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";

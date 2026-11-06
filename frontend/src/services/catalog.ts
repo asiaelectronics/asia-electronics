@@ -1166,10 +1166,13 @@ export function attributeOptions(category: string) {
 // â”€â”€â”€ React Hook for Live Catalog Updates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function useCatalog() {
-  const [products, setProducts] = useState<Product[]>(() => getStoredProducts());
+  // Use identical seed data during SSR and the first browser render. Reading
+  // localStorage here would make hydration differ whenever a visitor has a
+  // newer catalogue cache than the server-rendered page.
+  const [products, setProducts] = useState<Product[]>(defaultProducts);
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
-  const [brands, setBrands] = useState<string[]>(() => getStoredBrands());
-  const [brandLogos, setBrandLogos] = useState<Record<string, string>>(() => getStoredBrandLogos());
+  const [brands, setBrands] = useState<string[]>(defaultBrands);
+  const [brandLogos, setBrandLogos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const handleUpdate = () => {

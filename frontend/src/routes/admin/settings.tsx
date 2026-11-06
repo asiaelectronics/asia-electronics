@@ -14,11 +14,14 @@ import {
   Eye,
   EyeOff,
   Lock,
+  Upload,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSettings } from "@/context/settings";
 import { useAuth } from "@/context/auth";
 import { cleanWhatsAppNumber } from "@/lib/config";
+import { deleteHomepageVideoApi, uploadHomepageVideoApi } from "@/services/api";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
@@ -38,6 +41,9 @@ function AdminSettings() {
   const [address, setAddress] = useState(settings.address || "Colombo, Sri Lanka");
   const [currency, setCurrency] = useState(settings.currency);
   const [taxRate, setTaxRate] = useState(settings.taxRate);
+  const [homepageVideoTitle, setHomepageVideoTitle] = useState(settings.homepageVideo.title);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isDeletingVideo, setIsDeletingVideo] = useState(false);
 
   const [notifications, setNotifications] = useState(settings.notifications);
 
@@ -50,6 +56,7 @@ function AdminSettings() {
     setAddress(settings.address || "Colombo, Sri Lanka");
     setCurrency(settings.currency);
     setTaxRate(settings.taxRate);
+    setHomepageVideoTitle(settings.homepageVideo.title);
     setNotifications(settings.notifications);
   }, [settings]);
 
@@ -80,6 +87,37 @@ function AdminSettings() {
 
   const cleanWa = cleanWhatsAppNumber(whatsappNumber);
 
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["video/mp4", "video/webm"].includes(file.type) || file.size > 25 * 1024 * 1024) {
+      toast.error("Upload an MP4 or WebM video no larger than 25 MB.");
+      return;
+    }
+    setIsUploadingVideo(true);
+    const result = await uploadHomepageVideoApi(file);
+    if (!result.url) {
+      toast.error(result.error || "Could not upload homepage video.");
+    } else if (await updateSettings({ homepageVideo: { url: result.url, title: homepageVideoTitle.trim() } })) {
+      toast.success("Homepage video saved. It is now live below the hero banner.");
+    } else {
+      toast.error("Video uploaded, but its homepage setting could not be saved.");
+    }
+    setIsUploadingVideo(false);
+  };
+
+  const handleVideoDelete = async () => {
+    const currentVideo = settings.homepageVideo.url;
+    if (!currentVideo || !window.confirm("Remove this homepage video?")) return;
+    setIsDeletingVideo(true);
+    const deleted = await deleteHomepageVideoApi(currentVideo);
+    const saved = deleted && (await updateSettings({ homepageVideo: { url: "", title: "" } }));
+    setIsDeletingVideo(false);
+    if (saved) toast.success("Homepage video removed.");
+    else toast.error("Could not remove the homepage video.");
+  };
+
   return (
     <div className="max-w-4xl space-y-6">
       {/* Header Banner */}
@@ -93,6 +131,28 @@ function AdminSettings() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
+        <div className="admin-card space-y-4">
+          <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
+            <Video className="h-4 w-4 text-orange-400" />
+            <h2 className="text-sm font-bold text-white uppercase tracking-wider">Homepage Banner Video</h2>
+          </div>
+          <p className="text-xs text-zinc-400">Shown below the hero banner on mobile and desktop. Uploading sends the file directly to Supabase Storage; only its URL is saved in the database.</p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input value={homepageVideoTitle} onChange={(e) => setHomepageVideoTitle(e.target.value)} placeholder="Optional video title" className="admin-input w-full" />
+            <label className="admin-btn-primary inline-flex cursor-pointer items-center justify-center gap-2 px-4 py-2 text-xs font-bold disabled:opacity-50">
+              <Upload className="h-4 w-4" /> {isUploadingVideo ? "Uploading..." : "Upload video"}
+              <input type="file" accept="video/mp4,video/webm" className="sr-only" disabled={isUploadingVideo} onChange={handleVideoUpload} />
+            </label>
+          </div>
+          {settings.homepageVideo.url && (
+            <div className="space-y-2">
+              <video className="aspect-video w-full rounded-lg bg-black" controls playsInline preload="metadata"><source src={settings.homepageVideo.url} /></video>
+              <button type="button" onClick={handleVideoDelete} disabled={isDeletingVideo} className="admin-btn-ghost border border-red-500/40 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50">
+                {isDeletingVideo ? "Removing..." : "Remove homepage video"}
+              </button>
+            </div>
+          )}
+        </div>
         {/* AEC Official Business Communication Section */}
         <div className="admin-card space-y-4">
           <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">

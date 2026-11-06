@@ -7,6 +7,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { CategoryProductSection } from "@/components/site/CategoryProductSection";
 import { ProductCard } from "@/components/site/ProductCard";
 import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
+import { useSettings } from "@/context/settings";
 import homepageHero from "@/assets/imgs/hero-electronics-showcase.webp";
 
 const SpecialOfferBanner = lazy(() =>
@@ -77,6 +78,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { categories, products: allProducts, brandLogos } = useCatalog();
+  const { settings } = useSettings();
   const [showAllBrands, setShowAllBrands] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [loadOffers, setLoadOffers] = useState(false);
@@ -125,6 +127,24 @@ function Index() {
         </Suspense>
       )}
       <HeroVideoScroller />
+      {settings.homepageVideo.url && (
+        <section className="container-shop pt-4 sm:pt-6" aria-label="Featured video">
+          <div className="h-[240px] w-full overflow-hidden rounded-md border border-zinc-800 bg-black shadow-xl sm:h-[440px] lg:h-[500px]">
+            <video
+              className="h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label={settings.homepageVideo.title || "Asia Electronics featured video"}
+            >
+              <source src={settings.homepageVideo.url} />
+              Your browser does not support video playback.
+            </video>
+          </div>
+        </section>
+      )}
 
       {/* Promo grid */}
       <section className="container-shop pt-6 lg:pt-8">

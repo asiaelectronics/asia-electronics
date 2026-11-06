@@ -667,6 +667,7 @@ export interface ApiSettings {
     lowStock: boolean;
     weeklyReport: boolean;
   };
+  homepageVideo: { url: string; title: string };
   updatedAt?: string;
 }
 
@@ -683,7 +684,37 @@ export const DEFAULT_SETTINGS: ApiSettings = {
     lowStock: true,
     weeklyReport: false,
   },
+  homepageVideo: { url: "", title: "" },
 };
+
+export async function uploadHomepageVideoApi(file: File): Promise<{ url?: string; error?: string }> {
+  try {
+    const ticket = await fetch(`${API_BASE}/homepage-video/upload-url`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size }),
+    });
+    const ticketJson = await ticket.json().catch(() => ({}));
+    if (!ticket.ok) return { error: ticketJson.error || "Could not prepare video upload" };
+    const upload = await fetch(ticketJson.uploadUrl, {
+      method: "PUT", headers: { "Content-Type": file.type }, body: file,
+    });
+    return upload.ok ? { url: ticketJson.publicUrl } : { error: "Could not upload video to Supabase Storage" };
+  } catch {
+    return { error: "Could not upload video to Supabase Storage" };
+  }
+}
+
+export async function deleteHomepageVideoApi(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/homepage-video`, {
+      method: "DELETE", headers: authHeaders(), body: JSON.stringify({ url }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 export async function fetchSettingsApi(): Promise<ApiSettings> {
   try {

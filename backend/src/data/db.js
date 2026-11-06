@@ -950,6 +950,7 @@ export const defaultSettings = {
     lowStock: true,
     weeklyReport: false,
   },
+  homepageVideo: { url: "", title: "" },
   updatedAt: new Date().toISOString(),
 };
 
@@ -994,6 +995,7 @@ export async function readSettings() {
         taxRate: data.tax_rate || defaultSettings.taxRate,
         address: data.address || defaultSettings.address,
         notifications: data.notifications || defaultSettings.notifications,
+        homepageVideo: data.notifications?.homepageVideo || defaultSettings.homepageVideo,
         updatedAt: data.updated_at || data.created_at,
       };
       writeSettingsFile(merged);
@@ -1035,7 +1037,7 @@ export async function updateSettings(updates) {
       currency: merged.currency,
       tax_rate: merged.taxRate,
       address: merged.address,
-      notifications: merged.notifications,
+      notifications: { ...merged.notifications, homepageVideo: merged.homepageVideo },
       updated_at: merged.updatedAt,
     };
     const { error } = await supabase

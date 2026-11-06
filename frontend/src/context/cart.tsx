@@ -5,6 +5,7 @@ import {
   useMemo,
   useReducer,
   useRef,
+  useState,
   type ReactNode,
 } from "react";
 import { getStoredProducts } from "@/services/catalog";
@@ -87,6 +88,7 @@ const Ctx = createContext<CartCtx | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, []);
   const hydrated = useRef(false);
+  const [catalogReady, setCatalogReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -96,6 +98,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       /* ignore corrupt storage */
     }
     hydrated.current = true;
+    // Browser catalogue storage can differ from SSR seed data. Do not use it
+    // for button availability until React has completed its first hydration.
+    setCatalogReady(true);
   }, []);
 
   useEffect(() => {
@@ -124,10 +129,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),
       remainingFor: (productId) =>
-        (findProduct(productId)?.stock ?? 0) -
+        (!catalogReady ? Number.MAX_SAFE_INTEGER : (findProduct(productId)?.stock ?? 0)) -
         state.filter((l) => l.productId === productId).reduce((s, l) => s + l.qty, 0),
     };
-  }, [state]);
+  }, [catalogReady, state]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

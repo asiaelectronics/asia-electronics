@@ -18,6 +18,7 @@ import authRouter from "./routes/auth.js";
 import brandsRouter from "./routes/brands.js";
 import bannersRouter from "./routes/banners.js";
 import wholesaleRequestsRouter from "./routes/wholesaleRequests.js";
+import homepageVideoRouter from "./routes/homepageVideo.js";
 
 dotenv.config();
 
@@ -100,9 +101,11 @@ app.use("/auth", authRouter);
 app.use("/api/brands", brandsRouter);
 app.use("/api/banners", bannersRouter);
 app.use("/api/wholesale-requests", wholesaleRequestsRouter);
+app.use("/api/homepage-video", homepageVideoRouter);
 app.use("/brands", brandsRouter);
 app.use("/banners", bannersRouter);
 app.use("/wholesale-requests", wholesaleRequestsRouter);
+app.use("/homepage-video", homepageVideoRouter);
 
 // 404 handler for undefined API routes
 app.use("/api/*", (req, res) => {
