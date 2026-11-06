@@ -78,7 +78,7 @@ FROM (VALUES
   ('electronic-components','Integrated Circuits','Active & Passive'),('electronic-components','Resistors','Active & Passive'),('electronic-components','Capacitors','Active & Passive'),('electronic-components','Microswitches','Switches & Controls'),('electronic-components','Potentiometers','Switches & Controls'),
   ('power-solar-batteries','Power Supplies','Power Supply'),('power-solar-batteries','Adapters','Power Supply'),('power-solar-batteries','Solar & Inverters','Power Supply'),('power-solar-batteries','Rechargeable Batteries','Batteries'),('power-solar-batteries','Lithium-ion Batteries','Batteries'),('power-solar-batteries','AVRs','Generator Spares'),('power-solar-batteries','Relays','Generator Spares'),('power-solar-batteries','Other Generator Spares','Generator Spares'),
   ('audio','Bluetooth Speakers','Speakers'),('audio','Waterproof Outdoor Speakers','Speakers'),('audio','Powered Bookshelf Speakers','Speakers'),('audio','2.1 Soundbars','Speakers'),('audio','Wireless ANC Earbuds','Music Equipment'),('audio','Over-Ear Studio Headphones','Music Equipment'),('audio','Home Audio Amplifiers','Music Equipment'),
-  ('mobile','OLED Display Assemblies','Mobile Displays'),('mobile','Touch Screen Digitizers','Mobile Displays'),('mobile','Samsung Galaxy Assemblies','Mobile Displays'),('mobile','USB-C to Lightning Cables','Mobile Cables'),('mobile','USB-C Fast Charging Cables','Mobile Cables'),('mobile','Braided Data Cables','Mobile Cables'),('mobile','Replacement Batteries','Tools & Accessories'),('mobile','Charging Port Flex Cables','Tools & Accessories'),('mobile','Camera Glass Replacements','Tools & Accessories'),('mobile','Car & Bike Holders','Tools & Accessories'),('mobile','Computer & Gaming Accessories','Tools & Accessories'),
+  ('mobile','OLED Display Assemblies','Mobile Displays'),('mobile','Touch Screen Digitizers','Mobile Displays'),('mobile','Samsung Galaxy Assemblies','Mobile Displays'),('mobile','USB-C to Lightning Cables','Mobile Cables'),('mobile','USB-C Fast Charging Cables','Mobile Cables'),('mobile','Braided Data Cables','Mobile Cables'),('mobile','Replacement Batteries','Tools & Accessories'),('mobile','Charging Port Flex Cables','Tools & Accessories'),('mobile','Camera Glass Replacements','Tools & Accessories'),
   ('tools-installation','Brackets','Fixings & Cable Management'),('tools-installation','Cable Ties','Fixings & Cable Management'),('tools-installation','Sleeving','Fixings & Cable Management'),('tools-installation','Contact Cleaners','Maintenance'),
   ('laboratory-equipment','Browse All Lab Equipment','Lab Equipment'),
   ('tv-repair-parts','LED Backlights','TV Parts'),('tv-repair-parts','TV LCD Panels','TV Parts'),('tv-repair-parts','TV Boards','TV Parts'),
@@ -111,6 +111,21 @@ FROM (VALUES
 ) AS seed(category_slug, name)
 JOIN categories ON categories.slug = seed.category_slug
 ON CONFLICT (category_slug, name) DO NOTHING;
+
+-- These are top-level categories, not Mobile Parts subcategories.
+INSERT INTO categories (slug, name, short, image, filter_key)
+VALUES
+  ('car-bike-holders', 'Car & Bike Holders', 'Car & Bike Holders', '/assets/imgs/mobile-parts-accessories.png', 'Type'),
+  ('computer-gaming-accessories', 'Computer & Gaming Accessories', 'Computer & Gaming', '/assets/imgs/mobile-parts-accessories.png', 'Type')
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  short = EXCLUDED.short,
+  image = EXCLUDED.image,
+  filter_key = EXCLUDED.filter_key;
+
+DELETE FROM subcategories
+WHERE category_slug = 'mobile'
+  AND name IN ('Car & Bike Holders', 'Computer & Gaming Accessories');
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ BRANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CREATE TABLE IF NOT EXISTS brands (
   slug        TEXT PRIMARY KEY,

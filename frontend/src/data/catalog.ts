@@ -117,7 +117,20 @@ export const categories: Category[] = [
     short: "Mobile Parts",
     image: catMobileParts,
     filterKey: "Compatible with",
-    subcategories: ["Car & Bike Holders", "Computer & Gaming Accessories"],
+  },
+  {
+    slug: "car-bike-holders",
+    name: "Car & Bike Holders",
+    short: "Car & Bike Holders",
+    image: catMobileParts,
+    filterKey: "Type",
+  },
+  {
+    slug: "computer-gaming-accessories",
+    name: "Computer & Gaming Accessories",
+    short: "Computer & Gaming",
+    image: catMobileParts,
+    filterKey: "Type",
   },
 
   // ── 9. Tools & Installation Supplies ─────────────────────────────────────

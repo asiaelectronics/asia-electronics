@@ -4,16 +4,38 @@ import { readCategories, insertCategory, updateCategoryInDb, deleteCategory, rea
 
 const router = express.Router();
 
-// Core subcategories that must remain available even before a product has been
-// created inside them. Existing admin-created subcategories are always kept.
-const requiredSubcategories = {
-  mobile: ["Car & Bike Holders", "Computer & Gaming Accessories"],
-};
+const requiredCategories = [
+  {
+    slug: "car-bike-holders",
+    name: "Car & Bike Holders",
+    short: "Car & Bike Holders",
+    image: "/assets/imgs/mobile-parts-accessories.png",
+    filterKey: "Type",
+  },
+  {
+    slug: "computer-gaming-accessories",
+    name: "Computer & Gaming Accessories",
+    short: "Computer & Gaming",
+    image: "/assets/imgs/mobile-parts-accessories.png",
+    filterKey: "Type",
+  },
+];
+const legacyMobileSubcategories = new Set([
+  "Car & Bike Holders",
+  "Computer & Gaming Accessories",
+]);
 
 // GET /api/categories (with product counts)
 router.get("/", async (req, res) => {
   try {
-    const cats = await readCategories();
+    let cats = await readCategories();
+    const missingCategories = requiredCategories.filter(
+      (required) => !cats.some((category) => category.slug === required.slug),
+    );
+    if (missingCategories.length) {
+      const created = await Promise.all(missingCategories.map(insertCategory));
+      cats = [...cats, ...created];
+    }
     const prods = await readProducts();
 
     // Backfill category subcategories from products created before category-level
@@ -24,16 +46,26 @@ router.get("/", async (req, res) => {
           .filter((product) => product.category === category.slug)
           .map((product) => product.subcategory || product.attributes?.Subcategory || "")
           .map((subcategory) => String(subcategory).trim())
-          .filter(Boolean);
+          .filter(
+            (subcategory) =>
+              Boolean(subcategory) &&
+              (category.slug !== "mobile" || !legacyMobileSubcategories.has(subcategory)),
+          );
+        const existingSubcategories = (category.subcategories || []).filter(
+          (subcategory) =>
+            category.slug === "mobile" ? !legacyMobileSubcategories.has(subcategory) : true,
+        );
         const subcategories = [
           ...new Set([
-            ...(category.subcategories || []),
-            ...(requiredSubcategories[category.slug] || []),
+            ...existingSubcategories,
             ...productSubcategories,
           ]),
         ];
 
-        if (subcategories.length !== (category.subcategories || []).length) {
+        if (
+          subcategories.length !== (category.subcategories || []).length ||
+          subcategories.some((subcategory) => !category.subcategories?.includes(subcategory))
+        ) {
           return updateCategoryInDb(category.slug, { subcategories });
         }
         return category;
