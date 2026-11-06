@@ -42,6 +42,12 @@ function WholesaleRequestsPage() {
     setUpdatingId(null);
     if (!result.success) return toast.error(result.error || "Could not update status");
     setRequests((items) => items.map((item) => (item.id === id ? { ...item, status } : item)));
+    if (result.emailSent) toast.success("Status updated and customer email sent.");
+    else if (result.emailReason !== "Status was unchanged") {
+      toast.warning(
+        `Status updated, but email was not sent: ${result.emailReason || "unknown reason"}`,
+      );
+    }
   };
 
   return (

@@ -1,6 +1,7 @@
 import express from "express";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { supabase } from "../data/supabase.js";
+import { sendWholesaleStatusEmail } from "../services/orderStatusEmail.js";
 
 const router = express.Router();
 const BUCKET = "wholesale-request-files";
@@ -57,12 +58,10 @@ router.post("/", async (req, res) => {
     const email = String(req.body.email || "").trim();
     const requestDetails = String(req.body.requestDetails || "").trim();
     if (!customerName || !phone || !email || !requestDetails) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: "Name, phone, email and request details are required",
-        });
+      return res.status(400).json({
+        success: false,
+        error: "Name, phone, email and request details are required",
+      });
     }
     if (
       customerName.length > 120 ||
@@ -97,6 +96,12 @@ router.post("/", async (req, res) => {
     const id =
       req.wholesaleId ||
       `WR-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const { data: existing, error: existingError } = await supabase
+      .from("wholesale_requests")
+      .select("*")
+      .eq("id", req.params.id)
+      .single();
+    if (existingError) throw new Error(existingError.message);
     const { data, error } = await supabase
       .from("wholesale_requests")
       .insert({
@@ -118,12 +123,10 @@ router.post("/", async (req, res) => {
     }
     res.status(201).json({ success: true, data });
   } catch (err) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        error: err.message || "Could not submit wholesale request",
-      });
+    res.status(400).json({
+      success: false,
+      error: err.message || "Could not submit wholesale request",
+    });
   }
 });
 
@@ -148,12 +151,10 @@ router.get("/", requireAuth, requireAdmin, async (_req, res) => {
     );
     res.json({ success: true, data: requests });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: err.message || "Could not load wholesale requests",
-      });
+    res.status(500).json({
+      success: false,
+      error: err.message || "Could not load wholesale requests",
+    });
   }
 });
 
@@ -171,14 +172,16 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       .select()
       .single();
     if (error) throw new Error(error.message);
-    res.json({ success: true, data });
+    const notification =
+      existing.status === status
+        ? { sent: false, reason: "Status was unchanged" }
+        : await sendWholesaleStatusEmail(data, status);
+    res.json({ success: true, data, notification });
   } catch (err) {
-    res
-      .status(400)
-      .json({
-        success: false,
-        error: err.message || "Could not update request",
-      });
+    res.status(400).json({
+      success: false,
+      error: err.message || "Could not update request",
+    });
   }
 });
 

@@ -1,22 +1,41 @@
 import nodemailer from "nodemailer";
 
 const STATUS_COPY = {
-  "Quotation Requested": "We have received your quotation request and our team will review it shortly.",
-  "Quotation Sent": "Your quotation is ready. Please check your email or contact us if you need any changes.",
+  "Quotation Requested":
+    "We have received your quotation request and our team will review it shortly.",
+  "Quotation Sent":
+    "Your quotation is ready. Please check your email or contact us if you need any changes.",
   Processing: "Your order is now being processed by our team.",
-  Shipped: "Your order is on the way. Track its progress and contact us if you need help.",
+  Shipped:
+    "Your order is on the way. Track its progress and contact us if you need help.",
   Delivered: "Your order has been delivered. Thank you for shopping with us.",
-  Cancelled: "Your order has been cancelled. Please contact us if you have any questions.",
+  Cancelled:
+    "Your order has been cancelled. Please contact us if you have any questions.",
+};
+
+const WHOLESALE_STATUS_COPY = {
+  New: "We have received your wholesale quotation request and our team will review it shortly.",
+  Reviewing: "Our team is reviewing your wholesale quotation request.",
+  "Quote Sent":
+    "Your wholesale quotation is ready. Please reply to this email or contact us if you have questions.",
+  Accepted:
+    "Thank you for accepting our wholesale quotation. Our team will contact you about the next steps.",
+  Declined:
+    "Your wholesale quotation request has been marked as declined. Please contact us if you would like to discuss alternatives.",
 };
 
 function escapeHtml(value = "") {
-  return String(value).replace(/[&<>'"]/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "'": "&#39;",
-    '"': "&quot;",
-  })[character]);
+  return String(value).replace(
+    /[&<>'"]/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;",
+      })[character],
+  );
 }
 
 function getTransporter() {
@@ -43,7 +62,10 @@ function getStoreUrl() {
 
   // Prioritize public/production URLs (https or non-localhost) so links in emails work on mobile devices
   const publicUrl = configured.find(
-    (url) => !url.includes("localhost") && !url.includes("127.0.0.1") && !url.includes("::1"),
+    (url) =>
+      !url.includes("localhost") &&
+      !url.includes("127.0.0.1") &&
+      !url.includes("::1"),
   );
   if (publicUrl) return publicUrl;
 
@@ -55,14 +77,18 @@ function renderItems(items = []) {
     return '<p style="margin:0;color:#737373;font-size:14px">Your item details are available in your order.</p>';
   }
 
-  return items.map((item) => `
+  return items
+    .map(
+      (item) => `
     <tr>
       <td style="padding:14px 0;border-bottom:1px solid #ececec;vertical-align:top">
         <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#2a2a2a">${escapeHtml(item.name || "Product")}</p>
         <p style="margin:0;font-size:13px;color:#888">SKU: ${escapeHtml(item.sku || "—")}</p>
       </td>
       <td style="padding:14px 0 14px 12px;border-bottom:1px solid #ececec;vertical-align:top;text-align:right;font-size:14px;color:#555">× ${Math.max(1, Number(item.qty) || 1)}</td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 }
 
 export async function sendOrderStatusEmail(order, status) {
@@ -80,13 +106,18 @@ export async function sendOrderStatusEmail(order, status) {
   const customerName = escapeHtml(order.customerName || "Customer");
   const orderId = escapeHtml(order.id);
   const statusText = escapeHtml(status);
-  const message = escapeHtml(STATUS_COPY[status] || "Your order status has been updated.");
+  const message = escapeHtml(
+    STATUS_COPY[status] || "Your order status has been updated.",
+  );
   const storeUrl = getStoreUrl();
   const orderUrl = `${storeUrl}/order-confirmation?order=${encodeURIComponent(order.id)}`;
   const logoUrl = `${storeUrl}/logo.png`;
   const trackingNumber = escapeHtml(order.trackingNumber || order.id);
   const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
-  const shipmentTitle = status === "Shipped" ? "Your order is on the way" : `Your order is ${statusText.toLowerCase()}`;
+  const shipmentTitle =
+    status === "Shipped"
+      ? "Your order is on the way"
+      : `Your order is ${statusText.toLowerCase()}`;
 
   try {
     await transporter.sendMail({
@@ -123,6 +154,44 @@ export async function sendOrderStatusEmail(order, status) {
     return { sent: true };
   } catch (error) {
     console.error(`Order status email failed for ${order.id}:`, error.message);
+    return { sent: false, reason: "Email delivery failed" };
+  }
+}
+
+export async function sendWholesaleStatusEmail(request, status) {
+  const recipient = String(request?.email || "").trim();
+  if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient))
+    return { sent: false, reason: "Customer has no valid email address" };
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn("Wholesale status email skipped: SMTP is not configured.");
+    return { sent: false, reason: "SMTP is not configured" };
+  }
+  const customerName = escapeHtml(
+    request.customer_name || request.customerName || "Customer",
+  );
+  const requestId = escapeHtml(request.id);
+  const statusText = escapeHtml(status);
+  const message = escapeHtml(
+    WHOLESALE_STATUS_COPY[status] ||
+      "Your wholesale quotation request has been updated.",
+  );
+  const storeUrl = getStoreUrl();
+  const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
+  try {
+    await transporter.sendMail({
+      from: `Asia Electronics & Cellular <${from}>`,
+      to: recipient,
+      subject: `Wholesale request ${request.id}: ${status}`,
+      text: `Hello ${request.customer_name || request.customerName || "Customer"},\n\n${WHOLESALE_STATUS_COPY[status] || "Your wholesale quotation request has been updated."}\n\nRequest reference: ${request.id}\nCurrent status: ${status}\n\nAsia Electronics & Cellular Pvt Ltd`,
+      html: `<!doctype html><html><body style="margin:0;padding:32px 12px;background:#f5f5f5;font-family:Arial,sans-serif;color:#2a2a2a"><table role="presentation" width="100%"><tr><td align="center"><table role="presentation" width="100%" style="max-width:640px;background:#fff"><tr><td style="padding:38px 42px 24px"><p style="margin:0;font-size:22px;font-weight:800;color:#e11d48">ASIA ELECTRONICS</p><p style="margin:6px 0 0;font-size:12px;color:#929292">WHOLESALE REQUEST #${requestId}</p></td></tr><tr><td style="padding:12px 42px 34px"><h1 style="margin:0 0 14px;font-size:26px;font-weight:500">Request status updated</h1><p style="margin:0;font-size:15px;line-height:1.65;color:#777">Hello ${customerName}, ${message}</p><p style="margin:24px 0 0;font-size:14px">Current status: <strong>${statusText}</strong></p><p style="margin:24px 0 0"><a href="${storeUrl}/contact" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:14px 22px;font-size:14px;font-weight:700">Contact our team</a></p></td></tr></table></td></tr></table></body></html>`,
+    });
+    return { sent: true };
+  } catch (error) {
+    console.error(
+      `Wholesale status email failed for ${request.id}:`,
+      error.message,
+    );
     return { sent: false, reason: "Email delivery failed" };
   }
 }

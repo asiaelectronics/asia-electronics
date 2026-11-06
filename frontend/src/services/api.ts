@@ -145,7 +145,12 @@ export async function updateWholesaleRequestStatusApi(id: string, status: Wholes
     body: JSON.stringify({ status }),
   });
   const json = await res.json().catch(() => ({}));
-  return { success: res.ok, error: json.error as string | undefined };
+  return {
+    success: res.ok,
+    error: json.error as string | undefined,
+    emailSent: Boolean(json.notification?.sent),
+    emailReason: json.notification?.reason as string | undefined,
+  };
 }
 
 export interface ApiAnalytics {
