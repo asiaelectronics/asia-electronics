@@ -51,25 +51,34 @@ function getTransporter() {
 }
 
 function getStoreUrl() {
-  if (process.env.STORE_URL) {
-    return process.env.STORE_URL.trim().replace(/\/$/, "");
-  }
+  const canonicalStoreUrl = "https://www.asiaelectronics.lk";
+  const isPreviewUrl = (url) => {
+    try {
+      return new URL(url).hostname.endsWith(".vercel.app");
+    } catch {
+      return true;
+    }
+  };
+  const configuredStoreUrl = process.env.STORE_URL?.trim().replace(/\/$/, "");
+  if (configuredStoreUrl && !isPreviewUrl(configuredStoreUrl))
+    return configuredStoreUrl;
 
   const configured = (process.env.FRONTEND_URL || "")
     .split(",")
     .map((item) => item.trim().replace(/\/$/, ""))
     .filter(Boolean);
 
-  // Prioritize public/production URLs (https or non-localhost) so links in emails work on mobile devices
+  // Never put an expiring Vercel preview URL in a customer email.
   const publicUrl = configured.find(
     (url) =>
       !url.includes("localhost") &&
       !url.includes("127.0.0.1") &&
-      !url.includes("::1"),
+      !url.includes("::1") &&
+      !isPreviewUrl(url),
   );
   if (publicUrl) return publicUrl;
 
-  return "https://www.asiaelectronics.lk";
+  return canonicalStoreUrl;
 }
 
 function renderItems(items = []) {
