@@ -716,6 +716,7 @@ export async function deleteHomepageVideoApi(url: string): Promise<boolean> {
   }
 }
 
+
 export async function fetchSettingsApi(): Promise<ApiSettings> {
   try {
     const res = await fetch(`${API_BASE}/settings`);

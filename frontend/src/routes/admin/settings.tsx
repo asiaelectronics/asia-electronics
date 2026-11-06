@@ -22,6 +22,7 @@ import { useSettings } from "@/context/settings";
 import { useAuth } from "@/context/auth";
 import { cleanWhatsAppNumber } from "@/lib/config";
 import { deleteHomepageVideoApi, uploadHomepageVideoApi } from "@/services/api";
+import { HOMEPAGE_VIDEO_ENABLED } from "@/lib/features";
 
 export const Route = createFileRoute("/admin/settings")({
   component: AdminSettings,
@@ -131,7 +132,7 @@ function AdminSettings() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        <div className="admin-card space-y-4">
+        {HOMEPAGE_VIDEO_ENABLED && <div className="admin-card space-y-4">
           <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">
             <Video className="h-4 w-4 text-orange-400" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">Homepage Banner Video</h2>
@@ -152,7 +153,7 @@ function AdminSettings() {
               </button>
             </div>
           )}
-        </div>
+        </div>}
         {/* AEC Official Business Communication Section */}
         <div className="admin-card space-y-4">
           <div className="flex items-center gap-2 border-b border-zinc-800 pb-3">

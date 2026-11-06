@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, LayoutGrid, Bookmark, ShoppingCart, Store } from "lucide-react";
+import { Home, LayoutGrid, Bookmark, ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/cart";
 
 interface MobileBottomNavProps {
@@ -17,7 +17,6 @@ export function MobileBottomNav({
   const isHome = pathname === "/";
   const isCart = pathname === "/cart";
   const isShop = pathname === "/shop";
-  const isWholesale = pathname === "/wholesale";
 
   const itemCls = (active: boolean) =>
     `flex flex-col items-center justify-center gap-0.5 flex-1 h-full py-1 text-[10px] font-semibold uppercase tracking-wide transition-colors outline-none select-none
@@ -64,17 +63,6 @@ export function MobileBottomNav({
             <Bookmark className="h-5 w-5 shrink-0" />
             <span>Brands</span>
           </button>
-
-          {/* Wholesale */}
-          <Link
-            to="/wholesale"
-            aria-label="Wholesale & bulk orders"
-            aria-current={isWholesale ? "page" : undefined}
-            className={itemCls(isWholesale)}
-          >
-            <Store className="h-5 w-5 shrink-0" />
-            <span>Wholesale</span>
-          </Link>
 
           {/* Cart */}
           <Link

@@ -54,9 +54,7 @@ router.delete("/", requireAuth, requireAdmin, async (req, res) => {
     const index = publicUrl.indexOf(marker);
     if (index < 0) return res.status(400).json({ success: false, error: "Invalid homepage video URL" });
     const path = decodeURIComponent(publicUrl.slice(index + marker.length));
-    if (!path.startsWith("homepage/")) {
-      return res.status(400).json({ success: false, error: "Invalid homepage video path" });
-    }
+    if (!path.startsWith("homepage/")) return res.status(400).json({ success: false, error: "Invalid homepage video path" });
     const { error } = await supabase.storage.from(BUCKET).remove([path]);
     if (error) throw new Error(error.message);
     res.json({ success: true });

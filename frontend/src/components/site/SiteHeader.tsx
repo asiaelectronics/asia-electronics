@@ -562,6 +562,13 @@ export function SiteHeader() {
                     >
                       My Account / Orders
                     </Link>
+                    <Link
+                      to="/wholesale"
+                      onClick={() => setMobileOpen(false)}
+                      className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
+                    >
+                      Wholesale
+                    </Link>
                   </div>
 
                   {/* Contact info */}

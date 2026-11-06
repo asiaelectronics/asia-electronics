@@ -8,6 +8,7 @@ import { CategoryProductSection } from "@/components/site/CategoryProductSection
 import { ProductCard } from "@/components/site/ProductCard";
 import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
 import { useSettings } from "@/context/settings";
+import { HOMEPAGE_VIDEO_ENABLED } from "@/lib/features";
 import homepageHero from "@/assets/imgs/hero-electronics-showcase.webp";
 
 const SpecialOfferBanner = lazy(() =>
@@ -127,7 +128,7 @@ function Index() {
         </Suspense>
       )}
       <HeroVideoScroller />
-      {settings.homepageVideo.url && (
+      {HOMEPAGE_VIDEO_ENABLED && settings.homepageVideo.url && (
         <section className="container-shop pt-4 sm:pt-6" aria-label="Featured video">
           <div className="h-[240px] w-full overflow-hidden rounded-md border border-zinc-800 bg-black shadow-xl sm:h-[440px] lg:h-[500px]">
             <video
