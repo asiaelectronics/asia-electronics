@@ -50,6 +50,13 @@ function safeFileName(value) {
     .slice(-120);
 }
 
+function normalizeWhatsAppNumber(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length < 8 || digits.length > 15)
+    throw new Error("Customer phone number is not a valid WhatsApp number");
+  return digits;
+}
+
 router.post("/", async (req, res) => {
   try {
     const customerName = String(req.body.customerName || "").trim();
@@ -115,7 +122,28 @@ router.post("/", async (req, res) => {
       if (filePath) await supabase.storage.from(BUCKET).remove([filePath]);
       throw new Error(error.message);
     }
-    res.status(201).json({ success: true, data });
+    let fileUrl = null;
+    if (filePath) {
+      const { data: signed, error: signedError } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUrl(filePath, 60 * 60);
+      if (signedError)
+        throw new Error(
+          `Could not prepare the PDF link: ${signedError.message}`,
+        );
+      fileUrl = signed?.signedUrl || null;
+    }
+    const salesNumber = normalizeWhatsAppNumber(
+      process.env.WHATSAPP_SALES_NUMBER || "+94741066017",
+    );
+    const message = `Hello Asia Electronics, I submitted wholesale request ${id}.\n\n${requestDetails}${fileUrl ? `\n\nMy attached PDF: ${fileUrl}` : ""}`;
+    res
+      .status(201)
+      .json({
+        success: true,
+        data,
+        whatsappUrl: `https://wa.me/${salesNumber}?text=${encodeURIComponent(message)}`,
+      });
   } catch (err) {
     res.status(400).json({
       success: false,

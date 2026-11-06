@@ -111,7 +111,7 @@ export async function submitWholesaleRequestApi(data: {
   requestDetails: string;
   pdfData?: string;
   pdfName?: string;
-}): Promise<{ success: boolean; error?: string }> {
+}): Promise<{ success: boolean; error?: string; whatsappUrl?: string }> {
   try {
     const res = await fetch(`${API_BASE}/wholesale-requests`, {
       method: "POST",
@@ -120,7 +120,7 @@ export async function submitWholesaleRequestApi(data: {
     });
     const json = await res.json().catch(() => ({}));
     return res.ok
-      ? { success: true }
+      ? { success: true, whatsappUrl: json.whatsappUrl }
       : { success: false, error: json.error || "Could not submit your request" };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : "Network error" };

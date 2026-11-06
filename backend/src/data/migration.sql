@@ -164,6 +164,9 @@ CREATE TABLE IF NOT EXISTS wholesale_requests (
   updated_at      TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_wholesale_requests_created_at ON wholesale_requests(created_at DESC);
+ALTER TABLE wholesale_requests ADD COLUMN IF NOT EXISTS quote_file_path TEXT;
+ALTER TABLE wholesale_requests ADD COLUMN IF NOT EXISTS quote_file_name TEXT;
+ALTER TABLE wholesale_requests ADD COLUMN IF NOT EXISTS whatsapp_sent_at TIMESTAMPTZ;
 
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ STORE SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CREATE TABLE IF NOT EXISTS store_settings (

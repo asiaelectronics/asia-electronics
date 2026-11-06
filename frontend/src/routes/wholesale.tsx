@@ -39,6 +39,7 @@ function WholesalePage() {
       setSubmitted(true);
       setForm(initialForm);
       setFile(null);
+      if (result.whatsappUrl) window.location.assign(result.whatsappUrl);
     } catch {
       toast.error("Could not read the attached PDF.");
     } finally {
