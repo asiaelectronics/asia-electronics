@@ -68,6 +68,11 @@ export function sanitizeAssetPath(
 }
 
 let initialSyncPromise: Promise<void> | null = null;
+// Product photos currently arrive from the API as data URLs. They are too large
+// for localStorage, so retain the complete catalogue for the current browser
+// session and use localStorage only as a small offline cache.
+let sessionProducts: Product[] | null = null;
+
 export async function syncCatalogWithBackend() {
   if (typeof window === "undefined") return;
   if (initialSyncPromise) return initialSyncPromise;
@@ -137,6 +142,7 @@ function slugify(s: string) {
 
 export function getStoredProducts(): Product[] {
   if (typeof window === "undefined") return defaultProducts;
+  if (sessionProducts) return sessionProducts;
   try {
     const raw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
     if (raw === null) return defaultProducts;
@@ -158,6 +164,10 @@ export function getStoredProducts(): Product[] {
 
 export function saveStoredProducts(items: Product[]): void {
   if (typeof window === "undefined") return;
+  // Always keep the original image data in memory. If the persistent cache
+  // exceeds the browser quota, the compact fallback below must not replace the
+  // images currently displayed to the customer.
+  sessionProducts = items;
   try {
     localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
@@ -990,6 +1000,7 @@ export function generate800SKUs(): { count: number; total: number } {
 
 export function resetCatalogToDefault(): void {
   if (typeof window === "undefined") return;
+  sessionProducts = null;
   localStorage.removeItem(PRODUCTS_STORAGE_KEY);
   localStorage.removeItem(CATEGORIES_STORAGE_KEY);
   window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
