@@ -162,7 +162,21 @@ export function saveStoredProducts(items: Product[]): void {
     localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
   } catch (e) {
-    console.error("Failed to save products to localStorage", e);
+    // Product images can be data URLs, which easily exceed the browser's
+    // storage quota. Keep a compact cache instead; the API remains the source
+    // of truth and will reload full product data when needed.
+    try {
+      const compact = items.map((item) => ({
+        ...item,
+        images: (item.images || []).filter((image) => !image.startsWith("data:")).slice(0, 4),
+        originalImages: undefined,
+      }));
+      localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(compact));
+      window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
+    } catch {
+      localStorage.removeItem(PRODUCTS_STORAGE_KEY);
+      window.dispatchEvent(new CustomEvent(CATALOG_UPDATED_EVENT));
+    }
   }
 }
 

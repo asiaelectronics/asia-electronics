@@ -20,6 +20,13 @@ const statuses: WholesaleRequestStatus[] = [
   "Declined",
 ];
 
+function formatReceivedAt(value: string) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? "Unknown date"
+    : date.toISOString().replace("T", " ").slice(0, 16) + " UTC";
+}
+
 function WholesaleRequestsPage() {
   const [requests, setRequests] = useState<ApiWholesaleRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +132,7 @@ function WholesaleRequestsPage() {
                     </a>
                   )}
                   <p className="mt-4 text-xs text-zinc-600">
-                    Received {new Date(request.created_at).toLocaleString()}
+                    Received {formatReceivedAt(request.created_at)}
                   </p>
                 </div>
                 <div className="flex shrink-0 items-end gap-2">

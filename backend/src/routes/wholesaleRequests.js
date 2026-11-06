@@ -163,14 +163,29 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       .from("wholesale_requests")
       .select("*")
       .eq("id", req.params.id)
-      .single();
+      .maybeSingle();
     if (existingError) throw new Error(existingError.message);
-    const { data, error } = await supabase
+    if (!existing) {
+      return res
+        .status(404)
+        .json({ success: false, error: "Wholesale request not found" });
+    }
+    let { data, error } = await supabase
       .from("wholesale_requests")
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", req.params.id)
       .select()
       .single();
+    // Supports installations where the initial wholesale table was created
+    // before the optional updated_at column was added.
+    if (error && /updated_at|column/i.test(error.message || "")) {
+      ({ data, error } = await supabase
+        .from("wholesale_requests")
+        .update({ status })
+        .eq("id", req.params.id)
+        .select()
+        .single());
+    }
     if (error) throw new Error(error.message);
     const notification =
       existing.status === status
@@ -214,12 +229,10 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
     }
     res.json({ success: true });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: err.message || "Could not delete wholesale request",
-      });
+    res.status(500).json({
+      success: false,
+      error: err.message || "Could not delete wholesale request",
+    });
   }
 });
 
