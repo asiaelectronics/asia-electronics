@@ -117,6 +117,7 @@ export const categories: Category[] = [
     short: "Mobile Parts",
     image: catMobileParts,
     filterKey: "Compatible with",
+    subcategories: ["Car & Bike Holders", "Computer & Gaming Accessories"],
   },
 
   // ── 9. Tools & Installation Supplies ─────────────────────────────────────

@@ -5,12 +5,35 @@ import { sendWholesaleStatusEmail } from "../services/orderStatusEmail.js";
 
 const router = express.Router();
 const BUCKET = "wholesale-request-files";
-const MAX_PDF_BYTES = 2 * 1024 * 1024;
+const MAX_FILE_BYTES = 2 * 1024 * 1024;
 const STATUSES = ["New", "Reviewing", "Quote Sent", "Accepted", "Declined"];
+const ALLOWED_FILE_TYPES = {
+  ".pdf": ["application/pdf"],
+  ".xls": ["application/vnd.ms-excel", "application/octet-stream"],
+  ".xlsx": [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",
+  ],
+  ".csv": ["text/csv", "application/csv", "application/vnd.ms-excel", "text/plain"],
+  ".br": ["application/octet-stream", "application/pdf", "image/jpeg", "image/png"],
+  ".jpg": ["image/jpeg"],
+  ".jpeg": ["image/jpeg"],
+  ".png": ["image/png"],
+};
+const ALLOWED_MIME_TYPES = [...new Set(Object.values(ALLOWED_FILE_TYPES).flat())];
 
 async function ensureBucket() {
   const { data, error: lookupError } = await supabase.storage.getBucket(BUCKET);
-  if (data) return;
+  const config = {
+    public: false,
+    fileSizeLimit: MAX_FILE_BYTES,
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
+  };
+  if (data) {
+    const { error } = await supabase.storage.updateBucket(BUCKET, config);
+    if (error) throw new Error(`Could not update wholesale file storage: ${error.message}`);
+    return;
+  }
   if (
     lookupError &&
     /row-level security|unauthorized|permission/i.test(
@@ -21,11 +44,7 @@ async function ensureBucket() {
       "Wholesale file storage is not authorized. Configure the backend with the Supabase service-role key.",
     );
   }
-  const { error } = await supabase.storage.createBucket(BUCKET, {
-    public: false,
-    fileSizeLimit: MAX_PDF_BYTES,
-    allowedMimeTypes: ["application/pdf"],
-  });
+  const { error } = await supabase.storage.createBucket(BUCKET, config);
   if (error && !error.message?.toLowerCase().includes("already exists")) {
     throw new Error(
       `Could not create wholesale file storage: ${error.message}`,
@@ -33,15 +52,22 @@ async function ensureBucket() {
   }
 }
 
-function decodePdf(dataUrl) {
-  const match = /^data:application\/pdf;base64,([a-z0-9+/=\r\n]+)$/i.exec(
-    String(dataUrl || ""),
-  );
-  if (!match) throw new Error("Attachment must be a PDF file");
-  const buffer = Buffer.from(match[1], "base64");
-  if (!buffer.length || buffer.length > MAX_PDF_BYTES)
-    throw new Error("PDF must be smaller than 2 MB");
-  return buffer;
+function decodeFile(dataUrl, originalName) {
+  const fileName = safeFileName(originalName);
+  const extension = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+  const allowedMimes = ALLOWED_FILE_TYPES[extension];
+  if (!allowedMimes) {
+    throw new Error("Attach a PDF, Excel, BR, JPG or PNG file");
+  }
+  const match = /^data:([^;,]*);base64,([a-z0-9+/=\r\n]+)$/i.exec(String(dataUrl || ""));
+  const contentType = match?.[1].toLowerCase() || allowedMimes[0];
+  if (!match || !allowedMimes.includes(contentType)) {
+    throw new Error("The selected file type does not match its file extension");
+  }
+  const buffer = Buffer.from(match[2], "base64");
+  if (!buffer.length || buffer.length > MAX_FILE_BYTES)
+    throw new Error("Attachment must be smaller than 2 MB");
+  return { buffer, fileName, contentType };
 }
 
 function safeFileName(value) {
@@ -84,16 +110,16 @@ router.post("/", async (req, res) => {
 
     let filePath = null;
     let fileName = null;
-    if (req.body.pdfData) {
-      const buffer = decodePdf(req.body.pdfData);
+    if (req.body.fileData || req.body.pdfData) {
+      const attachment = decodeFile(req.body.fileData || req.body.pdfData, req.body.fileName || req.body.pdfName);
       await ensureBucket();
       const id = `WR-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      fileName = safeFileName(req.body.pdfName);
+      fileName = attachment.fileName;
       filePath = `${id}/${fileName}`;
       const { error } = await supabase.storage
         .from(BUCKET)
-        .upload(filePath, buffer, {
-          contentType: "application/pdf",
+        .upload(filePath, attachment.buffer, {
+          contentType: attachment.contentType,
           upsert: false,
         });
       if (error) throw new Error(`PDF upload failed: ${error.message}`);
@@ -129,14 +155,14 @@ router.post("/", async (req, res) => {
         .createSignedUrl(filePath, 60 * 60);
       if (signedError)
         throw new Error(
-          `Could not prepare the PDF link: ${signedError.message}`,
+          `Could not prepare the file link: ${signedError.message}`,
         );
       fileUrl = signed?.signedUrl || null;
     }
     const salesNumber = normalizeWhatsAppNumber(
       process.env.WHATSAPP_SALES_NUMBER || "+94741066017",
     );
-    const message = `Hello Asia Electronics, I submitted wholesale request ${id}.\n\n${requestDetails}${fileUrl ? `\n\nMy attached PDF: ${fileUrl}` : ""}`;
+    const message = `Hello Asia Electronics, I submitted wholesale request ${id}.\n\n${requestDetails}${fileUrl ? `\n\nMy attached file: ${fileUrl}` : ""}`;
     res
       .status(201)
       .json({
@@ -251,7 +277,7 @@ router.delete("/:id", requireAuth, requireAdmin, async (req, res) => {
         .remove([existing.file_path]);
       if (storageError)
         console.warn(
-          "Could not remove wholesale request PDF:",
+          "Could not remove wholesale request file:",
           storageError.message,
         );
     }

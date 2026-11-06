@@ -109,8 +109,8 @@ export async function submitWholesaleRequestApi(data: {
   phone: string;
   email: string;
   requestDetails: string;
-  pdfData?: string;
-  pdfName?: string;
+  fileData?: string;
+  fileName?: string;
 }): Promise<{ success: boolean; error?: string; whatsappUrl?: string }> {
   try {
     const res = await fetch(`${API_BASE}/wholesale-requests`, {

@@ -258,6 +258,7 @@ const defaultCategories = [
     short: "Mobile Parts",
     image: "/assets/imgs/mobile-parts-accessories.png",
     filterKey: "Compatible with",
+    subcategories: ["Car & Bike Holders", "Computer & Gaming Accessories"],
   },
   {
     slug: "tools-installation",

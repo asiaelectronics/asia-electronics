@@ -4,6 +4,12 @@ import { readCategories, insertCategory, updateCategoryInDb, deleteCategory, rea
 
 const router = express.Router();
 
+// Core subcategories that must remain available even before a product has been
+// created inside them. Existing admin-created subcategories are always kept.
+const requiredSubcategories = {
+  mobile: ["Car & Bike Holders", "Computer & Gaming Accessories"],
+};
+
 // GET /api/categories (with product counts)
 router.get("/", async (req, res) => {
   try {
@@ -19,7 +25,13 @@ router.get("/", async (req, res) => {
           .map((product) => product.subcategory || product.attributes?.Subcategory || "")
           .map((subcategory) => String(subcategory).trim())
           .filter(Boolean);
-        const subcategories = [...new Set([...(category.subcategories || []), ...productSubcategories])];
+        const subcategories = [
+          ...new Set([
+            ...(category.subcategories || []),
+            ...(requiredSubcategories[category.slug] || []),
+            ...productSubcategories,
+          ]),
+        ];
 
         if (subcategories.length !== (category.subcategories || []).length) {
           return updateCategoryInDb(category.slug, { subcategories });
