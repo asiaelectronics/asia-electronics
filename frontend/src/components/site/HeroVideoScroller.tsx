@@ -52,12 +52,22 @@ const SLIDES = [
 ];
 
 export function HeroVideoScroller() {
-  const { buildWhatsAppUrl } = useSettings();
+  const { buildWhatsAppUrl, settings } = useSettings();
+  const slides = (settings.homepageBanners ?? []).map((banner) => ({
+        id: banner.id,
+        poster: banner.image,
+        mobilePoster: banner.image,
+        badge: banner.badge,
+        badgeIcon: Sparkles,
+        title: banner.title,
+        description: banner.description,
+        primaryCta: { text: banner.buttonText, to: "/shop" as const, search: { category: banner.category } },
+      }));
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const totalSlides = SLIDES.length;
+  const totalSlides = slides.length;
 
   const nextSlide = useCallback(() => {
     setCurrent((prev) => (prev + 1) % totalSlides);
@@ -69,7 +79,7 @@ export function HeroVideoScroller() {
 
   // Autoplay progression timer
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!isPlaying || totalSlides <= 1) return;
 
     timerRef.current = setInterval(() => {
       nextSlide();
@@ -101,6 +111,8 @@ export function HeroVideoScroller() {
     touchEndX.current = null;
   };
 
+  if (totalSlides === 0) return null;
+
   return (
     <section
       className="container-shop pt-4 sm:pt-6"
@@ -117,7 +129,7 @@ export function HeroVideoScroller() {
           className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
           style={{ transform: `translateX(-${current * 100}%)` }}
         >
-          {SLIDES.map((slide, idx) => {
+          {slides.map((slide, idx) => {
             const isActive = idx === current;
             const BadgeIcon = slide.badgeIcon;
             return (
@@ -240,7 +252,7 @@ export function HeroVideoScroller() {
           </button>
 
           <div className="flex items-center gap-2">
-            {SLIDES.map((_, i) => (
+            {slides.map((_, i) => (
               <button
                 key={i}
                 type="button"

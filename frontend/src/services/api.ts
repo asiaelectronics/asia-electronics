@@ -668,7 +668,18 @@ export interface ApiSettings {
     weeklyReport: boolean;
   };
   homepageVideo: { url: string; title: string };
+  homepageBanners: HomepageBanner[];
   updatedAt?: string;
+}
+
+export interface HomepageBanner {
+  id: string;
+  image: string;
+  title: string;
+  description: string;
+  badge: string;
+  buttonText: string;
+  category: string;
 }
 
 export const DEFAULT_SETTINGS: ApiSettings = {
@@ -685,6 +696,7 @@ export const DEFAULT_SETTINGS: ApiSettings = {
     weeklyReport: false,
   },
   homepageVideo: { url: "", title: "" },
+  homepageBanners: [],
 };
 
 export async function uploadHomepageVideoApi(file: File): Promise<{ url?: string; error?: string }> {

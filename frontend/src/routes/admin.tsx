@@ -48,7 +48,7 @@ const NAV = [
   },
   {
     to: "/admin/offers",
-    label: "Homepage Offers",
+    label: "Banner",
     icon: <ImageIcon className="h-4 w-4" />,
     exact: false,
   },
@@ -67,7 +67,8 @@ const TITLES: Record<string, string> = {
   "/admin/wholesale": "Wholesale Requests",
   "/admin/inventory": "Inventory",
   "/admin/analytics": "Analytics",
-  "/admin/offers": "Homepage Offers",
+  "/admin/offers": "Offer Banners",
+  "/admin/homepage-banner": "Homepage Banner",
   "/admin/settings": "Settings",
 };
 
@@ -84,6 +85,9 @@ function AdminLayout() {
   const [ordersMenuOpen, setOrdersMenuOpen] = useState(
     pathname.startsWith("/admin/orders") || pathname === "/admin/wholesale",
   );
+  const [bannersMenuOpen, setBannersMenuOpen] = useState(
+    pathname.startsWith("/admin/offers") || pathname === "/admin/homepage-banner",
+  );
   const orderFilter = useRouterState({
     select: (s) => (s.location.search as { filter?: string }).filter,
   });
@@ -93,6 +97,8 @@ function AdminLayout() {
     if (pathname.startsWith("/admin/products")) setProductsMenuOpen(true);
     if (pathname.startsWith("/admin/orders") || pathname === "/admin/wholesale")
       setOrdersMenuOpen(true);
+    if (pathname.startsWith("/admin/offers") || pathname === "/admin/homepage-banner")
+      setBannersMenuOpen(true);
   }, [pathname]);
 
   useEffect(() => {
@@ -234,6 +240,71 @@ function AdminLayout() {
                           >
                             <FileText className="h-3.5 w-3.5" />
                             Wholesale Requests
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (item.to === "/admin/offers") {
+                  const offerBannerActive = pathname === "/admin/offers";
+                  const homepageBannerActive = pathname === "/admin/homepage-banner";
+                  const bannerActive = offerBannerActive || homepageBannerActive;
+                  return (
+                    <div key={item.to}>
+                      <button
+                        type="button"
+                        onClick={() => setBannersMenuOpen((open) => !open)}
+                        aria-expanded={bannersMenuOpen}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                          bannerActive
+                            ? "text-white"
+                            : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                        }`}
+                        style={
+                          bannerActive
+                            ? {
+                                background:
+                                  "linear-gradient(135deg, oklch(0.58 0.235 22 / 20%), oklch(0.58 0.235 22 / 10%))",
+                                color: "oklch(0.8 0.15 22)",
+                              }
+                            : {}
+                        }
+                      >
+                        <span className={bannerActive ? "text-orange-400" : ""}>{item.icon}</span>
+                        {item.label}
+                        {bannersMenuOpen ? (
+                          <ChevronDown className="h-3 w-3 ml-auto text-orange-400/60" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3 ml-auto text-zinc-600" />
+                        )}
+                      </button>
+                      {bannersMenuOpen && (
+                        <div className="ml-5 mt-1 space-y-0.5 border-l border-zinc-800 pl-3">
+                          <Link
+                            to="/admin/offers"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+                              offerBannerActive
+                                ? "bg-orange-500/10 text-orange-300"
+                                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"
+                            }`}
+                          >
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            Offer Banner
+                          </Link>
+                          <Link
+                            to="/admin/homepage-banner"
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+                              homepageBannerActive
+                                ? "bg-orange-500/10 text-orange-300"
+                                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"
+                            }`}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            Homepage Banner
                           </Link>
                         </div>
                       )}

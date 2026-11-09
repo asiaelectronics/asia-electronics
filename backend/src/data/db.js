@@ -951,6 +951,7 @@ export const defaultSettings = {
     weeklyReport: false,
   },
   homepageVideo: { url: "", title: "" },
+  homepageBanners: [],
   updatedAt: new Date().toISOString(),
 };
 
@@ -996,6 +997,7 @@ export async function readSettings() {
         address: data.address || defaultSettings.address,
         notifications: data.notifications || defaultSettings.notifications,
         homepageVideo: data.notifications?.homepageVideo || defaultSettings.homepageVideo,
+        homepageBanners: data.notifications?.homepageBanners || defaultSettings.homepageBanners,
         updatedAt: data.updated_at || data.created_at,
       };
       writeSettingsFile(merged);
@@ -1037,7 +1039,11 @@ export async function updateSettings(updates) {
       currency: merged.currency,
       tax_rate: merged.taxRate,
       address: merged.address,
-      notifications: { ...merged.notifications, homepageVideo: merged.homepageVideo },
+      notifications: {
+        ...merged.notifications,
+        homepageVideo: merged.homepageVideo,
+        homepageBanners: Array.isArray(merged.homepageBanners) ? merged.homepageBanners : [],
+      },
       updated_at: merged.updatedAt,
     };
     const { error } = await supabase

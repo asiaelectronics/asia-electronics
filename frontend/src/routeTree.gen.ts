@@ -24,6 +24,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as WholesaleRouteImport } from './routes/wholesale'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
+import { Route as AdminHomepageBannerRouteImport } from './routes/admin/homepage-banner'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminOffersRouteImport } from './routes/admin/offers'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
@@ -108,6 +109,11 @@ const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminHomepageBannerRoute = AdminHomepageBannerRouteImport.update({
+  id: '/homepage-banner',
+  path: '/homepage-banner',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/inventory',
   path: '/inventory',
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/homepage-banner': typeof AdminHomepageBannerRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/homepage-banner': typeof AdminHomepageBannerRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/wholesale': typeof WholesaleRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/homepage-banner': typeof AdminHomepageBannerRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/offers': typeof AdminOffersRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wholesale'
     | '/admin/analytics'
+    | '/admin/homepage-banner'
     | '/admin/inventory'
     | '/admin/offers'
     | '/admin/orders'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wholesale'
     | '/admin/analytics'
+    | '/admin/homepage-banner'
     | '/admin/inventory'
     | '/admin/offers'
     | '/admin/orders'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/wholesale'
     | '/admin/analytics'
+    | '/admin/homepage-banner'
     | '/admin/inventory'
     | '/admin/offers'
     | '/admin/orders'
@@ -426,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/homepage-banner': {
+      id: '/admin/homepage-banner'
+      path: '/homepage-banner'
+      fullPath: '/admin/homepage-banner'
+      preLoaderRoute: typeof AdminHomepageBannerRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -487,6 +506,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminHomepageBannerRoute: typeof AdminHomepageBannerRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminOffersRoute: typeof AdminOffersRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -498,6 +518,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminHomepageBannerRoute: AdminHomepageBannerRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminOffersRoute: AdminOffersRoute,
   AdminOrdersRoute: AdminOrdersRoute,
