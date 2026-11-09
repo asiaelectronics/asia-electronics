@@ -7,6 +7,33 @@ import { useCatalog } from "@/services/catalog";
 import { uploadBannerImage } from "@/services/banners";
 import type { HomepageBanner } from "@/services/api";
 
+function optimizeHeroImage(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    if (file.type === "image/svg+xml") return resolve(file);
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const maxWidth = 1920;
+      const maxHeight = 800;
+      const scale = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext("2d");
+      if (!context) return resolve(file);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], "homepage-banner.webp", { type: "image/webp" }) : file),
+        "image/webp",
+        0.8,
+      );
+    };
+    image.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not load image")); };
+    image.src = objectUrl;
+  });
+}
+
 export const Route = createFileRoute("/admin/homepage-banner")({
   head: () => ({ meta: [{ title: "Homepage Banner — Admin" }] }),
   component: HomepageBannerPage,
@@ -29,7 +56,11 @@ function HomepageBannerPage() {
   const upload = async (id: string, file?: File) => {
     if (!file?.type.startsWith("image/")) return toast.error("Choose an image file.");
     if (file.size > 5 * 1024 * 1024) return toast.error("Images must be 5 MB or smaller.");
-    try { update(id, { image: await uploadBannerImage(file) }); } catch { toast.error("Could not read image."); }
+    try {
+      const optimized = await optimizeHeroImage(file);
+      update(id, { image: await uploadBannerImage(optimized) });
+      toast.success("Image optimized for faster loading.");
+    } catch { toast.error("Could not process image."); }
   };
   const save = async () => {
     if (banners.some((item) => !item.image || !item.title.trim() || !item.category)) {
