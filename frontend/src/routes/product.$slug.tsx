@@ -454,7 +454,7 @@ function ProductDetails() {
           )}
         </div>
 
-        {/* Column 3: Brand, Warranty, Delivery Info Card (3 cols) Matching Sample */}
+        {/* Column 3: Brand and delivery info card (3 cols) */}
         <div className="lg:col-span-3 rounded-xl border border-border bg-card/60 p-4 space-y-4 shadow-xs">
           {/* Brand Header */}
           <div className="border border-border/80 rounded-lg p-3 bg-muted/20 text-center">
@@ -477,10 +477,6 @@ function ProductDetails() {
             <div className="flex justify-between py-1.5">
               <span className="text-muted-foreground">SKU Code</span>
               <span className="font-semibold text-foreground font-mono">{product.sku}</span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="text-muted-foreground">Warranty</span>
-              <span className="font-semibold text-foreground">12 Month(s)</span>
             </div>
           </div>
 
