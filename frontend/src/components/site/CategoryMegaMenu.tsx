@@ -413,7 +413,7 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
                       subcategory,
                     }}
                     onClick={onClose}
-                    className="rounded px-2 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary hover:font-medium"
+                    className="rounded px-2 py-1.5 text-xs font-semibold text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary"
                   >
                     {subcategory}
                   </Link>
