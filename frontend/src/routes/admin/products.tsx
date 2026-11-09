@@ -127,8 +127,8 @@ const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
 export const Route = createFileRoute("/admin/products")({
   validateSearch: (search: Record<string, unknown>) => ({
     action:
-      search.action === "add" || search.action === "brands"
-        ? (search.action as "add" | "brands")
+      search.action === "add" || search.action === "categories" || search.action === "brands"
+        ? (search.action as "add" | "categories" | "brands")
         : undefined,
   }),
   head: () => ({ meta: [{ title: "Products & 800+ SKUs — Admin" }] }),
@@ -183,13 +183,20 @@ function ProductsPage() {
   useEffect(() => {
     if (routeSearch.action === "add") {
       setBrandModalOpen(false);
+      setCategoryModalOpen(false);
       setEditingProduct(null);
       setProductModalOpen(true);
+    } else if (routeSearch.action === "categories") {
+      setProductModalOpen(false);
+      setBrandModalOpen(false);
+      setCategoryModalOpen(true);
     } else if (routeSearch.action === "brands") {
       setProductModalOpen(false);
+      setCategoryModalOpen(false);
       setBrandModalOpen(true);
     } else {
       setBrandModalOpen(false);
+      setCategoryModalOpen(false);
     }
   }, [routeSearch.action]);
 
@@ -289,6 +296,13 @@ function ProductsPage() {
   const handleCloseBrandModal = () => {
     setBrandModalOpen(false);
     if (routeSearch.action === "brands") {
+      void navigate({ to: "/admin/products", search: {}, replace: true });
+    }
+  };
+
+  const handleCloseCategoryModal = () => {
+    setCategoryModalOpen(false);
+    if (routeSearch.action === "categories") {
       void navigate({ to: "/admin/products", search: {}, replace: true });
     }
   };
@@ -1064,7 +1078,7 @@ function ProductsPage() {
       {categoryModalOpen && (
         <CategoryManagerModal
           isOpen={categoryModalOpen}
-          onClose={() => setCategoryModalOpen(false)}
+          onClose={handleCloseCategoryModal}
           categories={categories}
           productsCount={products}
           onCreate={(cat) => {
@@ -1217,15 +1231,9 @@ function ProductFormModal({
     editingProduct?.category || categories[0]?.slug || "lighting",
   );
   const [subcategory, setSubcategory] = useState(editingProduct?.attributes?.Subcategory || "");
-  const subcategoryOptions = Array.from(
-    new Set([
-      ...(categories.find((item) => item.slug === category)?.subcategories ?? []),
-      ...(ADMIN_SUBCATEGORIES[category] ?? []),
-      ...products
-        .filter((product) => product.category === category && product.subcategory)
-        .map((product) => product.subcategory as string),
-    ]),
-  ).sort((a, b) => a.localeCompare(b));
+  const subcategoryOptions = [...(
+    categories.find((item) => item.slug === category)?.subcategories ?? []
+  )].sort((a, b) => a.localeCompare(b));
   const [priceLKR, setPriceLKR] = useState(
     editingProduct ? String(editingProduct.priceCents / 100) : "2500",
   );
@@ -1592,7 +1600,7 @@ function ProductFormModal({
                   onClick={onOpenCategories}
                   className="text-[10px] text-orange-400 hover:text-orange-300 font-bold underline"
                 >
-                  + Add Category
+                  Manage Categories
                 </button>
               </div>
               <select
@@ -1615,24 +1623,23 @@ function ProductFormModal({
 
           <div>
             <label className="block font-bold text-zinc-300 mb-1">Subcategory</label>
-            <input
+            <select
               value={subcategory}
               onChange={(e) => setSubcategory(e.target.value)}
-              list="subcategory-suggestions"
-              placeholder={
-                subcategoryOptions.length
-                  ? "Select or type a new subcategory"
-                  : "Type a new subcategory"
-              }
-              className="admin-input w-full text-xs"
-            />
-            <datalist id="subcategory-suggestions">
+              disabled={!subcategoryOptions.length}
+              className="admin-input w-full text-xs disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">
+                {subcategoryOptions.length ? "Select a subcategory" : "No subcategories configured"}
+              </option>
               {subcategoryOptions.map((option) => (
-                <option key={option} value={option} />
+                <option key={option} value={option}>
+                  {option}
+                </option>
               ))}
-            </datalist>
+            </select>
             <p className="mt-1 text-[10px] text-zinc-500">
-              Choose a suggestion or type a new subcategory. It will be saved for this product.
+              Only subcategories configured for the selected main category are available.
             </p>
           </div>
 
@@ -2134,6 +2141,8 @@ function CategoryManagerModal({
   const [slug, setSlug] = useState("");
   const [filterKey, setFilterKey] = useState("Type");
   const [subcategories, setSubcategories] = useState("");
+  const [newSubcategory, setNewSubcategory] = useState("");
+  const [isCategoryImageDragging, setIsCategoryImageDragging] = useState(false);
   const [image, setImage] = useState(images.catComponents);
   const [customImage, setCustomImage] = useState("");
   const [search, setSearch] = useState("");
@@ -2177,9 +2186,74 @@ function CategoryManagerModal({
     setSlug("");
     setFilterKey("Type");
     setSubcategories("");
+    setNewSubcategory("");
     setImage(images.catComponents);
     setCustomImage("");
     setAutoSlug(true);
+  };
+
+  const handleSaveSubcategories = () => {
+    if (!editingCategory || !onUpdate) return;
+
+    const nextSubcategories = [
+      ...new Set(
+        subcategories
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      ),
+    ];
+
+    onUpdate(editingCategory.slug, {
+      subcategories: nextSubcategories,
+      image: customImage.trim() || image,
+    });
+    toast.success(`Saved changes for ${editingCategory.name}.`);
+    resetForm();
+  };
+
+  const pendingSubcategories = Array.from(
+    new Set(
+      subcategories
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+
+  const handleAddSubcategory = () => {
+    const next = newSubcategory.trim();
+    if (!next) return;
+    if (pendingSubcategories.some((item) => item.toLowerCase() === next.toLowerCase())) {
+      toast.error("This subcategory is already in the list.");
+      return;
+    }
+    setSubcategories([...pendingSubcategories, next].join(", "));
+    setNewSubcategory("");
+  };
+
+  const handleRemoveSubcategory = (label: string) => {
+    setSubcategories(pendingSubcategories.filter((item) => item !== label).join(", "));
+  };
+
+  const handleCategoryImageFile = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Category images must be smaller than 2 MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCustomImage(String(reader.result || ""));
+      toast.success("Category image ready to save.");
+    };
+    reader.onerror = () => toast.error("Could not read the selected image.");
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent): void => {
@@ -2265,11 +2339,10 @@ function CategoryManagerModal({
             </div>
             <div>
               <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
-                Category & Department Management
+                Category Management
               </h2>
               <p className="text-xs text-zinc-400">
-                Organize store departments, customize URL slugs, and configure faceted filter
-                dimensions.
+                View the predefined store categories and their live product counts.
               </p>
             </div>
           </div>
@@ -2281,10 +2354,10 @@ function CategoryManagerModal({
           </button>
         </div>
 
-        {/* Content: Form + Category List */}
+        {/* Content: Predefined category list */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {/* Form Card */}
-          <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/60 shadow-inner space-y-4">
+          {false && <div className="p-4 rounded-xl border border-zinc-800 bg-zinc-950/60 shadow-inner space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-orange-400 animate-pulse" />
@@ -2473,17 +2546,166 @@ function CategoryManagerModal({
                 </button>
               </div>
             </form>
-          </div>
+          </div>}
+
+          {editingCategory && (
+            <section className="rounded-xl border border-orange-500/30 bg-orange-500/5 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold text-white">
+                    Manage subcategories: {editingCategory.name}
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-400">
+                    The main category is fixed. Add or remove subcategories one at a time.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="text-[11px] font-semibold text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  value={newSubcategory}
+                  onChange={(event) => setNewSubcategory(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      handleAddSubcategory();
+                    }
+                  }}
+                  placeholder="Enter a subcategory, e.g. LED Panels"
+                  className="admin-input min-w-0 flex-1 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddSubcategory}
+                  className="admin-btn-primary shrink-0 px-3 text-xs"
+                >
+                  <Plus className="mr-1 inline h-3.5 w-3.5" /> Add
+                </button>
+              </div>
+              <div className="mt-3 min-h-9 rounded-lg border border-zinc-800 bg-zinc-950/40 p-2">
+                {pendingSubcategories.length ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {pendingSubcategories.map((subcategory) => (
+                      <span
+                        key={subcategory}
+                        className="inline-flex items-center gap-1 rounded-md border border-orange-500/30 bg-orange-500/10 px-2 py-1 text-[11px] font-medium text-orange-200"
+                      >
+                        {subcategory}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSubcategory(subcategory)}
+                          className="rounded p-0.5 text-orange-200/70 hover:bg-orange-500/20 hover:text-white"
+                          aria-label={`Remove ${subcategory}`}
+                          title={`Remove ${subcategory}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="px-1 py-0.5 text-[11px] text-zinc-500">No subcategories added yet.</p>
+                )}
+              </div>
+              <div className="mt-4 border-t border-orange-500/15 pt-4">
+                <p className="text-[11px] font-bold text-zinc-200">Main category image</p>
+                <p className="mt-1 text-[10px] text-zinc-500">
+                  Select an image below or paste a public image URL.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {imagePresets.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => {
+                        setImage(preset.src);
+                        setCustomImage("");
+                      }}
+                      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors ${
+                        image === preset.src && !customImage
+                          ? "border-orange-500/60 bg-orange-500/15 text-orange-200"
+                          : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:text-white"
+                      }`}
+                    >
+                      <img src={preset.src} alt="" className="h-4 w-4 rounded object-cover" />
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <label
+                  className={`mt-2 flex min-h-20 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 text-center transition-colors ${
+                    isCategoryImageDragging
+                      ? "border-orange-400 bg-orange-500/10 text-orange-200"
+                      : "border-zinc-700 bg-zinc-950/30 text-zinc-400 hover:border-orange-500/70 hover:bg-orange-500/5"
+                  }`}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setIsCategoryImageDragging(true);
+                  }}
+                  onDragLeave={(event) => {
+                    event.preventDefault();
+                    setIsCategoryImageDragging(false);
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    setIsCategoryImageDragging(false);
+                    handleCategoryImageFile(event.dataTransfer.files?.[0]);
+                  }}
+                >
+                  <Upload className="h-4 w-4 shrink-0 text-orange-400" />
+                  <span className="text-[11px] font-semibold">
+                    <strong className="text-zinc-200">Drop an image here</strong> or click to browse
+                    <span className="mt-0.5 block text-[10px] font-normal text-zinc-500">
+                      PNG, JPEG, WebP, or SVG · maximum 2 MB
+                    </span>
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                    className="sr-only"
+                    onChange={(event) => {
+                      handleCategoryImageFile(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                  {customImage.startsWith("data:image/") && (
+                    <span className="text-[10px] font-bold text-emerald-400">Ready</span>
+                  )}
+                </label>
+                <input
+                  value={customImage}
+                  onChange={(event) => setCustomImage(event.target.value)}
+                  placeholder="Or paste a public image URL"
+                  className="admin-input mt-2 w-full text-xs"
+                />
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleSaveSubcategories}
+                  className="admin-btn-primary flex items-center gap-1.5 text-xs"
+                >
+                  <Check className="h-3.5 w-3.5" /> Save changes
+                </button>
+              </div>
+            </section>
+          )}
 
           {/* Directory Section: Search + List */}
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <p className="text-xs font-bold text-white uppercase tracking-wider">
-                  Active Departments ({categories.length})
+                  Predefined Categories ({categories.length})
                 </p>
                 <p className="text-[11px] text-zinc-500">
-                  Select any category to edit its details or check products.
+                  These predefined categories are loaded from the live catalog database.
                 </p>
               </div>
 
@@ -2581,25 +2803,17 @@ function CategoryManagerModal({
                       </Link>
 
                       <button
+                        type="button"
                         onClick={() => startEdit(c)}
-                        className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-colors ${
+                        className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-semibold transition-colors ${
                           isSelected
-                            ? "bg-orange-500 text-white border-orange-500"
-                            : "bg-zinc-800/80 text-zinc-300 border-zinc-700 hover:bg-zinc-700 hover:text-white"
+                            ? "border-orange-500 bg-orange-500 text-white"
+                            : "border-zinc-700 bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                         }`}
-                        title="Edit category"
                       >
-                        <Edit2 className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline text-[11px]">Edit</span>
+                        Manage subcategories
                       </button>
 
-                      <button
-                        onClick={() => onDelete(c.slug)}
-                        className="p-1.5 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors"
-                        title="Delete category"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
                     </div>
                   </div>
                 );
@@ -2607,7 +2821,7 @@ function CategoryManagerModal({
 
               {filteredCategories.length === 0 && (
                 <div className="py-8 text-center text-zinc-500 text-xs">
-                  No departments match "<span className="text-white">{search}</span>"
+                  No categories match "<span className="text-white">{search}</span>"
                 </div>
               )}
             </div>
@@ -2617,7 +2831,7 @@ function CategoryManagerModal({
         {/* Modal Footer */}
         <div className="px-6 py-3.5 border-t border-zinc-800 bg-zinc-950/40 flex items-center justify-between">
           <p className="text-[11px] text-zinc-500">
-            Total {categories.length} departments registered in catalog
+            {categories.length} predefined categories in the live catalog
           </p>
           <button onClick={onClose} className="admin-btn-ghost text-xs">
             Done

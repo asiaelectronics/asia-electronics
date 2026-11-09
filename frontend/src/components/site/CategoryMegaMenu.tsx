@@ -328,7 +328,9 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
   );
 
   const activeCategory = categories.find((c) => c.slug === selectedSlug) ?? categories[0];
-  const subcategoryGroups = activeCategory ? (CATEGORY_GROUPS[activeCategory.slug] ?? []) : [];
+  // Subcategories are configured by the admin for each predefined main category.
+  // Do not display the legacy hard-coded menu entries here.
+  const subcategories = activeCategory?.subcategories ?? [];
   const ActiveIcon = activeCategory ? (CATEGORY_ICONS[activeCategory.slug] ?? Package) : Package;
 
   return (
@@ -400,44 +402,26 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
               </Link>
             </div>
 
-            {subcategoryGroups.length > 0 ? (
-              <div className="grid grid-cols-3 gap-6 flex-1">
-                {subcategoryGroups.map((group) => (
-                  <div key={group.title} className="space-y-2">
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-zinc-900 border-b border-zinc-100 pb-1">
-                      {group.title}
-                    </h4>
-                    <ul className="space-y-1">
-                      {group.items.map((item) => (
-                        <li key={item.label}>
-                          <Link
-                            to="/shop"
-                            search={{
-                              category: activeCategory.slug,
-                              subcategory: item.label,
-                            }}
-                            onClick={onClose}
-                            className="text-xs text-zinc-600 hover:text-primary hover:font-medium py-0.5 block transition-colors leading-relaxed"
-                          >
-                            {item.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+            {subcategories.length > 0 ? (
+              <div className="grid grid-cols-2 gap-x-8 gap-y-1.5 sm:grid-cols-3">
+                {subcategories.map((subcategory) => (
+                  <Link
+                    key={subcategory}
+                    to="/shop"
+                    search={{
+                      category: activeCategory.slug,
+                      subcategory,
+                    }}
+                    onClick={onClose}
+                    className="rounded px-2 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary hover:font-medium"
+                  >
+                    {subcategory}
+                  </Link>
                 ))}
               </div>
             ) : (
-              <div className="py-12 text-center text-zinc-500 text-xs">
-                <p>Browse full selection in this category</p>
-                <Link
-                  to="/shop"
-                  search={{ category: activeCategory.slug }}
-                  onClick={onClose}
-                  className="mt-3 inline-block rounded bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90"
-                >
-                  View {activeCategory.name}
-                </Link>
+              <div className="py-8 text-center text-xs text-zinc-500">
+                No subcategories have been added to this category yet.
               </div>
             )}
           </>

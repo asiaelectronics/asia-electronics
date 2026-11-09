@@ -16,6 +16,7 @@ import {
   List,
   PlusCircle,
   Tag,
+  Layers,
   FileText,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -242,6 +243,7 @@ function AdminLayout() {
 
                 if (item.to === "/admin/products") {
                   const addActive = isActive && productAction === "add";
+                  const categoriesActive = isActive && productAction === "categories";
                   const brandsActive = isActive && productAction === "brands";
                   const listActive = isActive && !productAction;
 
@@ -289,6 +291,19 @@ function AdminLayout() {
                           >
                             <PlusCircle className="h-3.5 w-3.5" />
                             Add Product
+                          </Link>
+                          <Link
+                            to="/admin/products"
+                            search={{ action: "categories" }}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+                              categoriesActive
+                                ? "bg-orange-500/10 text-orange-300"
+                                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"
+                            }`}
+                          >
+                            <Layers className="h-3.5 w-3.5" />
+                            Manage Categories
                           </Link>
                           <Link
                             to="/admin/products"

@@ -455,30 +455,23 @@ export function SiteHeader() {
                           </button>
                           {isExpanded && (
                             <div className="pl-4 pb-2 space-y-1.5">
-                              <Link
-                                to="/shop"
-                                search={{ category: c.slug }}
-                                onClick={() => setMobileOpen(false)}
-                                className="block py-1 text-xs font-bold text-primary hover:underline"
-                              >
-                                View all {c.short} â†’
-                              </Link>
-                              <Link
-                                to="/shop"
-                                search={{ category: c.slug, attr: "featured" }}
-                                onClick={() => setMobileOpen(false)}
-                                className="block py-1 text-xs text-zinc-600 hover:text-primary"
-                              >
-                                Popular Items
-                              </Link>
-                              <Link
-                                to="/shop"
-                                search={{ category: c.slug, inStock: true }}
-                                onClick={() => setMobileOpen(false)}
-                                className="block py-1 text-xs text-zinc-600 hover:text-primary"
-                              >
-                                In-Stock Only
-                              </Link>
+                              {c.subcategories?.length ? (
+                                c.subcategories.map((subcategory) => (
+                                  <Link
+                                    key={subcategory}
+                                    to="/shop"
+                                    search={{ category: c.slug, subcategory }}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="block rounded px-2 py-1.5 text-xs text-zinc-600 transition-colors hover:bg-zinc-50 hover:text-primary"
+                                  >
+                                    {subcategory}
+                                  </Link>
+                                ))
+                              ) : (
+                                <p className="px-2 py-1 text-xs text-zinc-500">
+                                  No subcategories added yet.
+                                </p>
+                              )}
                             </div>
                           )}
                         </div>

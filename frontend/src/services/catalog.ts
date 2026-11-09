@@ -108,14 +108,10 @@ export async function syncCatalogWithBackend() {
             short: backendCat.short || localDefault?.short || backendCat.name,
           };
         });
-        const mergedCategories = [
-          ...syncedCats,
-          ...defaultCategories.filter(
-            (defaultCategory) =>
-              !syncedCats.some((category) => category.slug === defaultCategory.slug),
-          ),
-        ];
-        saveStoredCategories(mergedCategories);
+        // The database owns the predefined category list. Do not merge in
+        // obsolete frontend defaults, otherwise removed categories reappear
+        // in the admin count and storefront navigation.
+        saveStoredCategories(syncedCats);
       }
       if (brandRecords && Array.isArray(brandRecords)) {
         saveStoredBrandRecords(brandRecords);
