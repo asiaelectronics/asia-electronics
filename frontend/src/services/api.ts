@@ -680,6 +680,8 @@ export interface HomepageBanner {
   badge: string;
   buttonText: string;
   category: string;
+  secondaryButtonText: string;
+  secondaryButtonUrl: string;
 }
 
 export const DEFAULT_SETTINGS: ApiSettings = {

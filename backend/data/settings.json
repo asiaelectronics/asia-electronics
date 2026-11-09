@@ -23,7 +23,9 @@
         "title": "CINEMATIC 4K QLED & SMART DISPLAYS",
         "category": "home-appliances",
         "buttonText": "Shop Home Appliances",
-        "description": "Discover immersive 4K displays, powerful sound systems, and the latest smart home entertainment technology."
+        "description": "Discover immersive 4K displays, powerful sound systems, and the latest smart home entertainment technology.",
+        "secondaryButtonUrl": "https://wa.me/9474111111",
+        "secondaryButtonText": "WhatsApp Us"
       }
     ]
   },
@@ -39,8 +41,10 @@
       "title": "CINEMATIC 4K QLED & SMART DISPLAYS",
       "category": "home-appliances",
       "buttonText": "Shop Home Appliances",
-      "description": "Discover immersive 4K displays, powerful sound systems, and the latest smart home entertainment technology."
+      "description": "Discover immersive 4K displays, powerful sound systems, and the latest smart home entertainment technology.",
+      "secondaryButtonUrl": "https://wa.me/9474111111",
+      "secondaryButtonText": "WhatsApp Us"
     }
   ],
-  "updatedAt": "2026-11-09T07:10:14.001+00:00"
+  "updatedAt": "2026-11-09T07:21:10.819+00:00"
 }

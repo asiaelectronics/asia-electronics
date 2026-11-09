@@ -50,6 +50,7 @@ function HomepageBannerPage() {
   const addBanner = () => setBanners((items) => [...items, {
     id: `home_${Date.now()}`, image: "", badge: "NEW ARRIVALS", title: "Your headline",
     description: "Describe this homepage banner.", buttonText: "Shop now", category: categories[0]?.slug ?? "",
+    secondaryButtonText: "", secondaryButtonUrl: "",
   }]);
   const update = (id: string, changes: Partial<HomepageBanner>) =>
     setBanners((items) => items.map((item) => item.id === id ? { ...item, ...changes } : item));
@@ -84,10 +85,11 @@ function HomepageBannerPage() {
         {banner.image ? <img src={banner.image} alt="" className="h-40 w-full object-cover"/> : <><Upload className="h-5 w-5 text-orange-400"/><span className="mt-2 text-xs font-semibold">Drop or select image</span><span className="mt-1 text-[10px] text-zinc-500">PNG, JPEG, WebP, SVG · max 5 MB</span></>}
         <input type="file" accept="image/*" className="sr-only" onChange={(e) => { upload(banner.id, e.target.files?.[0]); e.target.value = ""; }} onDrop={(e) => { e.preventDefault(); upload(banner.id, e.dataTransfer.files?.[0]); }} onDragOver={(e) => e.preventDefault()}/>
       </label><div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Badge" value={banner.badge} onChange={(badge) => update(banner.id, { badge })}/><Field label="Button text" value={banner.buttonText} onChange={(buttonText) => update(banner.id, { buttonText })}/>
+        <Field label="Badge" value={banner.badge} onChange={(badge) => update(banner.id, { badge })}/><Field label="Category button text" value={banner.buttonText} onChange={(buttonText) => update(banner.id, { buttonText })}/>
         <label className="sm:col-span-2 text-xs font-bold text-zinc-300">Heading<input value={banner.title} onChange={(e) => update(banner.id, { title: e.target.value })} className="admin-input mt-1 w-full"/></label>
         <label className="sm:col-span-2 text-xs font-bold text-zinc-300">Description<textarea value={banner.description} onChange={(e) => update(banner.id, { description: e.target.value })} className="admin-input mt-1 min-h-20 w-full"/></label>
         <label className="sm:col-span-2 text-xs font-bold text-zinc-300">Navigation category<select value={banner.category} onChange={(e) => update(banner.id, { category: e.target.value })} className="admin-input mt-1 w-full"><option value="">Select category</option>{categories.map((category) => <option key={category.slug} value={category.slug}>{category.name}</option>)}</select></label>
+        <Field label="Secondary button text (optional)" value={banner.secondaryButtonText ?? ""} onChange={(secondaryButtonText) => update(banner.id, { secondaryButtonText })}/><Field label="Secondary button URL (optional)" value={banner.secondaryButtonUrl ?? ""} onChange={(secondaryButtonUrl) => update(banner.id, { secondaryButtonUrl })}/>
       </div></div>
     </section>)}
     {banners.length > 0 && <div className="flex justify-end"><button onClick={save} disabled={saving} className="admin-btn-primary text-xs"><Save className="mr-1 inline h-4 w-4"/>{saving ? "Saving…" : "Save homepage banners"}</button></div>}

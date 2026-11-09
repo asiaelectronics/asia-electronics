@@ -62,6 +62,9 @@ export function HeroVideoScroller() {
         title: banner.title,
         description: banner.description,
         primaryCta: { text: banner.buttonText, to: "/shop" as const, search: { category: banner.category } },
+        secondaryCta: banner.secondaryButtonText && banner.secondaryButtonUrl
+          ? { text: banner.secondaryButtonText, url: banner.secondaryButtonUrl }
+          : undefined,
       }));
   const [current, setCurrent] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -202,13 +205,19 @@ export function HeroVideoScroller() {
                       </a>
                     ) : (
                       slide.secondaryCta && (
-                        <Link
-                          to={slide.secondaryCta.to}
-                          search={slide.secondaryCta.search}
-                          className="inline-flex w-auto shrink-0 items-center justify-center rounded border-2 px-3 py-2 text-[10px] sm:px-6 sm:py-3 sm:text-sm border-white/80 bg-black/40 text-white font-display font-bold uppercase tracking-wider backdrop-blur-xs transition-all hover:bg-white hover:text-black hover:scale-102 shadow-md"
-                        >
-                          {slide.secondaryCta.text}
-                        </Link>
+                        "url" in slide.secondaryCta ? (
+                          <a href={slide.secondaryCta.url} className="inline-flex w-auto shrink-0 items-center justify-center rounded border-2 border-white/80 bg-transparent px-3 py-2 text-[10px] sm:px-6 sm:py-3 sm:text-sm text-white font-display font-bold uppercase tracking-wider transition-all hover:bg-white hover:text-zinc-950 hover:scale-102 shadow-md">
+                            {slide.secondaryCta.text}
+                          </a>
+                        ) : (
+                          <Link
+                            to={slide.secondaryCta.to}
+                            search={slide.secondaryCta.search}
+                            className="inline-flex w-auto shrink-0 items-center justify-center rounded border-2 px-3 py-2 text-[10px] sm:px-6 sm:py-3 sm:text-sm border-white/80 bg-black/40 text-white font-display font-bold uppercase tracking-wider backdrop-blur-xs transition-all hover:bg-white hover:text-black hover:scale-102 shadow-md"
+                          >
+                            {slide.secondaryCta.text}
+                          </Link>
+                        )
                       )
                     )}
                   </div>
