@@ -101,11 +101,11 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 7. Audio & Music ──────────────────────────────────────────────────────
+  // ── 7. Robotics & Arduino ────────────────────────────────────────────────
   {
     slug: "audio",
-    name: "Audio & Music",
-    short: "Audio & Music",
+    name: "Robotics & Arduino",
+    short: "Robotics & Arduino",
     image: catAudioMusic,
     filterKey: "Type",
   },
@@ -142,7 +142,7 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 10. Laboratory Equipment ──────────────────────────────────────────────
+  // ── 10. Lab Equipment ───────────────────────────────────────────────────────
   {
     slug: "laboratory-equipment",
     name: "Laboratory Equipment",

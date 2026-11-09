@@ -143,110 +143,147 @@ function Index() {
         </section>
       )}
 
-      {/* Promo grid */}
+      {/* Promo grid — 6 tiles */}
       <section className="container-shop pt-6 lg:pt-8">
-        <div className="grid gap-4 lg:grid-cols-3">
-          {/* Left 2 columns */}
-          <div className="flex flex-col gap-4 lg:col-span-2">
-            <div className="flex-1">
-              <Link
-                to="/shop"
-                search={{ category: "audio" }}
-                className="group relative flex h-full min-h-[240px] items-center overflow-hidden bg-tile"
-              >
-                <div className="relative z-10 max-w-[55%] p-6 sm:p-8">
-                  <span className="bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
-                    FEATURED RANGE
-                  </span>
-                  <h2 className="mt-4 font-display text-xl font-extrabold uppercase sm:text-2xl">
-                    2.1 Soundbars & Home Audio
-                  </h2>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Upgrade your TV sound with quality equipment and accessories.
-                  </p>
-                  <p className="mt-6 font-display font-extrabold">From Rs. 32,500</p>
-                </div>
-                <img
-                  src={images.promoSoundbar}
-                  alt="Soundbar with subwoofer"
-                  width={1024}
-                  height={768}
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute right-0 top-0 h-full w-1/2 object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
-                />
-              </Link>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* 1. Electronic Equipment (large) */}
+          <Link
+            to="/shop"
+            search={{ category: "electronic-components" }}
+            className="group relative flex min-h-[220px] items-center overflow-hidden bg-tile sm:col-span-2 lg:col-span-2 lg:row-span-2"
+          >
+            <div className="relative z-10 max-w-[55%] p-6 sm:p-8">
+              <span className="bg-primary px-2 py-1 text-[10px] font-bold text-primary-foreground">
+                FEATURED RANGE
+              </span>
+              <h2 className="mt-4 font-display text-xl font-extrabold uppercase sm:text-2xl">
+                Electronic Equipment
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Mobile repair parts &amp; accessories
+              </p>
+              <p className="mt-6 font-display font-extrabold">From Rs. 1,850</p>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                {
-                  cat: "mobile" as const,
-                  title: "Mobile Repair Parts",
-                  sub: "Screens, batteries, chargers",
-                  price: "From Rs. 3,200",
-                  img: images.catMobile,
-                },
-                {
-                  cat: "lighting" as const,
-                  title: "LED Lighting",
-                  sub: "Bulbs, strips, panels",
-                  price: "From Rs. 2,400",
-                  img: images.catLighting,
-                },
-              ].map((t, i) => (
-                <div key={t.cat}>
-                  <Link
-                    to="/shop"
-                    search={{ category: t.cat }}
-                    className="group flex h-full min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
-                  >
-                    <div className="min-w-0">
-                      <h3 className="font-display text-sm font-extrabold uppercase">{t.title}</h3>
-                      <p className="mt-2 text-xs text-muted-foreground">{t.sub}</p>
-                      <p className="mt-6 font-display text-sm font-extrabold">{t.price}</p>
-                    </div>
-                    <img
-                      src={t.img}
-                      alt=""
-                      width={816}
-                      height={816}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
-                    />
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </div>
+            <img
+              src={images.catComponents}
+              alt="Electronic components and equipment"
+              width={1024}
+              height={768}
+              loading="lazy"
+              decoding="async"
+              className="absolute right-0 top-0 h-full w-1/2 object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
 
-          {/* Right column: TV card */}
-          <div className="h-full">
-            <Link
-              to="/shop"
-              search={{ category: "tv" }}
-              className="group relative flex h-full min-h-[320px] flex-col overflow-hidden bg-tile"
-            >
-              <div className="relative z-10 p-6 sm:p-8">
-                <h2 className="font-display text-4xl font-black uppercase sm:text-5xl">Top</h2>
-                <p className="mt-1 font-display text-sm font-extrabold uppercase">
-                  TVs & Projectors
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  4K smart TVs and portable projectors
-                </p>
-              </div>
-              <img
-                src={images.promoTv}
-                alt="4K smart TV on stand"
-                width={768}
-                height={1152}
-                loading="lazy"
-                decoding="async"
-                className="mt-auto w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none"
-              />
-            </Link>
-          </div>
+          {/* 2. Robotics & Arduino */}
+          <Link
+            to="/shop"
+            search={{ category: "audio" }}
+            className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
+          >
+            <div className="min-w-0">
+              <h3 className="font-display text-sm font-extrabold uppercase">Robotics &amp; Arduino</h3>
+              <p className="mt-2 text-xs text-muted-foreground">Boards, sensors, modules</p>
+              <p className="mt-6 font-display text-sm font-extrabold">From Rs. 1,850</p>
+            </div>
+            <img
+              src={images.catAudio}
+              alt=""
+              width={816}
+              height={816}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
+
+          {/* 3. Generic Parts */}
+          <Link
+            to="/shop"
+            search={{ category: "appliance-spare-parts" }}
+            className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
+          >
+            <div className="min-w-0">
+              <h3 className="font-display text-sm font-extrabold uppercase">Generic Parts</h3>
+              <p className="mt-2 text-xs text-muted-foreground">Spare parts &amp; components</p>
+              <p className="mt-6 font-display text-sm font-extrabold">From Rs. 2,400</p>
+            </div>
+            <img
+              src={images.catSpares}
+              alt=""
+              width={816}
+              height={816}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
+
+          {/* 4. Lab Equipment */}
+          <Link
+            to="/shop"
+            search={{ category: "laboratory-equipment" }}
+            className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
+          >
+            <div className="min-w-0">
+              <h3 className="font-display text-sm font-extrabold uppercase">Lab Equipment</h3>
+              <p className="mt-2 text-xs text-muted-foreground">2.1 Soundbars &amp; Home Audio</p>
+              <p className="mt-6 font-display text-sm font-extrabold">From Rs. 32,500</p>
+            </div>
+            <img
+              src={images.catLab}
+              alt=""
+              width={816}
+              height={816}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
+
+          {/* 5. Home Appliances */}
+          <Link
+            to="/shop"
+            search={{ category: "home-appliances" }}
+            className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
+          >
+            <div className="min-w-0">
+              <h3 className="font-display text-sm font-extrabold uppercase">Home Appliances</h3>
+              <p className="mt-2 text-xs text-muted-foreground">TVs, appliances &amp; projectors</p>
+              <p className="mt-6 font-display text-sm font-extrabold">From Rs. 54,900</p>
+            </div>
+            <img
+              src={images.catHomeAppliances}
+              alt=""
+              width={816}
+              height={816}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
+
+          {/* 6. LED Lighting */}
+          <Link
+            to="/shop"
+            search={{ category: "lighting" }}
+            className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
+          >
+            <div className="min-w-0">
+              <h3 className="font-display text-sm font-extrabold uppercase">LED Lighting</h3>
+              <p className="mt-2 text-xs text-muted-foreground">Bulbs, strips, panels</p>
+              <p className="mt-6 font-display text-sm font-extrabold">From Rs. 2,400</p>
+            </div>
+            <img
+              src={images.catLighting}
+              alt=""
+              width={816}
+              height={816}
+              loading="lazy"
+              decoding="async"
+              className="h-28 w-28 shrink-0 object-cover mix-blend-multiply transition-transform group-hover:scale-105 motion-reduce:transition-none"
+            />
+          </Link>
         </div>
       </section>
 

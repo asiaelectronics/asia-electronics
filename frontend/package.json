@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "optimize:images": "node scripts/optimize-images.mjs",
+    "sitemap": "node scripts/generate-sitemap.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
