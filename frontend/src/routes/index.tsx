@@ -9,7 +9,6 @@ import { ProductCard } from "@/components/site/ProductCard";
 import { HeroVideoScroller } from "@/components/site/HeroVideoScroller";
 import { useSettings } from "@/context/settings";
 import { HOMEPAGE_VIDEO_ENABLED } from "@/lib/features";
-import homepageHero from "@/assets/imgs/hero-electronics-showcase.webp";
 
 const SpecialOfferBanner = lazy(() =>
   import("@/components/site/SpecialOfferBanner").then((module) => ({
@@ -67,10 +66,7 @@ export const Route = createFileRoute("/")({
         },
         { name: "twitter:image", content: "https://www.asiaelectronics.lk/logo.png" },
       ],
-      links: [
-        { rel: "canonical", href: "https://www.asiaelectronics.lk/" },
-        { rel: "preload", as: "image", href: homepageHero, fetchPriority: "high" },
-      ],
+      links: [{ rel: "canonical", href: "https://www.asiaelectronics.lk/" }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(localBusinessSchema) }],
     };
   },
