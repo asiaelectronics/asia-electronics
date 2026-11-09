@@ -4,8 +4,7 @@ import { ImageIcon, Plus, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useSettings } from "@/context/settings";
 import { useCatalog } from "@/services/catalog";
-import { uploadBannerImage } from "@/services/banners";
-import type { HomepageBanner } from "@/services/api";
+import { uploadHomepageBannerImageApi, type HomepageBanner } from "@/services/api";
 
 function optimizeHeroImage(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
@@ -59,7 +58,9 @@ function HomepageBannerPage() {
     if (file.size > 5 * 1024 * 1024) return toast.error("Images must be 5 MB or smaller.");
     try {
       const optimized = await optimizeHeroImage(file);
-      update(id, { image: await uploadBannerImage(optimized) });
+      const result = await uploadHomepageBannerImageApi(optimized);
+      if (!result.url) throw new Error(result.error);
+      update(id, { image: result.url });
       toast.success("Image optimized for faster loading.");
     } catch { toast.error("Could not process image."); }
   };

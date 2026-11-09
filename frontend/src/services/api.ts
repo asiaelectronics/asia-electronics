@@ -719,6 +719,24 @@ export async function uploadHomepageVideoApi(file: File): Promise<{ url?: string
   }
 }
 
+export async function uploadHomepageBannerImageApi(file: File): Promise<{ url?: string; error?: string }> {
+  try {
+    const ticket = await fetch(`${API_BASE}/homepage-banners/upload-url`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ fileName: file.name, contentType: file.type, size: file.size }),
+    });
+    const ticketJson = await ticket.json().catch(() => ({}));
+    if (!ticket.ok) return { error: ticketJson.error || "Could not prepare banner image upload" };
+    const upload = await fetch(ticketJson.uploadUrl, {
+      method: "PUT", headers: { "Content-Type": file.type }, body: file,
+    });
+    return upload.ok ? { url: ticketJson.publicUrl } : { error: "Could not upload banner image" };
+  } catch {
+    return { error: "Could not upload banner image" };
+  }
+}
+
 export async function deleteHomepageVideoApi(url: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/homepage-video`, {

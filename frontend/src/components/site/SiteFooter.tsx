@@ -1,7 +1,8 @@
-import { Link } from "@tanstack/react-router";
+﻿import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { Logo } from "./SiteHeader";
 import { useSettings } from "@/context/settings";
+import { openCookiePreferences } from "@/lib/cookies";
 
 const policies = [
   { slug: "delivery", label: "Delivery information" },
@@ -9,6 +10,7 @@ const policies = [
   { slug: "warranty", label: "Warranty" },
   { slug: "privacy", label: "Privacy policy" },
   { slug: "terms", label: "Terms & conditions" },
+  { slug: "cookies", label: "Cookie policy" },
 ];
 
 export function SiteFooter() {

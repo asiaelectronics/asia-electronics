@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+﻿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -19,6 +19,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Toaster } from "@/components/ui/sonner";
+import { CookieConsent } from "@/components/site/CookieConsent";
 import { FullScreenLoader } from "@/components/site/FullScreenLoader";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -214,6 +215,8 @@ function RootComponent() {
               />
 
               <FloatingWhatsAppButton />
+
+              <CookieConsent />
 
               <Toaster position="bottom-right" />
             </>

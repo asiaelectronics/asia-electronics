@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -111,6 +111,28 @@ const POLICY_CONTENT: Record<string, { intro: string; sections: Array<[string, s
       ],
     ],
   },
+  cookies: {
+    intro:
+      "This Cookie Policy explains how Asia Electronics & Cellular uses cookies, local browser storage, and related technologies to provide and secure our storefront services.",
+    sections: [
+      [
+        "What are cookies?",
+        "Cookies and browser local storage are small data files placed on your device when you visit websites. They help remember your preferences, keep your quotation cart active as you browse between categories, and provide a secure, seamless online experience.",
+      ],
+      [
+        "Strictly necessary cookies",
+        "These cookies and storage items are essential for the operation of asiaelectronics.lk. They include keeping your shopping cart items, authenticating your account session, saving quotation forms, and caching category and inventory data. Without these, our catalog and checkout cannot function.",
+      ],
+      [
+        "Analytics and performance",
+        "We use performance tools (such as Vercel Speed Insights and anonymous view counters) to assess page load times and identify popular electronics components. This information is aggregated and completely anonymous.",
+      ],
+      [
+        "Managing your preferences",
+        "You can adjust your cookie settings at any time using the 'Cookie settings' link in our website footer or by clearing your browser cache. Essential cookies will remain active to ensure critical shopping functionality.",
+      ],
+    ],
+  },
 };
 
 const POLICIES: Record<string, string> = {
@@ -119,6 +141,7 @@ const POLICIES: Record<string, string> = {
   warranty: "Warranty",
   privacy: "Privacy Policy",
   terms: "Terms & Conditions",
+  cookies: "Cookie Policy",
 };
 
 type OrderStatus = ApiOrder["status"];
