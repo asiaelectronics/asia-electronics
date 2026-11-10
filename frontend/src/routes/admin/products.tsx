@@ -27,6 +27,7 @@ import { useCatalog, type CreateProductInput } from "@/services/catalog";
 import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
+import { uploadCategoryImageApi } from "@/services/api";
 import type { Category, Product } from "@/lib/types";
 
 const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
@@ -2088,6 +2089,7 @@ function CategoryImageManagerModal({
   const [image, setImage] = useState(categories[0]?.image || images.catComponents);
   const [customImage, setCustomImage] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
 
@@ -2115,7 +2117,7 @@ function CategoryImageManagerModal({
     setCustomImage("");
   };
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       toast.error("Please choose an image file.");
@@ -2125,13 +2127,15 @@ function CategoryImageManagerModal({
       toast.error("Category images must be smaller than 3 MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setCustomImage(String(reader.result || ""));
-      toast.success("Category image ready to save.");
-    };
-    reader.onerror = () => toast.error("Could not read the selected image.");
-    reader.readAsDataURL(file);
+    setIsUploading(true);
+    const result = await uploadCategoryImageApi(file);
+    setIsUploading(false);
+    if (!result.url) {
+      toast.error(result.error || "Could not upload category image.");
+      return;
+    }
+    setCustomImage(result.url);
+    toast.success("Category image uploaded and ready to save.");
   };
 
   const saveImage = () => {
@@ -2210,13 +2214,13 @@ function CategoryImageManagerModal({
                 onDrop={(event) => { event.preventDefault(); setIsDragging(false); handleFile(event.dataTransfer.files?.[0]); }}
               >
                 <Upload className="h-5 w-5 shrink-0 text-orange-400" />
-                <span className="text-[11px] font-semibold"><strong className="text-zinc-200">Drop an image here</strong> or click to browse<span className="mt-0.5 block text-[10px] font-normal text-zinc-500">PNG, JPEG, WebP, or SVG · maximum 3 MB</span></span>
+                <span className="text-[11px] font-semibold"><strong className="text-zinc-200">{isUploading ? "Uploading image…" : "Drop an image here"}</strong>{isUploading ? "" : " or click to browse"}<span className="mt-0.5 block text-[10px] font-normal text-zinc-500">PNG, JPEG, WebP, or SVG · maximum 3 MB</span></span>
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
               </label>
 
               <input value={customImage} onChange={(event) => setCustomImage(event.target.value)} placeholder="Or paste a public image URL" className="admin-input w-full text-xs" />
               <div className="flex justify-end">
-                <button type="button" onClick={saveImage} className="admin-btn-primary flex items-center gap-1.5 text-xs"><Check className="h-3.5 w-3.5" /> Save category image</button>
+                <button type="button" onClick={saveImage} disabled={isUploading} className="admin-btn-primary flex items-center gap-1.5 text-xs disabled:cursor-wait disabled:opacity-50"><Check className="h-3.5 w-3.5" /> {isUploading ? "Uploading..." : "Save category image"}</button>
               </div>
             </section>
           )}

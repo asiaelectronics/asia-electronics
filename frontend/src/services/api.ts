@@ -445,6 +445,26 @@ export async function updateCategoryApi(
   }
 }
 
+export async function uploadCategoryImageApi(file: File): Promise<{ url?: string; error?: string }> {
+  try {
+    const ticket = await fetch(`${API_BASE}/categories/image-upload-url`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ contentType: file.type, size: file.size }),
+    });
+    const ticketJson = await ticket.json().catch(() => ({}));
+    if (!ticket.ok) return { error: ticketJson.error || "Could not prepare category image upload" };
+    const upload = await fetch(ticketJson.uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    return upload.ok ? { url: ticketJson.publicUrl } : { error: "Could not upload category image" };
+  } catch {
+    return { error: "Could not upload category image" };
+  }
+}
+
 export async function deleteCategoryApi(slug: string): Promise<boolean> {
   try {
     const res = await fetch(`${API_BASE}/categories/${encodeURIComponent(slug)}`, {
