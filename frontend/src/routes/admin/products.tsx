@@ -2121,8 +2121,8 @@ function CategoryImageManagerModal({
       toast.error("Please choose an image file.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Category images must be smaller than 2 MB.");
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Category images must be smaller than 3 MB.");
       return;
     }
     const reader = new FileReader();
@@ -2210,7 +2210,7 @@ function CategoryImageManagerModal({
                 onDrop={(event) => { event.preventDefault(); setIsDragging(false); handleFile(event.dataTransfer.files?.[0]); }}
               >
                 <Upload className="h-5 w-5 shrink-0 text-orange-400" />
-                <span className="text-[11px] font-semibold"><strong className="text-zinc-200">Drop an image here</strong> or click to browse<span className="mt-0.5 block text-[10px] font-normal text-zinc-500">PNG, JPEG, WebP, or SVG · maximum 2 MB</span></span>
+                <span className="text-[11px] font-semibold"><strong className="text-zinc-200">Drop an image here</strong> or click to browse<span className="mt-0.5 block text-[10px] font-normal text-zinc-500">PNG, JPEG, WebP, or SVG · maximum 3 MB</span></span>
                 <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
               </label>
 
@@ -2365,8 +2365,8 @@ function CategoryManagerModal({
       toast.error("Please choose an image file.");
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Category images must be smaller than 2 MB.");
+    if (file.size > 3 * 1024 * 1024) {
+      toast.error("Category images must be smaller than 3 MB.");
       return;
     }
 
