@@ -206,7 +206,9 @@ function ShopPage() {
     return () => window.removeEventListener("ae-catalog-updated", handleUpdate);
   }, [refetch]);
 
-  const cat = categories.find((c) => c.slug === search.category);
+  const cat =
+    categories.find((c) => c.slug === search.category) ??
+    (search.subcategory ? { name: search.subcategory, short: search.subcategory } : undefined);
 
   const update = (patch: Partial<ShopSearch>) =>
     navigate({ search: (prev) => ({ ...prev, ...patch, page: patch.page ?? undefined }) });
