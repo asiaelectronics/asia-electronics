@@ -179,7 +179,7 @@ function Index() {
           {/* 2. Robotics & Arduino */}
           <Link
             to="/shop"
-            search={{ category: "audio" }}
+            search={{ subcategory: "Arduino & Robotics" }}
             className="group flex min-h-[170px] items-center justify-between gap-2 overflow-hidden bg-tile p-6"
           >
             <div className="min-w-0">
