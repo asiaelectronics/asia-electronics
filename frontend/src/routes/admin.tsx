@@ -315,6 +315,7 @@ function AdminLayout() {
                 if (item.to === "/admin/products") {
                   const addActive = isActive && productAction === "add";
                   const categoriesActive = isActive && productAction === "categories";
+                  const categoryImagesActive = isActive && productAction === "images";
                   const brandsActive = isActive && productAction === "brands";
                   const listActive = isActive && !productAction;
 
@@ -375,6 +376,19 @@ function AdminLayout() {
                           >
                             <Layers className="h-3.5 w-3.5" />
                             Manage Categories
+                          </Link>
+                          <Link
+                            to="/admin/products"
+                            search={{ action: "images" }}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-2 rounded-md px-3 py-2 text-xs font-semibold transition-colors ${
+                              categoryImagesActive
+                                ? "bg-orange-500/10 text-orange-300"
+                                : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"
+                            }`}
+                          >
+                            <ImageIcon className="h-3.5 w-3.5" />
+                            Category Images
                           </Link>
                           <Link
                             to="/admin/products"

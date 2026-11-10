@@ -3,8 +3,10 @@ import catHomeAppliances from "@/assets/imgs/home-appliances.webp";
 import catKitchenAppliances from "@/assets/imgs/kitchen-appliances.webp";
 import catApplianceSpareParts from "@/assets/imgs/appliance-spare-parts.webp";
 import catElectronicComponents from "@/assets/imgs/electronic-components.webp";
+import catPremiumElectronicComponents from "@/assets/imgs/Premium Electronic Components Array.png";
 import catPowerSolarBatteries from "@/assets/imgs/power-solar-batteries.webp";
 import catAudioMusic from "@/assets/imgs/audio-music.webp";
+import catRoboticsArduino from "@/assets/imgs/Arduino robotics parts showcase.png";
 import catMobileParts from "@/assets/imgs/mobile-parts-accessories.webp";
 import catLabEquipment from "@/assets/imgs/laboratory-equipment.webp";
 import catToolsInstallation from "@/assets/imgs/tools-installation-supplies.webp";
@@ -22,8 +24,10 @@ export const images = {
   catKitchenAppliances,
   catApplianceSpareParts,
   catElectronicComponents,
+  catPremiumElectronicComponents,
   catPowerSolarBatteries,
   catAudioMusic,
+  catRoboticsArduino,
   catMobileParts,
   catLabEquipment,
   catToolsInstallation,
@@ -33,7 +37,9 @@ export const images = {
 
   // Compatibility aliases
   catComponents: catElectronicComponents,
+  catPremiumComponents: catPremiumElectronicComponents,
   catAudio: catAudioMusic,
+  catRobotics: catRoboticsArduino,
   catMobile: catMobileParts,
   catTv: catHomeAppliances,
   catKitchen: catKitchenAppliances,
@@ -88,7 +94,7 @@ export const categories: Category[] = [
     slug: "electronic-components",
     name: "Electronic Components",
     short: "Components",
-    image: catElectronicComponents,
+    image: catPremiumElectronicComponents,
     filterKey: "Type",
   },
 
@@ -106,7 +112,7 @@ export const categories: Category[] = [
     slug: "audio",
     name: "Robotics & Arduino",
     short: "Robotics & Arduino",
-    image: catAudioMusic,
+    image: catRoboticsArduino,
     filterKey: "Type",
   },
 

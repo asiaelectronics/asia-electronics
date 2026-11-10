@@ -116,11 +116,16 @@ function fromDbCategory(row) {
 }
 
 async function replaceCategorySubcategories(categorySlug, subcategories) {
-  const names = [
-    ...new Set(
-      (subcategories || []).map((item) => String(item).trim()).filter(Boolean),
-    ),
-  ];
+  const seen = new Set();
+  const names = (subcategories || []).reduce((result, item) => {
+    const name = String(item).trim();
+    const key = name.toLocaleLowerCase();
+    if (name && !seen.has(key)) {
+      seen.add(key);
+      result.push(name);
+    }
+    return result;
+  }, []);
   const { error: deleteError } = await supabase
     .from("subcategories")
     .delete()
@@ -641,6 +646,31 @@ export async function updateProduct(id, updates) {
   }
 
   return fromDbProduct(data);
+}
+
+/** Restores archived clean originals for products that were previously watermarked. */
+export async function restoreAllOriginalProductImages() {
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, images, attributes");
+  if (error) throw new Error(error.message);
+
+  const candidates = (data || []).filter((row) => {
+    const originals = row.attributes?.originalImages;
+    return Array.isArray(originals) && originals.length > 0 &&
+      JSON.stringify(originals) !== JSON.stringify(row.images || []);
+  });
+
+  let restored = 0;
+  for (const row of candidates) {
+    const { error: updateError } = await supabase
+      .from("products")
+      .update({ images: row.attributes.originalImages, updated_at: new Date().toISOString() })
+      .eq("id", row.id);
+    if (updateError) throw new Error(updateError.message);
+    restored++;
+  }
+  return { restored, skipped: (data || []).length - restored };
 }
 
 export async function deleteProduct(id) {

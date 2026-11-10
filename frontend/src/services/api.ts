@@ -334,7 +334,7 @@ export async function updateProductApi(
       if (res.status === 401) {
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem("ae_auth_user_v1");
-        toast.error("Your admin session has expired. Please sign in again, then retry watermarking.");
+        toast.error("Your admin session has expired. Please sign in again, then retry the update.");
         return null;
       }
       const msg = err.error || `Failed to update product in database (${res.status})`;
@@ -374,6 +374,25 @@ export async function clearAllProductsApi(): Promise<boolean> {
   } catch (err) {
     console.warn("Backend API clearAllProducts error:", err);
     return false;
+  }
+}
+
+export async function restoreOriginalProductImagesApi(): Promise<{ restored: number; skipped: number } | null> {
+  try {
+    const res = await fetch(`${API_BASE}/products/restore-original-images`, {
+      method: "POST",
+      headers: authHeaders(),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to restore original images (${res.status})`);
+    }
+    const json = await res.json();
+    return json.data || null;
+  } catch (err) {
+    console.warn("Backend API restoreOriginalProductImages error:", err);
+    toast.error(err instanceof Error ? err.message : "Could not restore original images");
+    return null;
   }
 }
 

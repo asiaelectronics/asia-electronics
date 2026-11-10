@@ -39,7 +39,7 @@ export interface Product {
   compareAtCents?: number | undefined;
   stock: number;
   images: string[];
-  /** Original unwatermarked images for external feeds/channels */
+  /** Original product images retained for exports and restoration. */
   originalImages?: string[] | undefined;
   description: string;
   specs: Record<string, string>;

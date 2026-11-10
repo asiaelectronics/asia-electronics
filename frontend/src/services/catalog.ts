@@ -24,6 +24,7 @@ import {
   fetchProductApi,
   fetchCategoriesApi,
   clearAllProductsApi,
+  restoreOriginalProductImagesApi,
   fetchBrandsApi,
   upsertBrandApi,
 } from "./api";
@@ -359,7 +360,13 @@ function saveProductSubcategoryOnCategory(categorySlug: string, subcategory?: st
   if (index === -1) return;
 
   const category = categories[index];
-  if (!category || category.subcategories?.includes(label)) return;
+  if (
+    !category ||
+    category.subcategories?.some(
+      (existing) => existing.trim().localeCompare(label, undefined, { sensitivity: "accent" }) === 0,
+    )
+  )
+    return;
 
   const updatedCategory: Category = {
     ...category,
@@ -371,7 +378,10 @@ function saveProductSubcategoryOnCategory(categorySlug: string, subcategory?: st
   void updateCategoryApi(categorySlug, updatedCategory);
 }
 
-export function createProduct(input: CreateProductInput): Product {
+export async function createProduct(input: CreateProductInput): Promise<Product> {
+  // Do not let a delayed initial fetch overwrite a newly-created product.
+  // The admin UI also waits for this write before showing a success message.
+  await syncCatalogWithBackend();
   const current = getStoredProducts();
   const id = `p_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const slug = slugify(`${input.brand}-${input.name}-${input.sku}`);
@@ -408,10 +418,7 @@ export function createProduct(input: CreateProductInput): Product {
     createdAt: new Date().toISOString(),
   };
 
-  const updated = [newProduct, ...current];
-  saveStoredProducts(updated);
-  saveProductSubcategoryOnCategory(newProduct.category, newProduct.subcategory);
-  createProductApi({
+  const saved = await createProductApi({
     id: newProduct.id,
     slug: newProduct.slug,
     name: newProduct.name,
@@ -432,12 +439,20 @@ export function createProduct(input: CreateProductInput): Product {
     showPrice: newProduct.showPrice,
     showQuantity: newProduct.showQuantity,
     showAvailability: newProduct.showAvailability,
-  }).then((saved) => {
-    if (saved) {
-      console.log("Product saved to Supabase database:", saved.id);
-    }
   });
-  return newProduct;
+
+  if (!saved) {
+    throw new Error("The product was not saved. Please correct the error and try again.");
+  }
+
+  const persistedProduct = {
+    ...saved,
+    images: saved.images?.length ? saved.images : newProduct.images,
+    originalImages: saved.originalImages ?? newProduct.originalImages,
+  };
+  saveStoredProducts([persistedProduct, ...getStoredProducts().filter((product) => product.id !== persistedProduct.id)]);
+  saveProductSubcategoryOnCategory(persistedProduct.category, persistedProduct.subcategory);
+  return persistedProduct;
 }
 
 export function updateProduct(id: string, updates: Partial<CreateProductInput>): Product | null {
@@ -554,6 +569,15 @@ export async function updateProductInDatabase(
     saveStoredProducts(current);
   }
   return saved;
+}
+
+export async function restoreAllOriginalProductImages(): Promise<{ restored: number; skipped: number } | null> {
+  const result = await restoreOriginalProductImagesApi();
+  if (result) {
+    initialSyncPromise = null;
+    await syncCatalogWithBackend();
+  }
+  return result;
 }
 
 export function deleteProduct(id: string): boolean {
@@ -1202,6 +1226,7 @@ export function useCatalog() {
     createProduct,
     updateProduct,
     updateProductInDatabase,
+    restoreAllOriginalProductImages,
     deleteProduct,
     createCategory,
     updateCategory,

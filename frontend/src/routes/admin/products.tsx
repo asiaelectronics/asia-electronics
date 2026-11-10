@@ -21,16 +21,12 @@ import {
   Check,
   AlertTriangle,
   ExternalLink,
-  Sparkles,
-  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCatalog, type CreateProductInput } from "@/services/catalog";
 import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
-import { WatermarkPreviewModal } from "@/components/admin/WatermarkPreviewModal";
-import { applyWatermarkToImage } from "@/lib/watermark";
 import type { Category, Product } from "@/lib/types";
 
 const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
@@ -127,8 +123,11 @@ const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
 export const Route = createFileRoute("/admin/products")({
   validateSearch: (search: Record<string, unknown>) => ({
     action:
-      search.action === "add" || search.action === "categories" || search.action === "brands"
-        ? (search.action as "add" | "categories" | "brands")
+      (search.action === "add" ||
+        search.action === "categories" ||
+        search.action === "brands" ||
+        search.action === "images")
+        ? (search.action as "add" | "categories" | "brands" | "images")
         : undefined,
   }),
   head: () => ({ meta: [{ title: "Products & 800+ SKUs — Admin" }] }),
@@ -148,7 +147,7 @@ function ProductsPage() {
     deleteBrandLogo,
     createProduct,
     updateProduct,
-    updateProductInDatabase,
+    restoreAllOriginalProductImages,
     deleteProduct,
     createCategory,
     updateCategory,
@@ -174,29 +173,38 @@ function ProductsPage() {
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [categoryImageModalOpen, setCategoryImageModalOpen] = useState(false);
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
-  const [watermarkModalOpen, setWatermarkModalOpen] = useState(false);
-  const [watermarkTargetProduct, setWatermarkTargetProduct] = useState<Product | null>(null);
+  const [restoringOriginalImages, setRestoringOriginalImages] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (routeSearch.action === "add") {
       setBrandModalOpen(false);
       setCategoryModalOpen(false);
+      setCategoryImageModalOpen(false);
       setEditingProduct(null);
       setProductModalOpen(true);
     } else if (routeSearch.action === "categories") {
       setProductModalOpen(false);
       setBrandModalOpen(false);
+      setCategoryImageModalOpen(false);
       setCategoryModalOpen(true);
+    } else if (routeSearch.action === "images") {
+      setProductModalOpen(false);
+      setBrandModalOpen(false);
+      setCategoryModalOpen(false);
+      setCategoryImageModalOpen(true);
     } else if (routeSearch.action === "brands") {
       setProductModalOpen(false);
       setCategoryModalOpen(false);
+      setCategoryImageModalOpen(false);
       setBrandModalOpen(true);
     } else {
       setBrandModalOpen(false);
       setCategoryModalOpen(false);
+      setCategoryImageModalOpen(false);
     }
   }, [routeSearch.action]);
 
@@ -312,25 +320,41 @@ function ProductsPage() {
     setProductModalOpen(true);
   };
 
-  const handleDuplicate = (p: Product) => {
+  const handleRestoreOriginalImages = async () => {
+    setRestoringOriginalImages(true);
+    try {
+      const result = await restoreAllOriginalProductImages();
+      if (result) {
+        toast.success(`Restored clean original images for ${result.restored} product${result.restored === 1 ? "" : "s"}.`);
+      }
+    } finally {
+      setRestoringOriginalImages(false);
+    }
+  };
+
+  const handleDuplicate = async (p: Product) => {
     const duplicateSku = `${p.sku}-CP${Math.floor(Math.random() * 900 + 100)}`;
-    createProduct({
-      name: `${p.name} (Copy)`,
-      sku: duplicateSku,
-      brand: p.brand,
-      model: p.model,
-      category: p.category,
-      priceLKR: p.priceCents / 100,
-      compareAtLKR: p.compareAtCents ? p.compareAtCents / 100 : undefined,
-      stock: p.stock,
-      description: p.description,
-      image: p.images[0] ?? images.catComponents,
-      featured: false,
-      isNew: true,
-      specs: p.specs,
-      attributes: p.attributes,
-    });
-    toast.success(`Duplicated ${p.name} as ${duplicateSku}`);
+    try {
+      await createProduct({
+        name: `${p.name} (Copy)`,
+        sku: duplicateSku,
+        brand: p.brand,
+        model: p.model,
+        category: p.category,
+        priceLKR: p.priceCents / 100,
+        compareAtLKR: p.compareAtCents ? p.compareAtCents / 100 : undefined,
+        stock: p.stock,
+        description: p.description,
+        image: p.images[0] ?? images.catComponents,
+        featured: false,
+        isNew: true,
+        specs: p.specs,
+        attributes: p.attributes,
+      });
+      toast.success(`Duplicated ${p.name} as ${duplicateSku}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not duplicate product.");
+    }
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -471,15 +495,12 @@ function ProductsPage() {
           </button>
 
           <button
-            onClick={() => {
-              setWatermarkTargetProduct(null);
-              setWatermarkModalOpen(true);
-            }}
-            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold border-orange-500/30 text-orange-400 hover:bg-orange-500/10"
-            title="Preview and watermark product images"
+            onClick={handleRestoreOriginalImages}
+            disabled={restoringOriginalImages}
+            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50"
+            title="Restore archived original images and remove existing watermarks"
           >
-            <Sparkles className="h-3.5 w-3.5 text-orange-400" />
-            Watermarking
+            {restoringOriginalImages ? "Restoring images..." : "Restore clean images"}
           </button>
 
           <button
@@ -914,16 +935,6 @@ function ProductsPage() {
                           <Eye className="h-3.5 w-3.5" />
                         </Link>
                         <button
-                          onClick={() => {
-                            setWatermarkTargetProduct(p);
-                            setWatermarkModalOpen(true);
-                          }}
-                          className="p-1.5 rounded hover:bg-orange-500/20 text-orange-400 hover:text-orange-300 transition-colors"
-                          title="Preview & watermark this product's images"
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                        </button>
-                        <button
                           onClick={() => handleOpenEdit(p)}
                           className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
                           title="Edit product"
@@ -1059,14 +1070,16 @@ function ProductsPage() {
           products={products}
           brands={brands}
           brandLogos={brandLogos}
-          onSave={(data) => {
+          onSave={async (data) => {
             if (editingProduct) {
               updateProduct(editingProduct.id, data);
               toast.success(`Updated "${data.name}" successfully!`);
-            } else {
-              createProduct(data as CreateProductInput);
-              toast.success(`Created product "${data.name}" (${data.sku})!`);
+              handleCloseProductModal();
+              return;
             }
+
+            await createProduct(data as CreateProductInput);
+            toast.success(`Created product "${data.name}" (${data.sku})!`);
             handleCloseProductModal();
           }}
           onOpenCategories={() => setCategoryModalOpen(true)}
@@ -1100,6 +1113,18 @@ function ProductsPage() {
             deleteCategory(slug);
             toast.success("Category deleted.");
           }}
+        />
+      )}
+
+      {categoryImageModalOpen && (
+        <CategoryImageManagerModal
+          isOpen={categoryImageModalOpen}
+          onClose={() => {
+            setCategoryImageModalOpen(false);
+            void navigate({ to: "/admin/products", search: {}, replace: true });
+          }}
+          categories={categories}
+          onUpdate={updateCategory}
         />
       )}
 
@@ -1140,48 +1165,18 @@ function ProductsPage() {
           isOpen={csvModalOpen}
           onClose={() => setCsvModalOpen(false)}
           categories={categories}
-          onImport={(items) => {
+          onImport={async (items) => {
             let count = 0;
-            items.forEach((item) => {
-              createProduct(item);
+            for (const item of items) {
+              await createProduct(item);
               count++;
-            });
+            }
             toast.success(`Successfully imported ${count} SKUs!`);
             setCsvModalOpen(false);
           }}
         />
       )}
 
-      {/* ─── Watermark Preview & Action Modal ─── */}
-      {watermarkModalOpen && (
-        <WatermarkPreviewModal
-          isOpen={watermarkModalOpen}
-          onClose={() => {
-            setWatermarkModalOpen(false);
-            setWatermarkTargetProduct(null);
-          }}
-          products={products}
-          targetProduct={watermarkTargetProduct}
-          onApplyWatermark={async (productId, watermarkedImages, originalImages) => {
-            const product = products.find((p) => p.id === productId);
-            if (!product) return false;
-
-            const updated = await updateProductInDatabase(productId, {
-              images: watermarkedImages,
-              originalImages: originalImages,
-            });
-
-            if (updated) {
-              toast.success(`Watermarked image(s) saved for SKU: ${product.sku}!`);
-              setWatermarkModalOpen(false);
-              setWatermarkTargetProduct(null);
-              return true;
-            }
-            toast.error("Failed to update watermarked images");
-            return false;
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -1217,7 +1212,7 @@ function ProductFormModal({
       priceLKR: number;
       stock: number;
     },
-  ) => void;
+  ) => Promise<void>;
   onOpenCategories: () => void;
   onOpenBrands?: () => void;
 }) {
@@ -1262,7 +1257,6 @@ function ProductFormModal({
     }
     return editingProduct?.images || [];
   });
-  const [autoWatermark, setAutoWatermark] = useState<boolean>(true);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [urlInput, setUrlInput] = useState("");
   const [imageInputMode, setImageInputMode] = useState<"url" | "upload">("upload");
@@ -1351,30 +1345,13 @@ function ProductFormModal({
       const rawUrls = results.filter(Boolean);
 
       if (rawUrls.length > 0) {
-        let finalProcessed = rawUrls;
-        if (autoWatermark) {
-          try {
-            const wmResults = await Promise.all(
-              rawUrls.map((raw) => applyWatermarkToImage(raw, { quality: 0.72 })),
-            );
-            finalProcessed = wmResults.map((w) => w.dataUrl);
-            toast.success(`Branded & watermarked ${finalProcessed.length} image(s)!`);
-          } catch (wmErr) {
-            console.warn("Watermarking fallback:", wmErr);
-            finalProcessed = rawUrls;
-          }
-        }
-
         setOriginalImagesList((prev) => [...prev, ...rawUrls]);
         setImagesList((prev) => {
-          const nextList = [...prev, ...finalProcessed];
+          const nextList = [...prev, ...rawUrls];
           setActivePreviewIndex(nextList.length - 1);
           return nextList;
         });
-
-        if (!autoWatermark) {
-          toast.success(`Added ${finalProcessed.length} image(s)`);
-        }
+        toast.success(`Added ${rawUrls.length} image(s)`);
       }
     } catch {
       toast.error("Failed to process uploaded images");
@@ -1402,8 +1379,7 @@ function ProductFormModal({
       toast.error("Please enter an image URL");
       return;
     }
-    // Track the URL as the original too — URL images aren't locally watermarked,
-    // so both lists should stay in sync at this index.
+    // Keep the clean source alongside the displayed image for future exports.
     setOriginalImagesList((prev) => [...prev, trimmed]);
     setImagesList((prev) => {
       const nextList = [...prev, trimmed];
@@ -1415,8 +1391,7 @@ function ProductFormModal({
   };
 
   const handleRemoveImage = (idxToRemove: number) => {
-    // Keep originalImagesList in sync — removing at the same index ensures the
-    // watermark modal always reads the correct original for each display image.
+    // Keep the clean-source list in sync with the gallery.
     setOriginalImagesList((prev) => prev.filter((_, idx) => idx !== idxToRemove));
     setImagesList((prev) => {
       const updated = prev.filter((_, idx) => idx !== idxToRemove);
@@ -1455,6 +1430,7 @@ function ProductFormModal({
   const [showAvailability, setShowAvailability] = useState(
     editingProduct?.showAvailability !== false,
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
@@ -1465,7 +1441,7 @@ function ProductFormModal({
     setSku(`AE-${catCode}-${rnd}`);
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Please enter a product name");
@@ -1488,9 +1464,8 @@ function ProductFormModal({
     const finalImages = imagesList.length > 0 ? imagesList : [images.catComponents];
     const finalOriginalImages =
       originalImagesList.length > 0 ? originalImagesList : finalImages;
-    // Vercel caps request bodies. Images are Base64 strings and are sent twice
-    // when watermarking is enabled (display + original), so measure the actual
-    // JSON payload before submitting rather than waiting for a 413 response.
+    // Vercel caps request bodies, so measure the image payload before submitting
+    // rather than waiting for a 413 response.
     const imagePayloadBytes = new Blob([
       JSON.stringify({ images: finalImages, originalImages: finalOriginalImages }),
     ]).size;
@@ -1501,30 +1476,37 @@ function ProductFormModal({
       return;
     }
 
-    onSave({
-      name: name.trim(),
-      sku: sku.trim().toUpperCase(),
-      brand: brand.trim() || "Generic",
-      model: model.trim() || "Standard",
-      category,
-      subcategory: subcategory || undefined,
-      priceLKR: numPrice,
-      attributes: {
-        ...(editingProduct?.attributes ?? {}),
-        ...(subcategory ? { Subcategory: subcategory } : {}),
-      },
-      compareAtLKR: compareAtLKR ? Number(compareAtLKR) : undefined,
-      stock: Math.max(0, parseInt(stock, 10) || 0),
-      description: description.trim() || undefined,
-      image: finalImages[0],
-      images: finalImages,
-      originalImages: finalOriginalImages,
-      featured,
-      isNew,
-      showPrice,
-      showQuantity,
-      showAvailability,
-    });
+    setIsSaving(true);
+    try {
+      await onSave({
+        name: name.trim(),
+        sku: sku.trim().toUpperCase(),
+        brand: brand.trim() || "Generic",
+        model: model.trim() || "Standard",
+        category,
+        subcategory: subcategory || undefined,
+        priceLKR: numPrice,
+        attributes: {
+          ...(editingProduct?.attributes ?? {}),
+          ...(subcategory ? { Subcategory: subcategory } : {}),
+        },
+        compareAtLKR: compareAtLKR ? Number(compareAtLKR) : undefined,
+        stock: Math.max(0, parseInt(stock, 10) || 0),
+        description: description.trim() || undefined,
+        image: finalImages[0],
+        images: finalImages,
+        originalImages: finalOriginalImages,
+        featured,
+        isNew,
+        showPrice,
+        showQuantity,
+        showAvailability,
+      });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save product. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -1744,19 +1726,8 @@ function ProductFormModal({
                 </span>
               </div>
 
-              {/* Mode Switch Tabs & Auto-Watermark Toggle */}
+              {/* Image source selector */}
               <div className="flex flex-wrap items-center gap-2">
-                <label className="flex items-center gap-1.5 cursor-pointer bg-zinc-900 border border-zinc-700/80 px-2.5 py-1 rounded-lg text-[11px] text-zinc-300 hover:border-orange-500/50">
-                  <input
-                    type="checkbox"
-                    checked={autoWatermark}
-                    onChange={(e) => setAutoWatermark(e.target.checked)}
-                    className="accent-orange-500 rounded h-3.5 w-3.5 cursor-pointer"
-                  />
-                  <Sparkles className="h-3 w-3 text-orange-400" />
-                  <span>Auto-Watermark</span>
-                </label>
-
                 <div className="flex items-center gap-1 bg-zinc-800/90 p-0.5 rounded-lg text-[11px] font-bold">
                   <button
                     type="button"
@@ -2084,12 +2055,12 @@ function ProductFormModal({
 
           {/* Footer Submit */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-zinc-800">
-            <button type="button" onClick={onClose} className="admin-btn-ghost text-xs">
+            <button type="button" onClick={onClose} disabled={isSaving} className="admin-btn-ghost text-xs disabled:opacity-50">
               Cancel
             </button>
-            <button type="submit" className="admin-btn-primary flex items-center gap-2 text-xs">
+            <button type="submit" disabled={isSaving} className="admin-btn-primary flex items-center gap-2 text-xs disabled:cursor-wait disabled:opacity-50">
               <Check className="h-4 w-4" />
-              {isEditing ? "Save Changes" : "Create Product"}
+              {isSaving ? "Saving..." : isEditing ? "Save Changes" : "Create Product"}
             </button>
           </div>
         </form>
@@ -2101,6 +2072,159 @@ function ProductFormModal({
 // ─────────────────────────────────────────────────────────────────────────────
 // ─── Modal 2: Category Manager Modal ─────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
+
+function CategoryImageManagerModal({
+  isOpen,
+  onClose,
+  categories,
+  onUpdate,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  categories: Category[];
+  onUpdate: (slug: string, updates: { image?: string }) => void;
+}) {
+  const [selectedSlug, setSelectedSlug] = useState(categories[0]?.slug ?? "");
+  const [image, setImage] = useState(categories[0]?.image || images.catComponents);
+  const [customImage, setCustomImage] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+
+  if (!isOpen) return null;
+
+  const selectedCategory = categories.find((category) => category.slug === selectedSlug) ?? categories[0];
+  const activeImage = customImage.trim() || image;
+  const imagePresets = [
+    { label: "Components", src: images.catComponents },
+    { label: "Lighting", src: images.catLighting },
+    { label: "Appliances", src: images.catTv },
+    { label: "Kitchen", src: images.catKitchen },
+    { label: "Spare Parts", src: images.catSpares },
+    { label: "Power & Solar", src: images.catPower },
+    { label: "Audio", src: images.catAudio },
+    { label: "Mobile", src: images.catMobile },
+    { label: "Laboratory", src: images.catLab },
+    { label: "Tools", src: images.catTools },
+    { label: "Name Boards", src: images.catNameBoards },
+    { label: "Magnet Bars", src: images.catMagnetBars },
+    { label: "Equipment", src: images.catOtherEquipment },
+  ];
+
+  const selectCategory = (category: Category) => {
+    setSelectedSlug(category.slug);
+    setImage(category.image || images.catComponents);
+    setCustomImage("");
+  };
+
+  const handleFile = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Category images must be smaller than 2 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCustomImage(String(reader.result || ""));
+      toast.success("Category image ready to save.");
+    };
+    reader.onerror = () => toast.error("Could not read the selected image.");
+    reader.readAsDataURL(file);
+  };
+
+  const saveImage = () => {
+    if (!selectedCategory || !activeImage.trim()) return;
+    onUpdate(selectedCategory.slug, { image: activeImage.trim() });
+    setImage(activeImage.trim());
+    setCustomImage("");
+    toast.success(`${selectedCategory.name} image updated.`);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 backdrop-blur-xs animate-in fade-in-0">
+      <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950/40 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-orange-500/30 bg-orange-500/10 text-orange-400">
+              <Upload className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-black tracking-tight text-white">Category Images</h2>
+              <p className="text-xs text-zinc-400">Choose a category, then set the image used across the store.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white" aria-label="Close category images">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="grid flex-1 overflow-y-auto lg:grid-cols-[280px_minmax(0,1fr)]">
+          <aside className="border-b border-zinc-800 bg-zinc-950/30 p-4 lg:border-b-0 lg:border-r">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Categories</p>
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
+              {categories.map((category) => {
+                const selected = category.slug === selectedCategory?.slug;
+                return (
+                  <button
+                    key={category.slug}
+                    type="button"
+                    onClick={() => selectCategory(category)}
+                    className={`flex items-center gap-2 rounded-lg border p-2 text-left transition-colors ${selected ? "border-orange-500/60 bg-orange-500/10" : "border-zinc-800 bg-zinc-900/40 hover:border-zinc-700"}`}
+                  >
+                    <img src={category.image || images.catComponents} alt="" className="h-8 w-8 rounded object-cover" />
+                    <span className={`min-w-0 truncate text-xs font-semibold ${selected ? "text-orange-200" : "text-zinc-300"}`}>{category.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          {selectedCategory && (
+            <section className="space-y-4 p-5">
+              <div className="flex items-center gap-4 rounded-xl border border-zinc-800 bg-zinc-950/30 p-3">
+                <img src={activeImage || images.catComponents} alt={selectedCategory.name} className="h-20 w-20 rounded-lg border border-zinc-700 bg-zinc-800 object-cover" />
+                <div>
+                  <p className="text-sm font-bold text-white">{selectedCategory.name}</p>
+                  <p className="mt-1 text-[11px] text-zinc-500">This is the main image displayed for this category.</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-bold text-zinc-200">Choose a preset image</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {imagePresets.map((preset) => (
+                    <button key={preset.label} type="button" onClick={() => { setImage(preset.src); setCustomImage(""); }} className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors ${image === preset.src && !customImage ? "border-orange-500/60 bg-orange-500/15 text-orange-200" : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:text-white"}`}>
+                      <img src={preset.src} alt="" className="h-4 w-4 rounded object-cover" />
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label
+                className={`flex min-h-28 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 text-center transition-colors ${isDragging ? "border-orange-400 bg-orange-500/10 text-orange-200" : "border-zinc-700 bg-zinc-950/30 text-zinc-400 hover:border-orange-500/70 hover:bg-orange-500/5"}`}
+                onDragOver={(event) => { event.preventDefault(); setIsDragging(true); }}
+                onDragLeave={(event) => { event.preventDefault(); setIsDragging(false); }}
+                onDrop={(event) => { event.preventDefault(); setIsDragging(false); handleFile(event.dataTransfer.files?.[0]); }}
+              >
+                <Upload className="h-5 w-5 shrink-0 text-orange-400" />
+                <span className="text-[11px] font-semibold"><strong className="text-zinc-200">Drop an image here</strong> or click to browse<span className="mt-0.5 block text-[10px] font-normal text-zinc-500">PNG, JPEG, WebP, or SVG · maximum 2 MB</span></span>
+                <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="sr-only" onChange={(event) => { handleFile(event.target.files?.[0]); event.target.value = ""; }} />
+              </label>
+
+              <input value={customImage} onChange={(event) => setCustomImage(event.target.value)} placeholder="Or paste a public image URL" className="admin-input w-full text-xs" />
+              <div className="flex justify-end">
+                <button type="button" onClick={saveImage} className="admin-btn-primary flex items-center gap-1.5 text-xs"><Check className="h-3.5 w-3.5" /> Save category image</button>
+              </div>
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function CategoryManagerModal({
   isOpen,
@@ -2206,7 +2330,6 @@ function CategoryManagerModal({
 
     onUpdate(editingCategory.slug, {
       subcategories: nextSubcategories,
-      image: customImage.trim() || image,
     });
     toast.success(`Saved changes for ${editingCategory.name}.`);
     resetForm();
@@ -2266,14 +2389,12 @@ function CategoryManagerModal({
     const finalSlug = slug.trim() ? slugify(slug) : slugify(name);
     const finalShort = short.trim() || name.trim();
     const finalImage = customImage.trim() || image;
-    const finalSubcategories = [
-      ...new Set(
-        subcategories
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
-      ),
-    ];
+    const finalSubcategories = subcategories
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item, index, items) =>
+        Boolean(item) && items.findIndex((candidate) => candidate.toLocaleLowerCase() === item.toLocaleLowerCase()) === index,
+      );
 
     if (editingCategory) {
       if (onUpdate) {
@@ -2612,78 +2733,6 @@ function CategoryManagerModal({
                 ) : (
                   <p className="px-1 py-0.5 text-[11px] text-zinc-500">No subcategories added yet.</p>
                 )}
-              </div>
-              <div className="mt-4 border-t border-orange-500/15 pt-4">
-                <p className="text-[11px] font-bold text-zinc-200">Main category image</p>
-                <p className="mt-1 text-[10px] text-zinc-500">
-                  Select an image below or paste a public image URL.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {imagePresets.map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => {
-                        setImage(preset.src);
-                        setCustomImage("");
-                      }}
-                      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-[10px] font-semibold transition-colors ${
-                        image === preset.src && !customImage
-                          ? "border-orange-500/60 bg-orange-500/15 text-orange-200"
-                          : "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-600 hover:text-white"
-                      }`}
-                    >
-                      <img src={preset.src} alt="" className="h-4 w-4 rounded object-cover" />
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-                <label
-                  className={`mt-2 flex min-h-20 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed px-3 text-center transition-colors ${
-                    isCategoryImageDragging
-                      ? "border-orange-400 bg-orange-500/10 text-orange-200"
-                      : "border-zinc-700 bg-zinc-950/30 text-zinc-400 hover:border-orange-500/70 hover:bg-orange-500/5"
-                  }`}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setIsCategoryImageDragging(true);
-                  }}
-                  onDragLeave={(event) => {
-                    event.preventDefault();
-                    setIsCategoryImageDragging(false);
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    setIsCategoryImageDragging(false);
-                    handleCategoryImageFile(event.dataTransfer.files?.[0]);
-                  }}
-                >
-                  <Upload className="h-4 w-4 shrink-0 text-orange-400" />
-                  <span className="text-[11px] font-semibold">
-                    <strong className="text-zinc-200">Drop an image here</strong> or click to browse
-                    <span className="mt-0.5 block text-[10px] font-normal text-zinc-500">
-                      PNG, JPEG, WebP, or SVG · maximum 2 MB
-                    </span>
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                    className="sr-only"
-                    onChange={(event) => {
-                      handleCategoryImageFile(event.target.files?.[0]);
-                      event.target.value = "";
-                    }}
-                  />
-                  {customImage.startsWith("data:image/") && (
-                    <span className="text-[10px] font-bold text-emerald-400">Ready</span>
-                  )}
-                </label>
-                <input
-                  value={customImage}
-                  onChange={(event) => setCustomImage(event.target.value)}
-                  placeholder="Or paste a public image URL"
-                  className="admin-input mt-2 w-full text-xs"
-                />
               </div>
               <div className="mt-3 flex justify-end">
                 <button
@@ -3237,7 +3286,7 @@ function CsvImportModal({
   isOpen: boolean;
   onClose: () => void;
   categories: Category[];
-  onImport: (items: CreateProductInput[]) => void;
+  onImport: (items: CreateProductInput[]) => Promise<void>;
 }) {
   const sampleTemplate = `sku,name,brand,model,category,price,stock,description
 AE-CMP-2001,High Voltage Ceramic Cap 10nF 1kV,Murata,CAP-10N,electronic-components,45,200,High voltage ceramic capacitor for repair
@@ -3246,10 +3295,11 @@ AE-LGT-4001,SMD 5050 LED Module 12V Warm,Orange Electric,SMD-5050,lighting,180,9
 AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K HDR Smart TV with Google TV`;
 
   const [csvText, setCsvText] = useState(sampleTemplate);
+  const [isImporting, setIsImporting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleParseAndImport = (): void => {
+  const handleParseAndImport = async (): Promise<void> => {
     try {
       const lines = csvText.trim().split("\n");
       const headerLine = lines[0];
@@ -3320,10 +3370,13 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
         toast.error("No valid products found in CSV");
         return;
       }
-      onImport(parsed);
+      setIsImporting(true);
+      await onImport(parsed);
     } catch (e) {
       console.error(e);
-      toast.error("Failed to parse CSV. Please check formatting.");
+      toast.error(e instanceof Error ? e.message : "Failed to parse CSV. Please check formatting.");
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -3341,6 +3394,7 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
           </div>
           <button
             onClick={onClose}
+            disabled={isImporting}
             className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800"
           >
             <X className="h-5 w-5" />
@@ -3364,14 +3418,15 @@ AE-APP-5001,Smart Android LED TV 43 Inch,TCL,43P635,home-appliances,129900,5,4K 
         </div>
 
         <div className="p-4 border-t border-zinc-800 flex items-center justify-end gap-3">
-          <button onClick={onClose} className="admin-btn-ghost text-xs">
+          <button onClick={onClose} disabled={isImporting} className="admin-btn-ghost text-xs disabled:opacity-50">
             Cancel
           </button>
           <button
             onClick={handleParseAndImport}
-            className="admin-btn-primary text-xs flex items-center gap-1.5"
+            disabled={isImporting}
+            className="admin-btn-primary text-xs flex items-center gap-1.5 disabled:cursor-wait disabled:opacity-50"
           >
-            <Upload className="h-3.5 w-3.5" /> Parse & Import
+            <Upload className="h-3.5 w-3.5" /> {isImporting ? "Importing..." : "Parse & Import"}
           </button>
         </div>
       </div>

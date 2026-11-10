@@ -249,7 +249,7 @@ function ProductDetails() {
               )}
             />
 
-            {/* Out of Stock Watermark Overlay */}
+            {/* Out-of-stock status overlay */}
             {product.stock <= 0 && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/35 backdrop-blur-[0.5px]">
                 <span className="rotate-[-12deg] rounded-md border-2 border-red-500 bg-red-600/95 px-6 py-2.5 font-display text-base sm:text-xl font-black uppercase tracking-widest text-white shadow-2xl">

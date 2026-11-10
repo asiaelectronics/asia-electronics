@@ -10,6 +10,7 @@ import {
   findProduct,
   adjustInventory,
   readInventoryHistory,
+  restoreAllOriginalProductImages,
 } from "../data/db.js";
 
 const router = express.Router();
@@ -143,6 +144,17 @@ router.post('/:id/adjust-inventory', requireAuth, requireAdmin, async (req, res)
 router.get('/:id/inventory-history', requireAuth, requireAdmin, async (req, res) => {
   try { res.json({ success: true, data: await readInventoryHistory(req.params.id) }); }
   catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// POST /api/products/restore-original-images
+// Restores clean originals that were archived before an image was watermarked.
+router.post("/restore-original-images", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const result = await restoreAllOriginalProductImages();
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 // GET /api/products/:identifier (by id or slug or sku)
 router.get("/:identifier", async (req, res) => {

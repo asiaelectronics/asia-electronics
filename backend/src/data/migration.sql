@@ -67,6 +67,17 @@ CREATE TABLE IF NOT EXISTS subcategories (
 CREATE INDEX IF NOT EXISTS idx_subcategories_category_slug ON subcategories(category_slug);
 ALTER TABLE subcategories ADD COLUMN IF NOT EXISTS group_title TEXT;
 
+-- A category cannot contain the same label twice, including case-only variants
+-- such as "LED Panels" and "led panels". Clean up older duplicate rows before
+-- creating the case-insensitive uniqueness constraint.
+DELETE FROM subcategories AS duplicate
+USING subcategories AS original
+WHERE duplicate.category_slug = original.category_slug
+  AND lower(duplicate.name) = lower(original.name)
+  AND duplicate.id > original.id;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_subcategories_category_name_ci
+  ON subcategories(category_slug, lower(name));
+
 -- Full hierarchy used by the website header mega-menu.
 INSERT INTO subcategories (category_slug, name, group_title)
 SELECT seed.category_slug, seed.name, seed.group_title

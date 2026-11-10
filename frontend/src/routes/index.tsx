@@ -165,8 +165,8 @@ function Index() {
               <p className="mt-6 font-display font-extrabold">From Rs. 1,850</p>
             </div>
             <img
-              src={images.catComponents}
-              alt="Electronic components and equipment"
+              src={images.catPremiumComponents}
+              alt="Premium electronic components"
               width={1024}
               height={768}
               loading="lazy"
@@ -187,8 +187,8 @@ function Index() {
               <p className="mt-6 font-display text-sm font-extrabold">From Rs. 1,850</p>
             </div>
             <img
-              src={images.catAudio}
-              alt=""
+              src={images.catRobotics}
+              alt="Arduino board, sensor and robotics car"
               width={816}
               height={816}
               loading="lazy"

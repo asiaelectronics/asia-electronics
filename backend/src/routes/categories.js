@@ -25,6 +25,19 @@ const legacyMobileSubcategories = new Set([
   "Computer & Gaming Accessories",
 ]);
 
+function uniqueSubcategories(values) {
+  const seen = new Set();
+  return (values || []).reduce((result, value) => {
+    const name = String(value).trim();
+    const key = name.toLocaleLowerCase();
+    if (name && !seen.has(key)) {
+      seen.add(key);
+      result.push(name);
+    }
+    return result;
+  }, []);
+}
+
 // GET /api/categories (with product counts)
 router.get("/", async (req, res) => {
   try {
@@ -55,12 +68,10 @@ router.get("/", async (req, res) => {
           (subcategory) =>
             category.slug === "mobile" ? !legacyMobileSubcategories.has(subcategory) : true,
         );
-        const subcategories = [
-          ...new Set([
-            ...existingSubcategories,
-            ...productSubcategories,
-          ]),
-        ];
+        const subcategories = uniqueSubcategories([
+          ...existingSubcategories,
+          ...productSubcategories,
+        ]);
 
         if (
           subcategories.length !== (category.subcategories || []).length ||
@@ -99,9 +110,7 @@ router.post("/", requireAuth, requireAdmin, async (req, res) => {
       short: short || name.split(" ")[0] || "General",
       image: image || "/assets/imgs/electronic-components.png",
       filterKey: filterKey || "Type",
-      subcategories: Array.isArray(subcategories)
-        ? [...new Set(subcategories.map((item) => String(item).trim()).filter(Boolean))]
-        : [],
+      subcategories: uniqueSubcategories(Array.isArray(subcategories) ? subcategories : []),
     };
 
     const saved = await insertCategory(newCat);
@@ -117,9 +126,9 @@ router.put("/:slug", requireAuth, requireAdmin, async (req, res) => {
   try {
     const updates = { ...req.body };
     if (updates.subcategories !== undefined) {
-      updates.subcategories = Array.isArray(updates.subcategories)
-        ? [...new Set(updates.subcategories.map((item) => String(item).trim()).filter(Boolean))]
-        : [];
+      updates.subcategories = uniqueSubcategories(
+        Array.isArray(updates.subcategories) ? updates.subcategories : [],
+      );
     }
     const updated = await updateCategoryInDb(req.params.slug, updates);
     res.json({ success: true, data: updated, message: "Category updated successfully" });
