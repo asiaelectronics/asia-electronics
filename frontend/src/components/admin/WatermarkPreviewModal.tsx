@@ -51,7 +51,7 @@ export function WatermarkPreviewModal({
   const [logoOpacity, setLogoOpacity] = useState<number>(0.9);
   const [textOpacity, setTextOpacity] = useState<number>(0.32);
   const [logoPosition, setLogoPosition] = useState<"top-left" | "top-right" | "bottom-left" | "bottom-right">("top-left");
-  const [textPosition, setTextPosition] = useState<"top" | "center" | "bottom">("bottom");
+  const [textPosition, setTextPosition] = useState<"top" | "center" | "bottom">("center");
 
   // Sample mock items for testing geometry (square, portrait, landscape, transparent)
   const [sampleMode, setSampleMode] = useState<"product" | "square" | "portrait" | "landscape" | "transparent">("product");

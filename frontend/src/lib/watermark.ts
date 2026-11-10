@@ -208,7 +208,7 @@ export async function applyWatermarkToImage(
     console.warn("Logo overlay skipped in watermarking:", err);
   }
 
-  // 2. LOWER PART SUBTLE WEBSITE WATERMARK ("asiaelectronics.lk")
+  // 2. SUBTLE WEBSITE WATERMARK ("asiaelectronics.lk")
   const watermarkText = (options.websiteText || "asiaelectronics.lk").toLowerCase();
   const shortestSide = Math.min(width, height);
   const fontSize = Math.max(12, Math.round(shortestSide * 0.034));
@@ -221,9 +221,9 @@ export async function applyWatermarkToImage(
   const textX = Math.round(width / 2);
   const textOffset = Math.max(fontSize * 1.5, height * 0.08);
   const textY = Math.round(
-    options.textPosition === "top"
+    (options.textPosition ?? "center") === "top"
       ? textOffset
-      : options.textPosition === "center"
+      : (options.textPosition ?? "center") === "center"
         ? height / 2
         : height - textOffset,
   );
