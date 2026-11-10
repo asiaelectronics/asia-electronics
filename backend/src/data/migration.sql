@@ -79,16 +79,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_subcategories_category_name_ci
   ON subcategories(category_slug, lower(name));
 
 -- Full hierarchy used by the website header mega-menu.
+-- Removed: kitchen-appliances, name-boards, magnet-bars, car-bike-holders
+-- Renamed: audio → Media Equipment (2026-11-10)
 INSERT INTO subcategories (category_slug, name, group_title)
 SELECT seed.category_slug, seed.name, seed.group_title
 FROM (VALUES
   ('lighting','Chandeliers','Decorative Lighting'),('lighting','Wall Lamps','Decorative Lighting'),('lighting','Mirror Lights','Decorative Lighting'),('lighting','Stage Lights','Decorative Lighting'),('lighting','Panel Lights','Ceiling & Panel'),('lighting','Tube Lights','Ceiling & Panel'),('lighting','Track Lights','Ceiling & Panel'),('lighting','Step Lights','Ceiling & Panel'),('lighting','LED Bulbs','Bulbs'),('lighting','Rechargeable LED Bulbs','Bulbs'),('lighting','Edison Bulbs','Bulbs'),('lighting','Flashlights','Outdoor & Specialty'),('lighting','Christmas Lights','Outdoor & Specialty'),('lighting','Street Lights','Outdoor & Specialty'),('lighting','Garden Lights','Outdoor & Specialty'),('lighting','Underwater Lights','Outdoor & Specialty'),('lighting','Rope Lights','Outdoor & Specialty'),('lighting','Drivers','Lighting Accessories'),('lighting','Holders','Lighting Accessories'),
   ('home-appliances','Televisions','Entertainment'),('home-appliances','Washing Machines','Laundry & Cooling'),('home-appliances','Air Conditioners','Laundry & Cooling'),('home-appliances','Refrigerators','Kitchen & Comfort'),('home-appliances','Fans','Kitchen & Comfort'),
-  ('kitchen-appliances','Blenders','Food Preparation'),('kitchen-appliances','Cookers','Food Preparation'),
   ('appliance-spare-parts','TV Spares','TV Spares'),('appliance-spare-parts','Washing Machine PCBs','Washing Machine Parts'),('appliance-spare-parts','Pulsator Plates','Washing Machine Parts'),('appliance-spare-parts','Other Washing Machine Parts','Washing Machine Parts'),('appliance-spare-parts','Blender Motors','Blender Parts'),('appliance-spare-parts','Other Blender Parts','Blender Parts'),
   ('electronic-components','Integrated Circuits','Active & Passive'),('electronic-components','Resistors','Active & Passive'),('electronic-components','Capacitors','Active & Passive'),('electronic-components','Microswitches','Switches & Controls'),('electronic-components','Potentiometers','Switches & Controls'),
   ('power-solar-batteries','Power Supplies','Power Supply'),('power-solar-batteries','Adapters','Power Supply'),('power-solar-batteries','Solar & Inverters','Power Supply'),('power-solar-batteries','Rechargeable Batteries','Batteries'),('power-solar-batteries','Lithium-ion Batteries','Batteries'),('power-solar-batteries','AVRs','Generator Spares'),('power-solar-batteries','Relays','Generator Spares'),('power-solar-batteries','Other Generator Spares','Generator Spares'),
-  ('audio','Bluetooth Speakers','Speakers'),('audio','Waterproof Outdoor Speakers','Speakers'),('audio','Powered Bookshelf Speakers','Speakers'),('audio','2.1 Soundbars','Speakers'),('audio','Wireless ANC Earbuds','Music Equipment'),('audio','Over-Ear Studio Headphones','Music Equipment'),('audio','Home Audio Amplifiers','Music Equipment'),
+  ('audio','Bluetooth Speakers','Speakers'),('audio','Waterproof Outdoor Speakers','Speakers'),('audio','Powered Bookshelf Speakers','Speakers'),('audio','2.1 Soundbars','Speakers'),('audio','Wireless ANC Earbuds','Media Equipment'),('audio','Over-Ear Studio Headphones','Media Equipment'),('audio','Home Audio Amplifiers','Media Equipment'),
   ('mobile','OLED Display Assemblies','Mobile Displays'),('mobile','Touch Screen Digitizers','Mobile Displays'),('mobile','Samsung Galaxy Assemblies','Mobile Displays'),('mobile','USB-C to Lightning Cables','Mobile Cables'),('mobile','USB-C Fast Charging Cables','Mobile Cables'),('mobile','Braided Data Cables','Mobile Cables'),('mobile','Replacement Batteries','Tools & Accessories'),('mobile','Charging Port Flex Cables','Tools & Accessories'),('mobile','Camera Glass Replacements','Tools & Accessories'),
   ('tools-installation','Brackets','Fixings & Cable Management'),('tools-installation','Cable Ties','Fixings & Cable Management'),('tools-installation','Sleeving','Fixings & Cable Management'),('tools-installation','Contact Cleaners','Maintenance'),
   ('laboratory-equipment','Browse All Lab Equipment','Lab Equipment'),
@@ -107,7 +108,6 @@ SELECT seed.category_slug, seed.name
 FROM (VALUES
   ('lighting', 'LED panel & tube lights'), ('lighting', 'Strip, track & spot lights'), ('lighting', 'Solar & outdoor lighting'), ('lighting', 'Chandeliers & bulbs'),
   ('home-appliances', 'TVs & projectors'), ('home-appliances', 'Consumer appliances'),
-  ('kitchen-appliances', 'Blenders'), ('kitchen-appliances', 'Cookers'),
   ('appliance-spare-parts', 'Washing machine parts'), ('appliance-spare-parts', 'AC & microwave parts'), ('appliance-spare-parts', 'Vacuum, blender & kettle parts'),
   ('electronic-components', 'ICs & IGBTs'), ('electronic-components', 'Resistors & capacitors'), ('electronic-components', 'Arduino, sensors & modules'),
   ('power-solar-batteries', 'Solar panels & controllers'), ('power-solar-batteries', 'Inverters & MPPT controllers'), ('power-solar-batteries', 'UPS & lithium batteries'), ('power-solar-batteries', 'Generator spares'),
@@ -123,10 +123,9 @@ FROM (VALUES
 JOIN categories ON categories.slug = seed.category_slug
 ON CONFLICT (category_slug, name) DO NOTHING;
 
--- These are top-level categories, not Mobile Parts subcategories.
+-- computer-gaming-accessories is a top-level category, not a Mobile Parts subcategory.
 INSERT INTO categories (slug, name, short, image, filter_key)
 VALUES
-  ('car-bike-holders', 'Car & Bike Holders', 'Car & Bike Holders', '/assets/imgs/mobile-parts-accessories.png', 'Type'),
   ('computer-gaming-accessories', 'Computer & Gaming Accessories', 'Computer & Gaming', '/assets/imgs/mobile-parts-accessories.png', 'Type')
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
@@ -136,7 +135,22 @@ ON CONFLICT (slug) DO UPDATE SET
 
 DELETE FROM subcategories
 WHERE category_slug = 'mobile'
-  AND name IN ('Car & Bike Holders', 'Computer & Gaming Accessories');
+  AND name IN ('Computer & Gaming Accessories');
+
+-- ── Category cleanup (2026-11-10) ────────────────────────────────────────────
+-- Remove deleted categories and their subcategories.
+-- ON DELETE CASCADE handles subcategories automatically.
+DELETE FROM categories WHERE slug IN (
+  'magnet-bars',
+  'kitchen-appliances',
+  'name-boards',
+  'car-bike-holders'
+);
+
+-- Rename Audio & Music → Media Equipment
+UPDATE categories
+SET name = 'Media Equipment', short = 'Media Equipment'
+WHERE slug = 'audio';
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ BRANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CREATE TABLE IF NOT EXISTS brands (
   slug        TEXT PRIMARY KEY,

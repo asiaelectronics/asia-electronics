@@ -408,7 +408,7 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
     images: resolvedImages,
     originalImages: input.originalImages ?? resolvedImages,
     description: input.description?.trim() || "High-quality electronics and repair part.",
-    specs: input.specs ?? { Condition: "Brand New", Warranty: "Standard" },
+    specs: input.specs ?? { Condition: "Brand New" },
     attributes: input.attributes ?? { Type: "Component" },
     featured: Boolean(input.featured),
     isNew: input.isNew !== undefined ? Boolean(input.isNew) : true,

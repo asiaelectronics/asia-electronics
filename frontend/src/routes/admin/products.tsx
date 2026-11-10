@@ -28,6 +28,7 @@ import { useCatalog, type CreateProductInput } from "@/services/catalog";
 import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
+import { WatermarkPreviewModal } from "@/components/admin/WatermarkPreviewModal";
 import { uploadCategoryImageApi } from "@/services/api";
 import { applyWatermarkToImage } from "@/lib/watermark";
 import type { Category, Product } from "@/lib/types";
@@ -181,7 +182,8 @@ function ProductsPage() {
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
   const [restoringOriginalImages, setRestoringOriginalImages] = useState(false);
-  const [watermarkingProductId, setWatermarkingProductId] = useState<string | null>(null);
+  const [watermarkModalOpen, setWatermarkModalOpen] = useState(false);
+  const [watermarkTargetProduct, setWatermarkTargetProduct] = useState<Product | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
@@ -334,25 +336,6 @@ function ProductsPage() {
       }
     } finally {
       setRestoringOriginalImages(false);
-    }
-  };
-
-  const handleWatermarkProduct = async (product: Product) => {
-    const cleanImages = product.originalImages?.length ? product.originalImages : product.images;
-    if (!cleanImages.length) return;
-    setWatermarkingProductId(product.id);
-    try {
-      const watermarkedImages = await Promise.all(cleanImages.map((image) => applyWatermarkToImage(image)));
-      const saved = await updateProductInDatabase(product.id, {
-        images: watermarkedImages,
-        originalImages: cleanImages,
-      });
-      if (!saved) throw new Error("Could not save watermarked images.");
-      toast.success(`Watermarked images for ${product.sku}.`);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not watermark product images.");
-    } finally {
-      setWatermarkingProductId(null);
     }
   };
 
@@ -519,16 +502,9 @@ function ProductsPage() {
           </button>
 
           <button
-            onClick={() => {
-              if (products.length && confirm(`Watermark images for all ${products.length} products? This may take a few minutes.`)) {
-                void (async () => {
-                  for (const product of products) await handleWatermarkProduct(product);
-                })();
-              }
-            }}
-            disabled={Boolean(watermarkingProductId)}
-            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50"
-            title="Watermark all product images"
+            onClick={() => { setWatermarkTargetProduct(null); setWatermarkModalOpen(true); }}
+            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold"
+            title="Preview and watermark product images"
           >
             <Sparkles className="h-3.5 w-3.5 text-orange-400" /> Watermark images
           </button>
@@ -974,10 +950,9 @@ function ProductsPage() {
                           <Eye className="h-3.5 w-3.5" />
                         </Link>
                         <button
-                          onClick={() => void handleWatermarkProduct(p)}
-                          disabled={watermarkingProductId === p.id}
-                          className="p-1.5 rounded hover:bg-orange-500/20 text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50"
-                          title="Watermark this product's images"
+                          onClick={() => { setWatermarkTargetProduct(p); setWatermarkModalOpen(true); }}
+                          className="p-1.5 rounded hover:bg-orange-500/20 text-orange-400 hover:text-orange-300 transition-colors"
+                          title="Preview and watermark this product's images"
                         >
                           <Sparkles className="h-3.5 w-3.5" />
                         </button>
@@ -1224,6 +1199,23 @@ function ProductsPage() {
         />
       )}
 
+      {watermarkModalOpen && (
+        <WatermarkPreviewModal
+          isOpen={watermarkModalOpen}
+          onClose={() => { setWatermarkModalOpen(false); setWatermarkTargetProduct(null); }}
+          products={products}
+          targetProduct={watermarkTargetProduct}
+          onApplyWatermark={async (productId, watermarkedImages, originalImages) => {
+            const product = products.find((item) => item.id === productId);
+            if (!product) return false;
+            const saved = await updateProductInDatabase(productId, { images: watermarkedImages, originalImages });
+            if (!saved) { toast.error("Failed to save watermarked images."); return false; }
+            toast.success(`Watermarked image(s) saved for SKU: ${product.sku}.`);
+            return true;
+          }}
+        />
+      )}
+
     </div>
   );
 }
@@ -1394,7 +1386,11 @@ function ProductFormModal({
 
       if (rawUrls.length > 0) {
         const displayUrls = autoWatermark
-          ? await Promise.all(rawUrls.map((image) => applyWatermarkToImage(image)))
+          ? (await Promise.all(
+              rawUrls.map(async (image) =>
+                (await applyWatermarkToImage(image, { quality: 0.72 })).dataUrl,
+              ),
+            ))
           : rawUrls;
         setOriginalImagesList((prev) => [...prev, ...rawUrls]);
         setImagesList((prev) => {

@@ -71,15 +71,6 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 3. Kitchen Appliances ─────────────────────────────────────────────────
-  {
-    slug: "kitchen-appliances",
-    name: "Kitchen Appliances",
-    short: "Kitchen Appliances",
-    image: catKitchenAppliances,
-    filterKey: "Type",
-  },
-
   // ── 4. Appliance Spare Parts ──────────────────────────────────────────────
   {
     slug: "appliance-spare-parts",
@@ -110,9 +101,9 @@ export const categories: Category[] = [
   // ── 7. Robotics & Arduino ────────────────────────────────────────────────
   {
     slug: "audio",
-    name: "Robotics & Arduino",
-    short: "Robotics & Arduino",
-    image: catRoboticsArduino,
+    name: "Media Equipment",
+    short: "Media Equipment",
+    image: catAudioMusic,
     filterKey: "Type",
   },
 
@@ -123,13 +114,6 @@ export const categories: Category[] = [
     short: "Mobile Parts",
     image: catMobileParts,
     filterKey: "Compatible with",
-  },
-  {
-    slug: "car-bike-holders",
-    name: "Car & Bike Holders",
-    short: "Car & Bike Holders",
-    image: catMobileParts,
-    filterKey: "Type",
   },
   {
     slug: "computer-gaming-accessories",
@@ -186,20 +170,6 @@ export const categories: Category[] = [
   },
 
   // ── Inactive / Pending Classification ────────────────────────────────────
-  {
-    slug: "name-boards",
-    name: "Name Boards",
-    short: "Name Boards",
-    image: catNameBoards,
-    filterKey: "Type",
-  },
-  {
-    slug: "magnet-bars",
-    name: "Magnet Bars",
-    short: "Magnet Bars",
-    image: catMagnetBars,
-    filterKey: "Type",
-  },
   {
     slug: "equipment",
     name: "Equipment",
@@ -568,7 +538,7 @@ const seeds: Seed[] = [
     daysAgo: 14,
     featured: true,
     description: "Display assembly for screen replacement. Professional fitting recommended.",
-    specs: { Type: "OLED", Size: '6.1"', Warranty: "Demo: 3 months" },
+    specs: { Type: "OLED", Size: '6.1"' },
     attributes: { "Compatible with": "Apple" },
     compatibility: ["iPhone 12", "iPhone 12 Pro"],
   },

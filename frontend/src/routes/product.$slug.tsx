@@ -343,7 +343,7 @@ function ProductDetails() {
 
           {showPrice && (
             <p className="text-[11px] text-muted-foreground -mt-2">
-              Inclusive of standard warranties · Fast island-wide delivery
+              Fast island-wide delivery
             </p>
           )}
 
