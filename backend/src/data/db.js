@@ -207,7 +207,14 @@ function fromDbOrder(row) {
 
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Default starter categories Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const defaultCategories = [
-  // Active categories (10)
+  // Active categories
+  {
+    slug: "electronic-components",
+    name: "Electronic Components",
+    short: "Components",
+    image: "/assets/imgs/electronic-components.png",
+    filterKey: "Type",
+  },
   {
     slug: "lighting",
     name: "Lighting",
@@ -223,25 +230,11 @@ const defaultCategories = [
     filterKey: "Type",
   },
   {
-    slug: "kitchen-appliances",
-    name: "Kitchen Appliances",
-    short: "Kitchen Appliances",
-    image: "/assets/imgs/kitchen-appliances.png",
-    filterKey: "Type",
-  },
-  {
     slug: "appliance-spare-parts",
     name: "Appliance Spare Parts",
     short: "Spare Parts",
     image: "/assets/imgs/appliance-spare-parts.png",
     filterKey: "Compatible with",
-  },
-  {
-    slug: "electronic-components",
-    name: "Electronic Components",
-    short: "Components",
-    image: "/assets/imgs/electronic-components.png",
-    filterKey: "Type",
   },
   {
     slug: "power-solar-batteries",
@@ -252,8 +245,8 @@ const defaultCategories = [
   },
   {
     slug: "audio",
-    name: "Audio & Music",
-    short: "Audio & Music",
+    name: "Media Equipment",
+    short: "Media Equipment",
     image: "/assets/imgs/audio-music.png",
     filterKey: "Type",
   },
@@ -263,13 +256,6 @@ const defaultCategories = [
     short: "Mobile Parts",
     image: "/assets/imgs/mobile-parts-accessories.png",
     filterKey: "Compatible with",
-  },
-  {
-    slug: "car-bike-holders",
-    name: "Car & Bike Holders",
-    short: "Car & Bike Holders",
-    image: "/assets/imgs/mobile-parts-accessories.png",
-    filterKey: "Type",
   },
   {
     slug: "computer-gaming-accessories",
@@ -292,19 +278,11 @@ const defaultCategories = [
     image: "/assets/imgs/laboratory-equipment.png",
     filterKey: "Type",
   },
-  // Inactive / pending admin classification (3)
   {
-    slug: "name-boards",
-    name: "Name Boards",
-    short: "Name Boards",
-    image: "/assets/imgs/name-boards.png",
-    filterKey: "Type",
-  },
-  {
-    slug: "magnet-bars",
-    name: "Magnet Bars",
-    short: "Magnet Bars",
-    image: "/assets/imgs/magnet-bars.png",
+    slug: "other",
+    name: "Other",
+    short: "Other",
+    image: "/assets/imgs/other-equipment.png",
     filterKey: "Type",
   },
   {
@@ -704,6 +682,32 @@ export async function findProduct(identifier) {
   return null;
 }
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CATEGORIES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+const REMOVED_CATEGORY_SLUGS = new Set([
+  "magnet-bars",
+  "kitchen-appliances",
+  "name-boards",
+  "car-bike-holders",
+]);
+
+const PREFERRED_CATEGORY_ORDER = [
+  "electronic-components",
+  "lighting",
+  "home-appliances",
+  "appliance-spare-parts",
+  "power-solar-batteries",
+  "audio",
+  "mobile",
+  "computer-gaming-accessories",
+  "tools-installation",
+  "laboratory-equipment",
+  "tv-repair-parts",
+  "test-repair-equipment",
+  "electrical-control-boxes",
+  "led-displays-signage",
+  "other",
+  "equipment",
+];
+
 export async function readCategories() {
   const { data, error } = await supabase.from("categories").select("*");
 
@@ -718,23 +722,44 @@ export async function readCategories() {
     return defaultCategories;
   }
 
-  const categories = data.map(fromDbCategory);
+  const rawCategories = data
+    .map(fromDbCategory)
+    .filter((category) => !REMOVED_CATEGORY_SLUGS.has(category.slug));
+
   const { data: subcategoryRows, error: subcategoryError } = await supabase
     .from("subcategories")
     .select("category_slug, name")
     .order("name", { ascending: true });
-  if (subcategoryError) return categories;
 
   const namesByCategory = new Map();
-  subcategoryRows.forEach((row) => {
-    const names = namesByCategory.get(row.category_slug) || [];
-    names.push(row.name);
-    namesByCategory.set(row.category_slug, names);
+  if (!subcategoryError && subcategoryRows) {
+    subcategoryRows.forEach((row) => {
+      const names = namesByCategory.get(row.category_slug) || [];
+      names.push(row.name);
+      namesByCategory.set(row.category_slug, names);
+    });
+  }
+
+  const categories = rawCategories.map((category) => {
+    const normalized = {
+      ...category,
+      subcategories: namesByCategory.get(category.slug) || [],
+    };
+    if (normalized.slug === "audio" && normalized.name.toLowerCase().includes("audio")) {
+      normalized.name = "Media Equipment";
+      normalized.short = "Media Equipment";
+    }
+    return normalized;
   });
-  return categories.map((category) => ({
-    ...category,
-    subcategories: namesByCategory.get(category.slug) || [],
-  }));
+
+  return categories.sort((a, b) => {
+    const idxA = PREFERRED_CATEGORY_ORDER.indexOf(a.slug);
+    const idxB = PREFERRED_CATEGORY_ORDER.indexOf(b.slug);
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    if (posA !== posB) return posA - posB;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export async function writeCategories(cats) {

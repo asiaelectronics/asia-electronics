@@ -28,6 +28,24 @@ SET
   short = 'Media Equipment'
 WHERE slug = 'audio';
 
+-- 4. Ensure "Other" main category exists
+INSERT INTO categories (slug, name, short, image, filter_key)
+VALUES ('other', 'Other', 'Other', 'assets\imgs\ics-repair-components-v1.webp', 'Type')
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  short = EXCLUDED.short,
+  image = EXCLUDED.image,
+  filter_key = EXCLUDED.filter_key;
+
+-- 4. Ensure "Other" main category exists
+INSERT INTO categories (slug, name, short, image, filter_key)
+VALUES ('other', 'Other', 'Other', '/assets/imgs/other-equipment.png', 'Type')
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  short = EXCLUDED.short,
+  image = EXCLUDED.image,
+  filter_key = EXCLUDED.filter_key;
+
 -- Verify results
 SELECT slug, name, short FROM categories ORDER BY slug;
 

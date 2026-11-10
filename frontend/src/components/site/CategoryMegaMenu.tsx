@@ -99,17 +99,6 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
     },
   ],
 
-  // ── 3. Kitchen Appliances ────────────────────────────────────────────────
-  "kitchen-appliances": [
-    {
-      title: "Food Preparation",
-      items: [
-        { label: "Blenders", query: "blender" },
-        { label: "Cookers", query: "cooker" },
-      ],
-    },
-  ],
-
   // ── 4. Appliance Spare Parts ─────────────────────────────────────────────
   "appliance-spare-parts": [
     {
@@ -295,14 +284,22 @@ const CATEGORY_GROUPS: Record<string, SubcategoryGroup[]> = {
       ],
     },
   ],
+  other: [
+    {
+      title: "Miscellaneous",
+      items: [
+        { label: "General Accessories", query: "accessories" },
+        { label: "Miscellaneous Parts", query: "miscellaneous" },
+      ],
+    },
+  ],
 };
 
 export const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "electronic-components": Cpu,
   lighting: Lightbulb,
   "home-appliances": Home,
-  "kitchen-appliances": UtensilsCrossed,
   "appliance-spare-parts": Wrench,
-  "electronic-components": Cpu,
   "power-solar-batteries": Zap,
   audio: Music,
   mobile: Smartphone,
@@ -312,8 +309,7 @@ export const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: st
   "test-repair-equipment": FlaskConical,
   "electrical-control-boxes": Zap,
   "led-displays-signage": Package,
-  "name-boards": Package,
-  "magnet-bars": Package,
+  other: Package,
   equipment: Package,
 };
 

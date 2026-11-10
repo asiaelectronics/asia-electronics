@@ -5,12 +5,38 @@ import { supabase } from "../data/supabase.js";
 
 const router = express.Router();
 
+const REMOVED_CATEGORY_SLUGS = new Set([
+  "magnet-bars",
+  "kitchen-appliances",
+  "name-boards",
+  "car-bike-holders",
+]);
+
+const PREFERRED_CATEGORY_ORDER = [
+  "electronic-components",
+  "lighting",
+  "home-appliances",
+  "appliance-spare-parts",
+  "power-solar-batteries",
+  "audio",
+  "mobile",
+  "computer-gaming-accessories",
+  "tools-installation",
+  "laboratory-equipment",
+  "tv-repair-parts",
+  "test-repair-equipment",
+  "electrical-control-boxes",
+  "led-displays-signage",
+  "other",
+  "equipment",
+];
+
 const requiredCategories = [
   {
-    slug: "car-bike-holders",
-    name: "Car & Bike Holders",
-    short: "Car & Bike Holders",
-    image: "/assets/imgs/mobile-parts-accessories.png",
+    slug: "other",
+    name: "Other",
+    short: "Other",
+    image: "/assets/imgs/other-equipment.png",
     filterKey: "Type",
   },
   {
@@ -103,10 +129,25 @@ router.get("/", async (req, res) => {
       }),
     );
 
-    const withCounts = syncedCategories.map((category) => {
-      const count = prods.filter((product) => product.category === category.slug).length;
-      return { ...category, productCount: count };
-    });
+    const withCounts = syncedCategories
+      .filter((category) => !REMOVED_CATEGORY_SLUGS.has(category.slug))
+      .map((category) => {
+        const count = prods.filter((product) => product.category === category.slug).length;
+        const normalized = { ...category, productCount: count };
+        if (normalized.slug === "audio" && normalized.name.toLowerCase().includes("audio")) {
+          normalized.name = "Media Equipment";
+          normalized.short = "Media Equipment";
+        }
+        return normalized;
+      })
+      .sort((a, b) => {
+        const idxA = PREFERRED_CATEGORY_ORDER.indexOf(a.slug);
+        const idxB = PREFERRED_CATEGORY_ORDER.indexOf(b.slug);
+        const posA = idxA === -1 ? 999 : idxA;
+        const posB = idxB === -1 ? 999 : idxB;
+        if (posA !== posB) return posA - posB;
+        return a.name.localeCompare(b.name);
+      });
 
     res.json({ success: true, data: withCounts });
   } catch (err) {

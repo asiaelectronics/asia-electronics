@@ -46,7 +46,6 @@ const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
     "Bulbs & Chandeliers",
   ],
   "home-appliances": ["TVs", "Projectors", "Consumer Appliances"],
-  "kitchen-appliances": ["Blenders", "Cookers", "Other Kitchen Appliances"],
   "appliance-spare-parts": [
     "Washing Machine Parts",
     "AC Parts",
@@ -122,6 +121,8 @@ const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
     "Outdoor LED Displays",
     "Name Boards",
   ],
+  other: ["General Accessories", "Miscellaneous Parts"],
+  equipment: ["General Equipment"],
 };
 
 export const Route = createFileRoute("/admin/products")({
@@ -134,9 +135,13 @@ export const Route = createFileRoute("/admin/products")({
         ? (search.action as "add" | "categories" | "brands" | "images")
         : undefined,
   }),
-  head: () => ({ meta: [{ title: "Products & 800+ SKUs — Admin" }] }),
+  head: () => ({
+    meta: [
+      { title: "Products & 800+ SKUs — Admin" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: ProductsPage,
-  head: () => ({ meta: [{ title: "Admin" }, { name: "robots", content: "noindex, nofollow" }] }),
 });
 
 function ProductsPage() {

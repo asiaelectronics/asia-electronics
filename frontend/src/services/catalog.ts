@@ -49,8 +49,73 @@ const OPTIMIZED_ASSET_PATHS: Array<[string[], string]> = [
   [["tools-installation", "cat-tools"], images.catToolsInstallation],
   [["name-boards"], images.catNameBoards],
   [["magnet-bars"], images.catMagnetBars],
-  [["other-equipment", "cat-equipment"], images.catOtherEquipment],
+  [["other-equipment", "cat-equipment", "other"], images.catOtherEquipment],
 ];
+
+export const REMOVED_CATEGORY_SLUGS = new Set([
+  "magnet-bars",
+  "kitchen-appliances",
+  "name-boards",
+  "car-bike-holders",
+]);
+
+export const PREFERRED_CATEGORY_ORDER = [
+  "electronic-components",
+  "lighting",
+  "home-appliances",
+  "appliance-spare-parts",
+  "power-solar-batteries",
+  "audio",
+  "mobile",
+  "computer-gaming-accessories",
+  "tools-installation",
+  "laboratory-equipment",
+  "tv-repair-parts",
+  "test-repair-equipment",
+  "electrical-control-boxes",
+  "led-displays-signage",
+  "other",
+  "equipment",
+];
+
+export function sortAndSanitizeCategories(cats: Category[]): Category[] {
+  // 1. Filter out removed categories
+  const filtered = cats.filter((c) => !REMOVED_CATEGORY_SLUGS.has(c.slug));
+
+  // 2. Ensure "other" category exists if not already present
+  if (!filtered.some((c) => c.slug === "other")) {
+    filtered.push({
+      slug: "other",
+      name: "Other",
+      short: "Other",
+      image: images.catOtherEquipment,
+      filterKey: "Type",
+      subcategories: ["General Accessories", "Miscellaneous"],
+    });
+  }
+
+  // 3. Rename "audio" if it still carries old "Audio & Music"
+  const renamed = filtered.map((c) => {
+    if (c.slug === "audio" && c.name.toLowerCase().includes("audio")) {
+      return {
+        ...c,
+        name: "Media Equipment",
+        short: "Media Equipment",
+      };
+    }
+    return c;
+  });
+
+  // 4. Sort strictly using PREFERRED_CATEGORY_ORDER: "electronic-components" is index 0 (UP TOP)!
+  return [...renamed].sort((a, b) => {
+    const idxA = PREFERRED_CATEGORY_ORDER.indexOf(a.slug);
+    const idxB = PREFERRED_CATEGORY_ORDER.indexOf(b.slug);
+    const posA = idxA === -1 ? 999 : idxA;
+    const posB = idxB === -1 ? 999 : idxB;
+    if (posA !== posB) return posA - posB;
+    return a.name.localeCompare(b.name);
+  });
+}
 
 export function sanitizeAssetPath(
   path?: string,
@@ -112,7 +177,7 @@ export async function syncCatalogWithBackend() {
         // The database owns the predefined category list. Do not merge in
         // obsolete frontend defaults, otherwise removed categories reappear
         // in the admin count and storefront navigation.
-        saveStoredCategories(syncedCats);
+        saveStoredCategories(sortAndSanitizeCategories(syncedCats));
       }
       if (brandRecords && Array.isArray(brandRecords)) {
         saveStoredBrandRecords(brandRecords);
@@ -188,10 +253,10 @@ export function saveStoredProducts(items: Product[]): void {
 }
 
 export function getStoredCategories(): Category[] {
-  if (typeof window === "undefined") return defaultCategories;
+  if (typeof window === "undefined") return sortAndSanitizeCategories(defaultCategories);
   try {
     const raw = localStorage.getItem(CATEGORIES_STORAGE_KEY);
-    if (raw === null) return defaultCategories;
+    if (raw === null) return sortAndSanitizeCategories(defaultCategories);
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed) && parsed.length > 0) {
       // Fix any legacy stale /src/assets/ or /assets/cat-*.jpg paths if present
@@ -208,11 +273,11 @@ export function getStoredCategories(): Category[] {
           short: local?.short ?? cat.short,
         };
       });
-      return repaired;
+      return sortAndSanitizeCategories(repaired);
     }
-    return defaultCategories;
+    return sortAndSanitizeCategories(defaultCategories);
   } catch {
-    return defaultCategories;
+    return sortAndSanitizeCategories(defaultCategories);
   }
 }
 
@@ -982,6 +1047,7 @@ export function generate800SKUs(): { count: number; total: number } {
       tv: images.catTv,
     };
     const prodImg = catImgMap[category] || images.catComponents;
+    const brand = tpl.brand;
 
     generated.push({
       id: `p_${seq}_${Math.random().toString(36).slice(2, 6)}`,

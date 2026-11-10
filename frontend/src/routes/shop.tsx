@@ -52,10 +52,6 @@ const SHOP_SUBCATEGORIES: Record<string, Array<{ label: string; query: string }>
     { label: "TVs & projectors", query: "tv projector" },
     { label: "Consumer appliances", query: "appliance" },
   ],
-  "kitchen-appliances": [
-    { label: "Blenders", query: "blender" },
-    { label: "Cookers", query: "cooker" },
-  ],
   "appliance-spare-parts": [
     { label: "Washing machine parts", query: "washing machine" },
     { label: "AC & microwave parts", query: "air conditioning microwave" },
@@ -105,25 +101,31 @@ const SHOP_SUBCATEGORIES: Record<string, Array<{ label: string; query: string }>
     { label: "Indoor & outdoor LED displays", query: "led display" },
     { label: "Name boards", query: "name board" },
   ],
+  other: [
+    { label: "General Accessories", query: "accessories" },
+    { label: "Miscellaneous Parts", query: "miscellaneous" },
+  ],
+  equipment: [
+    { label: "General Equipment", query: "equipment" },
+  ],
 };
 
 const SHOP_CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "electronic-components": Cpu,
   lighting: Lightbulb,
   "home-appliances": Tv,
-  "kitchen-appliances": Package,
   "appliance-spare-parts": Wrench,
-  "electronic-components": Cpu,
   "power-solar-batteries": Sun,
   audio: Radio,
   mobile: Smartphone,
+  "computer-gaming-accessories": Smartphone,
   "tools-installation": Wrench,
   "laboratory-equipment": FlaskConical,
   "tv-repair-parts": Monitor,
   "test-repair-equipment": FlaskConical,
   "electrical-control-boxes": Boxes,
   "led-displays-signage": Zap,
-  "name-boards": Monitor,
-  "magnet-bars": Package,
+  other: Package,
   equipment: Package,
 };
 

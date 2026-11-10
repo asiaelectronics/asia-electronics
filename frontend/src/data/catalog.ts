@@ -53,7 +53,16 @@ export const images = {
 };
 
 export const categories: Category[] = [
-  // ── 1. Lighting ───────────────────────────────────────────────────────────
+  // ── 1. Electronic Components ──────────────────────────────────────────────
+  {
+    slug: "electronic-components",
+    name: "Electronic Components",
+    short: "Components",
+    image: catPremiumElectronicComponents,
+    filterKey: "Type",
+  },
+
+  // ── 2. Lighting ───────────────────────────────────────────────────────────
   {
     slug: "lighting",
     name: "Lighting",
@@ -62,7 +71,7 @@ export const categories: Category[] = [
     filterKey: "Sub-type",
   },
 
-  // ── 2. Home Appliances ────────────────────────────────────────────────────
+  // ── 3. Home Appliances ────────────────────────────────────────────────────
   {
     slug: "home-appliances",
     name: "Home Appliances",
@@ -80,16 +89,7 @@ export const categories: Category[] = [
     filterKey: "Compatible with",
   },
 
-  // ── 5. Electronic Components ──────────────────────────────────────────────
-  {
-    slug: "electronic-components",
-    name: "Electronic Components",
-    short: "Components",
-    image: catPremiumElectronicComponents,
-    filterKey: "Type",
-  },
-
-  // ── 6. Power, Solar & Batteries ──────────────────────────────────────────
+  // ── 5. Power, Solar & Batteries ──────────────────────────────────────────
   {
     slug: "power-solar-batteries",
     name: "Power, Solar & Batteries",
@@ -98,7 +98,7 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 7. Robotics & Arduino ────────────────────────────────────────────────
+  // ── 6. Media Equipment ───────────────────────────────────────────────────
   {
     slug: "audio",
     name: "Media Equipment",
@@ -107,7 +107,7 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 8. Mobile Parts & Accessories ─────────────────────────────────────────
+  // ── 7. Mobile Parts & Accessories ─────────────────────────────────────────
   {
     slug: "mobile",
     name: "Mobile Parts & Accessories",
@@ -123,7 +123,7 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 9. Tools & Installation Supplies ─────────────────────────────────────
+  // ── 8. Tools & Installation Supplies ─────────────────────────────────────
   {
     slug: "tools-installation",
     name: "Tools & Installation Supplies",
@@ -132,7 +132,7 @@ export const categories: Category[] = [
     filterKey: "Type",
   },
 
-  // ── 10. Lab Equipment ───────────────────────────────────────────────────────
+  // ── 9. Lab Equipment ───────────────────────────────────────────────────────
   {
     slug: "laboratory-equipment",
     name: "Laboratory Equipment",
@@ -169,11 +169,11 @@ export const categories: Category[] = [
     filterKey: "Display Type",
   },
 
-  // ── Inactive / Pending Classification ────────────────────────────────────
+  // ── 10. Other ────────────────────────────────────────────────────────────
   {
-    slug: "equipment",
-    name: "Equipment",
-    short: "Equipment",
+    slug: "other",
+    name: "Other",
+    short: "Other",
     image: catOtherEquipment,
     filterKey: "Type",
   },
@@ -205,9 +205,7 @@ const catImg: Record<string, string> = {
   "test-repair-equipment": catLabEquipment,
   "electrical-control-boxes": catOtherEquipment,
   "led-displays-signage": catNameBoards,
-  // Inactive pending
-  "name-boards": catNameBoards,
-  "magnet-bars": catMagnetBars,
+  other: catOtherEquipment,
   equipment: catOtherEquipment,
   "other-equipment": catOtherEquipment,
   // Legacy aliases

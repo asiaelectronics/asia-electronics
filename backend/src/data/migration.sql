@@ -151,6 +151,15 @@ DELETE FROM categories WHERE slug IN (
 UPDATE categories
 SET name = 'Media Equipment', short = 'Media Equipment'
 WHERE slug = 'audio';
+
+-- Ensure "Other" main category exists
+INSERT INTO categories (slug, name, short, image, filter_key)
+VALUES ('other', 'Other', 'Other', '/assets/imgs/other-equipment.png', 'Type')
+ON CONFLICT (slug) DO UPDATE SET
+  name = EXCLUDED.name,
+  short = EXCLUDED.short,
+  image = EXCLUDED.image,
+  filter_key = EXCLUDED.filter_key;
 -- â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ BRANDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 CREATE TABLE IF NOT EXISTS brands (
   slug        TEXT PRIMARY KEY,
