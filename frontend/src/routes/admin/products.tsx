@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useMemo, useRef } from "react";
 import {
   Search,
@@ -152,7 +152,6 @@ function ProductsPage() {
     createProduct,
     updateProduct,
     updateProductInDatabase,
-    restoreAllOriginalProductImages,
     deleteProduct,
     createCategory,
     updateCategory,
@@ -181,7 +180,6 @@ function ProductsPage() {
   const [categoryImageModalOpen, setCategoryImageModalOpen] = useState(false);
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
-  const [restoringOriginalImages, setRestoringOriginalImages] = useState(false);
   const [watermarkModalOpen, setWatermarkModalOpen] = useState(false);
   const [watermarkTargetProduct, setWatermarkTargetProduct] = useState<Product | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
@@ -325,18 +323,6 @@ function ProductsPage() {
   const handleOpenEdit = (p: Product) => {
     setEditingProduct(p);
     setProductModalOpen(true);
-  };
-
-  const handleRestoreOriginalImages = async () => {
-    setRestoringOriginalImages(true);
-    try {
-      const result = await restoreAllOriginalProductImages();
-      if (result) {
-        toast.success(`Restored clean original images for ${result.restored} product${result.restored === 1 ? "" : "s"}.`);
-      }
-    } finally {
-      setRestoringOriginalImages(false);
-    }
   };
 
   const handleDuplicate = async (p: Product) => {
@@ -507,15 +493,6 @@ function ProductsPage() {
             title="Preview and watermark product images"
           >
             <Sparkles className="h-3.5 w-3.5 text-orange-400" /> Watermark images
-          </button>
-
-          <button
-            onClick={handleRestoreOriginalImages}
-            disabled={restoringOriginalImages}
-            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50"
-            title="Restore archived original images and remove existing watermarks"
-          >
-            {restoringOriginalImages ? "Restoring images..." : "Restore clean images"}
           </button>
 
           <button
