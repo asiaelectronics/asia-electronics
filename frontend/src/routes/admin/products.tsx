@@ -21,6 +21,7 @@ import {
   Check,
   AlertTriangle,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useCatalog, type CreateProductInput } from "@/services/catalog";
@@ -28,6 +29,7 @@ import { images } from "@/data/catalog";
 import { formatLKR } from "@/lib/format";
 import { StockBadge } from "@/components/admin/shared";
 import { uploadCategoryImageApi } from "@/services/api";
+import { applyWatermarkToImage } from "@/lib/watermark";
 import type { Category, Product } from "@/lib/types";
 
 const ADMIN_SUBCATEGORIES: Record<string, string[]> = {
@@ -148,6 +150,7 @@ function ProductsPage() {
     deleteBrandLogo,
     createProduct,
     updateProduct,
+    updateProductInDatabase,
     restoreAllOriginalProductImages,
     deleteProduct,
     createCategory,
@@ -178,6 +181,7 @@ function ProductsPage() {
   const [brandModalOpen, setBrandModalOpen] = useState(false);
   const [csvModalOpen, setCsvModalOpen] = useState(false);
   const [restoringOriginalImages, setRestoringOriginalImages] = useState(false);
+  const [watermarkingProductId, setWatermarkingProductId] = useState<string | null>(null);
   const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
@@ -330,6 +334,25 @@ function ProductsPage() {
       }
     } finally {
       setRestoringOriginalImages(false);
+    }
+  };
+
+  const handleWatermarkProduct = async (product: Product) => {
+    const cleanImages = product.originalImages?.length ? product.originalImages : product.images;
+    if (!cleanImages.length) return;
+    setWatermarkingProductId(product.id);
+    try {
+      const watermarkedImages = await Promise.all(cleanImages.map((image) => applyWatermarkToImage(image)));
+      const saved = await updateProductInDatabase(product.id, {
+        images: watermarkedImages,
+        originalImages: cleanImages,
+      });
+      if (!saved) throw new Error("Could not save watermarked images.");
+      toast.success(`Watermarked images for ${product.sku}.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not watermark product images.");
+    } finally {
+      setWatermarkingProductId(null);
     }
   };
 
@@ -493,6 +516,21 @@ function ProductsPage() {
           >
             <Layers className="h-3.5 w-3.5 text-orange-400" />
             Categories ({categories.length})
+          </button>
+
+          <button
+            onClick={() => {
+              if (products.length && confirm(`Watermark images for all ${products.length} products? This may take a few minutes.`)) {
+                void (async () => {
+                  for (const product of products) await handleWatermarkProduct(product);
+                })();
+              }
+            }}
+            disabled={Boolean(watermarkingProductId)}
+            className="admin-btn-ghost flex items-center gap-1.5 text-xs font-bold disabled:cursor-wait disabled:opacity-50"
+            title="Watermark all product images"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-orange-400" /> Watermark images
           </button>
 
           <button
@@ -936,6 +974,14 @@ function ProductsPage() {
                           <Eye className="h-3.5 w-3.5" />
                         </Link>
                         <button
+                          onClick={() => void handleWatermarkProduct(p)}
+                          disabled={watermarkingProductId === p.id}
+                          className="p-1.5 rounded hover:bg-orange-500/20 text-orange-400 hover:text-orange-300 transition-colors disabled:opacity-50"
+                          title="Watermark this product's images"
+                        >
+                          <Sparkles className="h-3.5 w-3.5" />
+                        </button>
+                        <button
                           onClick={() => handleOpenEdit(p)}
                           className="p-1.5 rounded hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
                           title="Edit product"
@@ -1261,6 +1307,7 @@ function ProductFormModal({
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [urlInput, setUrlInput] = useState("");
   const [imageInputMode, setImageInputMode] = useState<"url" | "upload">("upload");
+  const [autoWatermark, setAutoWatermark] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1346,13 +1393,16 @@ function ProductFormModal({
       const rawUrls = results.filter(Boolean);
 
       if (rawUrls.length > 0) {
+        const displayUrls = autoWatermark
+          ? await Promise.all(rawUrls.map((image) => applyWatermarkToImage(image)))
+          : rawUrls;
         setOriginalImagesList((prev) => [...prev, ...rawUrls]);
         setImagesList((prev) => {
-          const nextList = [...prev, ...rawUrls];
+          const nextList = [...prev, ...displayUrls];
           setActivePreviewIndex(nextList.length - 1);
           return nextList;
         });
-        toast.success(`Added ${rawUrls.length} image(s)`);
+        toast.success(autoWatermark ? `Watermarked and added ${rawUrls.length} image(s)` : `Added ${rawUrls.length} image(s)`);
       }
     } catch {
       toast.error("Failed to process uploaded images");
@@ -1729,6 +1779,11 @@ function ProductFormModal({
 
               {/* Image source selector */}
               <div className="flex flex-wrap items-center gap-2">
+                <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-700/80 bg-zinc-900 px-2.5 py-1 text-[11px] text-zinc-300 hover:border-orange-500/50">
+                  <input type="checkbox" checked={autoWatermark} onChange={(event) => setAutoWatermark(event.target.checked)} className="h-3.5 w-3.5 cursor-pointer rounded accent-orange-500" />
+                  <Sparkles className="h-3 w-3 text-orange-400" />
+                  <span>Auto-watermark</span>
+                </label>
                 <div className="flex items-center gap-1 bg-zinc-800/90 p-0.5 rounded-lg text-[11px] font-bold">
                   <button
                     type="button"
