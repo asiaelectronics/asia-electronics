@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { images } from "@/data/catalog";
+import labeledElectronicComponents from "@/assets/imgs/Labeled Electronic Components on Checkerboard.png";
 import type { SortKey } from "@/lib/types";
 import { useCatalog } from "@/services/catalog";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -165,8 +166,8 @@ function Index() {
               <p className="mt-6 font-display font-extrabold">From Rs. 1,850</p>
             </div>
             <img
-              src={images.catPremiumComponents}
-              alt="Premium electronic components"
+              src={labeledElectronicComponents}
+              alt="Labeled electronic components"
               width={1024}
               height={768}
               loading="lazy"

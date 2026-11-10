@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Truck,
   Store,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -489,6 +490,16 @@ function ProductDetails() {
                 <p className="text-[11px] text-muted-foreground">
                   3 - 5 Working Days ·{" "}
                   <span className="text-emerald-500 font-semibold">Available</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2.5">
+              <Zap className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold text-foreground">Express Delivery</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Available · <span className="text-orange-500 font-semibold">Contact Store</span>
                 </p>
               </div>
             </div>

@@ -3,7 +3,7 @@
   "storeName": "Asia Electronics & Cellular",
   "whatsappNumber": "+94 74 106 6017",
   "officeEmail": "aecpvt60@gmail.com",
-  "phone": "+94 74 111111",
+  "phone": "+94 74 106 6017",
   "currency": "LKR (Rs.)",
   "taxRate": "0%",
   "address": "62 1st Cross St, Colombo 01100, Sri Lanka",
@@ -19,22 +19,22 @@
       {
         "id": "home_1794305063788",
         "badge": "NEW ARRIVALS",
-        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305079520-hrcxel9n.webp",
-        "title": "Your headline",
-        "category": "electronic-components",
+        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794307197929-5p7zxbm9.webp",
+        "title": "The Best Price For a Smart Tv!",
+        "category": "home-appliances",
         "buttonText": "Shop now",
-        "description": "Describe this homepage banner.",
+        "description": "Experience our Best Seller. \nSupports Netflix, Prime Video and Youtube.\nAvailable in 24, 32 and 43 Inch Sizes. ",
         "secondaryButtonUrl": "",
         "secondaryButtonText": ""
       },
       {
         "id": "home_1794305127096",
-        "badge": "NEW ARRIVALS",
-        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305132956-gf2tr6ch.webp",
-        "title": "Your headline",
-        "category": "electronic-components",
+        "badge": "Top Microscope",
+        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794307275197-6a3sdp3d.webp",
+        "title": "Mechanic Robot 6560T Trinocular Microscope",
+        "category": "laboratory-equipment",
         "buttonText": "Shop now",
-        "description": "Describe this homepage banner.",
+        "description": "6.5-60X Continuous Zoom WF10X25 Eyepiece for CPU BGA Welding Repair.",
         "secondaryButtonUrl": "",
         "secondaryButtonText": ""
       }
@@ -48,25 +48,25 @@
     {
       "id": "home_1794305063788",
       "badge": "NEW ARRIVALS",
-      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305079520-hrcxel9n.webp",
-      "title": "Your headline",
-      "category": "electronic-components",
+      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794307197929-5p7zxbm9.webp",
+      "title": "The Best Price For a Smart Tv!",
+      "category": "home-appliances",
       "buttonText": "Shop now",
-      "description": "Describe this homepage banner.",
+      "description": "Experience our Best Seller. \nSupports Netflix, Prime Video and Youtube.\nAvailable in 24, 32 and 43 Inch Sizes. ",
       "secondaryButtonUrl": "",
       "secondaryButtonText": ""
     },
     {
       "id": "home_1794305127096",
-      "badge": "NEW ARRIVALS",
-      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305132956-gf2tr6ch.webp",
-      "title": "Your headline",
-      "category": "electronic-components",
+      "badge": "Top Microscope",
+      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794307275197-6a3sdp3d.webp",
+      "title": "Mechanic Robot 6560T Trinocular Microscope",
+      "category": "laboratory-equipment",
       "buttonText": "Shop now",
-      "description": "Describe this homepage banner.",
+      "description": "6.5-60X Continuous Zoom WF10X25 Eyepiece for CPU BGA Welding Repair.",
       "secondaryButtonUrl": "",
       "secondaryButtonText": ""
     }
   ],
-  "updatedAt": "2026-11-10T10:05:36.464+00:00"
+  "updatedAt": "2026-11-10T10:43:01.975+00:00"
 }
