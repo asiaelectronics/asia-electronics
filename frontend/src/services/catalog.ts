@@ -29,8 +29,8 @@ import {
   upsertBrandApi,
 } from "./api";
 
-const PRODUCTS_STORAGE_KEY = "ae_products_catalog_v6";
-const CATEGORIES_STORAGE_KEY = "ae_categories_catalog_v8";
+const PRODUCTS_STORAGE_KEY = "ae_products_catalog_v7";
+const CATEGORIES_STORAGE_KEY = "ae_categories_catalog_v9";
 const CATALOG_UPDATED_EVENT = "ae-catalog-updated";
 
 // Category records saved before image optimisation refer to public PNG paths.

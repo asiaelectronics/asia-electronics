@@ -9,6 +9,103 @@ const SETTINGS_FILE = process.env.VERCEL
   ? path.join("/tmp", "settings.json")
   : path.join(__dirname, "../../data/settings.json");
 
+const PRODUCT_IMAGE_BUCKET = "product-images";
+const MAX_PRODUCT_IMAGE_BYTES = 8 * 1024 * 1024;
+const PRODUCT_IMAGE_MIMES = {
+  "image/webp": "webp",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/avif": "avif",
+  "image/svg+xml": "svg",
+  "image/gif": "gif",
+};
+let productBucketReady = false;
+
+export async function ensureProductImageBucket() {
+  if (productBucketReady) return;
+  const { data } = await supabase.storage.getBucket(PRODUCT_IMAGE_BUCKET);
+  if (data) {
+    await supabase.storage.updateBucket(PRODUCT_IMAGE_BUCKET, {
+      public: true,
+      fileSizeLimit: MAX_PRODUCT_IMAGE_BYTES,
+      allowedMimeTypes: Object.keys(PRODUCT_IMAGE_MIMES),
+    });
+    productBucketReady = true;
+    return;
+  }
+  const { error } = await supabase.storage.createBucket(PRODUCT_IMAGE_BUCKET, {
+    public: true,
+    fileSizeLimit: MAX_PRODUCT_IMAGE_BYTES,
+    allowedMimeTypes: Object.keys(PRODUCT_IMAGE_MIMES),
+  });
+  if (error && !/already exists/i.test(error.message || "")) {
+    throw new Error(`Could not create product-images bucket: ${error.message}`);
+  }
+  productBucketReady = true;
+}
+
+export async function uploadProductImagesIfNeeded(
+  folderKey,
+  imagesArray,
+  prefix = "img",
+) {
+  if (!Array.isArray(imagesArray) || imagesArray.length === 0) {
+    return imagesArray;
+  }
+  const hasBase64 = imagesArray.some(
+    (item) => typeof item === "string" && item.startsWith("data:image/"),
+  );
+  if (!hasBase64) return imagesArray;
+
+  await ensureProductImageBucket();
+  const safeFolder =
+    String(folderKey || "product")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-_]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "product";
+
+  const uploaded = [];
+  for (let i = 0; i < imagesArray.length; i++) {
+    const item = imagesArray[i];
+    if (typeof item !== "string" || !item.startsWith("data:image/")) {
+      uploaded.push(item);
+      continue;
+    }
+    const match = /^data:(image\/[a-z0-9.+-]+);base64,([\s\S]+)$/i.exec(item);
+    if (!match) {
+      uploaded.push(item);
+      continue;
+    }
+    const mimeType = match[1].toLowerCase();
+    const ext = PRODUCT_IMAGE_MIMES[mimeType] || "webp";
+    const buffer = Buffer.from(match[2], "base64");
+    const rand = Math.random().toString(36).slice(2, 7);
+    const storagePath = `${safeFolder}/${prefix}-${i + 1}-${Date.now()}-${rand}.${ext}`;
+
+    const { error } = await supabase.storage
+      .from(PRODUCT_IMAGE_BUCKET)
+      .upload(storagePath, buffer, {
+        contentType: mimeType,
+        cacheControl: "31536000",
+        upsert: true,
+      });
+
+    if (error) {
+      console.error("Failed to upload product image to storage:", error.message);
+      uploaded.push(item);
+      continue;
+    }
+
+    const { data: pubData } = supabase.storage
+      .from(PRODUCT_IMAGE_BUCKET)
+      .getPublicUrl(storagePath);
+    uploaded.push(pubData?.publicUrl || item);
+  }
+  return uploaded;
+}
+
 // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Column mapping helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // JS camelCase Ã¢â€ â€ Postgres snake_case
 function toDbProduct(p) {
@@ -50,6 +147,14 @@ function toDbProduct(p) {
 function fromDbProduct(row) {
   const attrs = row.attributes || {};
   const vis = attrs.visibility || {};
+  const { originalImages: rawOrigImages, ...cleanAttributes } = attrs;
+  // Never send multi-megabyte base64 strings in originalImages over the network;
+  // only include compact storage URLs if present.
+  const cleanOriginals = Array.isArray(rawOrigImages)
+    ? rawOrigImages.filter(
+        (u) => typeof u === "string" && !u.startsWith("data:"),
+      )
+    : undefined;
 
   return {
     id: row.id,
@@ -64,10 +169,11 @@ function fromDbProduct(row) {
     compareAtCents: row.compare_at_cents ?? undefined,
     stock: row.stock,
     images: row.images,
-    originalImages: attrs.originalImages || undefined,
+    originalImages:
+      cleanOriginals && cleanOriginals.length > 0 ? cleanOriginals : undefined,
     description: row.description,
     specs: row.specs,
-    attributes: row.attributes,
+    attributes: cleanAttributes,
     featured: row.featured,
     isNew: row.is_new,
     showPrice:
@@ -492,7 +598,20 @@ export async function writeProducts(prods) {
 }
 
 export async function insertProduct(prod) {
-  const row = toDbProduct(prod);
+  const folderKey = prod.sku || prod.id || "product";
+  const resolvedImages = await uploadProductImagesIfNeeded(
+    folderKey,
+    prod.images,
+    "img",
+  );
+  const resolvedOriginals = prod.originalImages
+    ? await uploadProductImagesIfNeeded(folderKey, prod.originalImages, "orig")
+    : undefined;
+  const row = toDbProduct({
+    ...prod,
+    images: resolvedImages,
+    originalImages: resolvedOriginals,
+  });
   let { data, error } = await supabase
     .from("products")
     .insert(row)
@@ -545,7 +664,13 @@ export async function updateProduct(id, updates) {
   if (updates.compareAtCents !== undefined)
     dbUpdates.compare_at_cents = updates.compareAtCents;
   if (updates.stock !== undefined) dbUpdates.stock = Number(updates.stock);
-  if (updates.images !== undefined) dbUpdates.images = updates.images;
+  if (updates.images !== undefined) {
+    dbUpdates.images = await uploadProductImagesIfNeeded(
+      updates.sku || id,
+      updates.images,
+      "img",
+    );
+  }
   if (updates.description !== undefined)
     dbUpdates.description = updates.description;
   if (updates.specs !== undefined) dbUpdates.specs = updates.specs;
@@ -567,10 +692,17 @@ export async function updateProduct(id, updates) {
   try {
     const current = await findProduct(id);
     const baseAttrs = updates.attributes || current?.attributes || {};
-    const origImages =
+    const rawOrigImages =
       updates.originalImages !== undefined
         ? updates.originalImages
         : current?.originalImages || baseAttrs.originalImages;
+    const origImages = rawOrigImages
+      ? await uploadProductImagesIfNeeded(
+          updates.sku || current?.sku || id,
+          rawOrigImages,
+          "orig",
+        )
+      : undefined;
 
     dbUpdates.attributes = {
       ...baseAttrs,

@@ -1292,7 +1292,7 @@ function ProductFormModal({
     quality = 0.72,
   ): Promise<string> => {
     return new Promise((resolve) => {
-      if (file.type === "image/svg+xml" || file.size < 50 * 1024) {
+      if (file.type === "image/svg+xml") {
         const reader = new FileReader();
         reader.onload = (e) => resolve((e.target?.result as string) || "");
         reader.onerror = () => resolve("");
@@ -1325,14 +1325,17 @@ function ProductFormModal({
           return;
         }
         ctx.drawImage(img, 0, 0, width, height);
-        // JPEG keeps product-photo data URLs compact enough for the API request.
-        // A white background avoids turning transparent PNG pixels black.
+        const webpDataUrl = canvas.toDataURL("image/webp", quality);
+        if (webpDataUrl.startsWith("data:image/webp")) {
+          resolve(webpDataUrl);
+          return;
+        }
+        // Fallback to JPEG if browser does not encode WebP
         ctx.fillStyle = "#ffffff";
         ctx.globalCompositeOperation = "destination-over";
         ctx.fillRect(0, 0, width, height);
         ctx.globalCompositeOperation = "source-over";
-        const mime = "image/jpeg";
-        resolve(canvas.toDataURL(mime, quality));
+        resolve(canvas.toDataURL("image/jpeg", quality));
       };
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);

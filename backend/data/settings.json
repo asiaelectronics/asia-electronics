@@ -17,15 +17,26 @@
     },
     "homepageBanners": [
       {
-        "id": "home_1794207582405",
-        "badge": "AEC SMART TV",
-        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794235067571-dq8q0nb2.webp",
-        "title": "OUR BEST SELLING SMART TV",
-        "category": "home-appliances",
-        "buttonText": "Shop Home Appliances",
-        "description": "BUILT IN NETFLIX, PRIME VIDEO & YOUTUBEFOR ENDLESS STREAMING!",
-        "secondaryButtonUrl": "https://wa.me/94741066017",
-        "secondaryButtonText": "WhatsApp Us"
+        "id": "home_1794305063788",
+        "badge": "NEW ARRIVALS",
+        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305079520-hrcxel9n.webp",
+        "title": "Your headline",
+        "category": "electronic-components",
+        "buttonText": "Shop now",
+        "description": "Describe this homepage banner.",
+        "secondaryButtonUrl": "",
+        "secondaryButtonText": ""
+      },
+      {
+        "id": "home_1794305127096",
+        "badge": "NEW ARRIVALS",
+        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305132956-gf2tr6ch.webp",
+        "title": "Your headline",
+        "category": "electronic-components",
+        "buttonText": "Shop now",
+        "description": "Describe this homepage banner.",
+        "secondaryButtonUrl": "",
+        "secondaryButtonText": ""
       }
     ]
   },
@@ -35,16 +46,27 @@
   },
   "homepageBanners": [
     {
-      "id": "home_1794207582405",
-      "badge": "AEC SMART TV",
-      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794235067571-dq8q0nb2.webp",
-      "title": "OUR BEST SELLING SMART TV",
-      "category": "home-appliances",
-      "buttonText": "Shop Home Appliances",
-      "description": "BUILT IN NETFLIX, PRIME VIDEO & YOUTUBEFOR ENDLESS STREAMING!",
-      "secondaryButtonUrl": "https://wa.me/94741066017",
-      "secondaryButtonText": "WhatsApp Us"
+      "id": "home_1794305063788",
+      "badge": "NEW ARRIVALS",
+      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305079520-hrcxel9n.webp",
+      "title": "Your headline",
+      "category": "electronic-components",
+      "buttonText": "Shop now",
+      "description": "Describe this homepage banner.",
+      "secondaryButtonUrl": "",
+      "secondaryButtonText": ""
+    },
+    {
+      "id": "home_1794305127096",
+      "badge": "NEW ARRIVALS",
+      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794305132956-gf2tr6ch.webp",
+      "title": "Your headline",
+      "category": "electronic-components",
+      "buttonText": "Shop now",
+      "description": "Describe this homepage banner.",
+      "secondaryButtonUrl": "",
+      "secondaryButtonText": ""
     }
   ],
-  "updatedAt": "2026-11-10T05:47:31.976+00:00"
+  "updatedAt": "2026-11-10T10:05:36.464+00:00"
 }

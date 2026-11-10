@@ -123,7 +123,11 @@ export async function applyWatermarkToImage(
     });
   } else {
     sourceUrl = source;
-    isTransparentType = source.startsWith("data:image/png") || source.endsWith(".png");
+    isTransparentType =
+      source.startsWith("data:image/png") ||
+      source.startsWith("data:image/webp") ||
+      /\.png(\?|$)/i.test(source) ||
+      /\.webp(\?|$)/i.test(source);
   }
 
   // Load the source product image
@@ -253,10 +257,14 @@ export async function applyWatermarkToImage(
   ctx.fillText(watermarkText, textX, textY);
   ctx.restore();
 
-  // Export as high quality output
-  const outputMime = isTransparentType ? "image/png" : "image/jpeg";
-  const outputQuality = options.quality ?? 0.88;
-  const dataUrl = canvas.toDataURL(outputMime, outputQuality);
+  // Export as WebP (preserves full alpha transparency + high compression); fall back if unsupported
+  const outputQuality = options.quality ?? 0.85;
+  let outputMime = "image/webp";
+  let dataUrl = canvas.toDataURL(outputMime, outputQuality);
+  if (!dataUrl.startsWith("data:image/webp")) {
+    outputMime = isTransparentType ? "image/png" : "image/jpeg";
+    dataUrl = canvas.toDataURL(outputMime, outputQuality);
+  }
 
   return {
     dataUrl,
