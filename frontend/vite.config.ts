@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // The hosted deployment uses Cloudflare by default. Docker builds set
+  // NITRO_PRESET=node-server so the SSR server can run in a standard Node.js
+  // container instead.
+  nitro: {
+    preset: process.env.NITRO_PRESET || "cloudflare-module",
+  },
 });

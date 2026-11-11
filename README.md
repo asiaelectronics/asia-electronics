@@ -76,6 +76,22 @@ This section explains how store managers and business owners can manage day-to-d
 * **Hosting**: Vercel (Edge CDN + Automated SSL + Git Deployments).
 * **Emails**: NodeMailer with secure SMTP (Gmail App Password).
 
+### Run with Docker
+
+Docker runs the SSR frontend and Express API as separate services. Create the
+backend environment file from its example, set the real Supabase and SMTP
+values, then start both services:
+
+```bash
+cp backend/.env.example backend/.env
+docker compose up --build
+```
+
+Open `http://localhost:3000`; the API health endpoint is at
+`http://localhost:5000/health`. The frontend API URL is compiled when the image
+is built. For a non-local deployment, set the `VITE_API_URL` build argument to
+the publicly reachable API address.
+
 ---
 
 ### Project Structure
