@@ -1,6 +1,5 @@
 import catLighting from "@/assets/imgs/lighting.webp";
 import catHomeAppliances from "@/assets/imgs/home-appliances.webp";
-import catKitchenAppliances from "@/assets/imgs/kitchen-appliances.webp";
 import catApplianceSpareParts from "@/assets/imgs/appliance-spare-parts.webp";
 import catElectronicComponents from "@/assets/imgs/electronic-components.webp";
 import catPremiumElectronicComponents from "@/assets/imgs/premium-electronic-components.webp";
@@ -21,7 +20,6 @@ export const images = {
   // Canonical image assets
   catLighting,
   catHomeAppliances,
-  catKitchenAppliances,
   catApplianceSpareParts,
   catElectronicComponents,
   catPremiumElectronicComponents,
@@ -42,7 +40,6 @@ export const images = {
   catRobotics: catRoboticsArduino,
   catMobile: catMobileParts,
   catTv: catHomeAppliances,
-  catKitchen: catKitchenAppliances,
   catSpares: catApplianceSpareParts,
   catPower: catPowerSolarBatteries,
   catLab: catLabEquipment,
@@ -193,7 +190,6 @@ const catImg: Record<string, string> = {
   // Real categories
   lighting: catLighting,
   "home-appliances": catHomeAppliances,
-  "kitchen-appliances": catKitchenAppliances,
   "appliance-spare-parts": catApplianceSpareParts,
   "electronic-components": catElectronicComponents,
   "power-solar-batteries": catPowerSolarBatteries,
@@ -755,7 +751,7 @@ const seeds: Seed[] = [
     sku: "AE-KIT-6001",
     brand: "Panasonic",
     model: "MX-AC400",
-    category: "kitchen-appliances",
+    category: "home-appliances",
     price: 28500,
     stock: 15,
     daysAgo: 14,
@@ -769,7 +765,7 @@ const seeds: Seed[] = [
     sku: "AE-KIT-6002",
     brand: "Philips",
     model: "HD4928",
-    category: "kitchen-appliances",
+    category: "home-appliances",
     price: 16900,
     was: 19500,
     stock: 20,

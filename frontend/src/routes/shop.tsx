@@ -142,11 +142,18 @@ const num = (v: unknown) => {
   return v === undefined || v === "" || Number.isNaN(n) ? undefined : n;
 };
 
+// Keep old shared/bookmarked category URLs useful after catalogue cleanup.
+const LEGACY_CATEGORY_REDIRECTS: Record<string, CategorySlug> = {
+  "kitchen-appliances": "appliance-spare-parts",
+};
+
 export const Route = createFileRoute("/shop")({
   validateSearch: (s: Partial<Record<keyof ShopSearch, unknown>>): ShopSearch => ({
     q: typeof s.q === "string" && s.q ? s.q : undefined,
     category:
-      typeof s.category === "string" && s.category ? (s.category as CategorySlug) : undefined,
+      typeof s.category === "string" && s.category
+        ? (LEGACY_CATEGORY_REDIRECTS[s.category] ?? (s.category as CategorySlug))
+        : undefined,
     subcategory: typeof s.subcategory === "string" && s.subcategory ? s.subcategory : undefined,
     brands: typeof s.brands === "string" && s.brands ? s.brands : undefined,
     min: num(s.min),

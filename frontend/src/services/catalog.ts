@@ -42,7 +42,6 @@ const OPTIMIZED_ASSET_PATHS: Array<[string[], string]> = [
   [["cat-lighting", "lighting"], images.catLighting],
   [["cat-mobile", "mobile-parts"], images.catMobileParts],
   [["cat-tv", "home-appliances"], images.catHomeAppliances],
-  [["kitchen-appliances"], images.catKitchenAppliances],
   [["appliance-spare-parts", "cat-spares"], images.catApplianceSpareParts],
   [["power-solar", "cat-power"], images.catPowerSolarBatteries],
   [["laboratory-equipment", "cat-lab"], images.catLabEquipment],

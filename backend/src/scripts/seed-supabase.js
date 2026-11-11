@@ -5,7 +5,6 @@ const defaultCategories = [
   // Active categories (10)
   { slug: "lighting",              name: "Lighting",                       short: "Lighting",          image: "/assets/imgs/lighting.png",                 filterKey: "Sub-type" },
   { slug: "home-appliances",       name: "Home Appliances",                short: "Home Appliances",   image: "/assets/imgs/home-appliances.png",          filterKey: "Type" },
-  { slug: "kitchen-appliances",    name: "Kitchen Appliances",             short: "Kitchen Appliances",image: "/assets/imgs/kitchen-appliances.png",       filterKey: "Type" },
   { slug: "appliance-spare-parts", name: "Appliance Spare Parts",          short: "Spare Parts",       image: "/assets/imgs/appliance-spare-parts.png",    filterKey: "Compatible with" },
   { slug: "electronic-components", name: "Electronic Components",          short: "Components",        image: "/assets/imgs/electronic-components.png",    filterKey: "Type" },
   { slug: "power-solar-batteries", name: "Power, Solar & Batteries",       short: "Power & Solar",     image: "/assets/imgs/power-solar-batteries.png",    filterKey: "Type" },
