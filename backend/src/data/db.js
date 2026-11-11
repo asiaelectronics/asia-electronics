@@ -10,6 +10,7 @@ const SETTINGS_FILE = process.env.VERCEL
   : path.join(__dirname, "../../data/settings.json");
 
 const PRODUCT_IMAGE_BUCKET = "product-images";
+const BRAND_IMAGE_BUCKET = "brand-images";
 const MAX_PRODUCT_IMAGE_BYTES = 8 * 1024 * 1024;
 const PRODUCT_IMAGE_MIMES = {
   "image/webp": "webp",
@@ -255,11 +256,23 @@ function toDbBrand(brand) {
 }
 
 function fromDbBrand(row) {
+  const imagePath = row.image_path || "";
+  const storedImageUrl = row.image_url || "";
+  // Older brand records may contain a Supabase object key (for example,
+  // "quick/logo-123.png") rather than its public URL. Resolve that key here
+  // so all storefront and admin clients receive a usable image source.
+  const imageUrl = !storedImageUrl && !imagePath
+    ? ""
+    : /^(https?:\/\/|\/)/i.test(storedImageUrl)
+      ? storedImageUrl
+      : (supabase.storage.from(BRAND_IMAGE_BUCKET).getPublicUrl(imagePath || storedImageUrl)
+          .data.publicUrl || "");
+
   return {
     slug: row.slug,
     name: row.name,
-    imageUrl: row.image_url || "",
-    imagePath: row.image_path || "",
+    imageUrl,
+    imagePath,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
