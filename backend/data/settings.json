@@ -37,6 +37,17 @@
         "description": "6.5-60X Continuous Zoom WF10X25 Eyepiece for CPU BGA Welding Repair.",
         "secondaryButtonUrl": "",
         "secondaryButtonText": ""
+      },
+      {
+        "id": "home_1794384470572",
+        "badge": "OSS TEAM T12 PLUS",
+        "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794384496502-6yr8ct4a.webp",
+        "title": "OSS TEAM T12 PLUS DROPS TO ONLY 8900 LKR",
+        "category": "laboratory-equipment",
+        "buttonText": "Shop now",
+        "description": "Grab it While Stocks Last",
+        "secondaryButtonUrl": "",
+        "secondaryButtonText": ""
       }
     ]
   },
@@ -66,7 +77,18 @@
       "description": "6.5-60X Continuous Zoom WF10X25 Eyepiece for CPU BGA Welding Repair.",
       "secondaryButtonUrl": "",
       "secondaryButtonText": ""
+    },
+    {
+      "id": "home_1794384470572",
+      "badge": "OSS TEAM T12 PLUS",
+      "image": "https://dbjdxvzdwmsfwovlbkni.supabase.co/storage/v1/object/public/homepage-banners/homepage/1794384496502-6yr8ct4a.webp",
+      "title": "OSS TEAM T12 PLUS DROPS TO ONLY 8900 LKR",
+      "category": "laboratory-equipment",
+      "buttonText": "Shop now",
+      "description": "Grab it While Stocks Last",
+      "secondaryButtonUrl": "",
+      "secondaryButtonText": ""
     }
   ],
-  "updatedAt": "2026-11-10T10:43:01.975+00:00"
+  "updatedAt": "2026-11-11T08:12:38.107+00:00"
 }

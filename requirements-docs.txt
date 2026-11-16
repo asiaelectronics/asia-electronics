@@ -1,0 +1,2 @@
+# Dependencies for building and serving the MkDocs documentation site.
+mkdocs-material==9.8.1

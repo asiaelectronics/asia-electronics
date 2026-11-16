@@ -1,193 +1,185 @@
-# Asia Electronics & Cellular — E-Commerce Platform
+# Asia Electronics & Cellular
 
-Welcome to the official repository for **Asia Electronics & Cellular Pvt Ltd** ([asiaelectronics.lk](https://www.asiaelectronics.lk)).
+Asia Electronics & Cellular is a full-stack Sri Lankan electronics catalogue and quotation-commerce platform. Customers can browse products, manage a browser-persisted cart, request quotations, track an order, create accounts, and submit wholesale requests. Store staff use a protected administration area to manage the catalogue, inventory, orders, content, and wholesale enquiries.
 
-This is a modern, full-stack e-commerce web application tailored for electronic components, repair parts, audio, lighting, and home electronics in Sri Lanka.
+The application follows a quotation-first sales process: submitting an order creates a quotation request instead of taking a payment. Inventory is reserved when the request is created and restored once if an administrator cancels it.
 
----
+Live storefront: <https://www.asiaelectronics.lk>
 
-## 🌐 Live Storefront
+## Tech stack
 
-* **Production Website**: [https://www.asiaelectronics.lk](https://www.asiaelectronics.lk)
-* **Alternative URL**: [https://asiaelectronics.lk](https://asiaelectronics.lk) *(automatically redirects to www)*
-* **Admin Portal**: [https://www.asiaelectronics.lk/admin](https://www.asiaelectronics.lk/admin)
+| Area | Technology | Purpose |
+| --- | --- | --- |
+| Frontend | TypeScript, React 19, TanStack Start/Router, Vite 8 | SSR-capable storefront and admin UI |
+| UI | Tailwind CSS 4, Radix UI, Lucide, Motion, Sonner | Components, styling, icons, animation, notifications |
+| Client state | React Context, `useReducer`, TanStack Query | Authentication, cart, settings, cached server data |
+| Backend | Node.js, Express 4 | JSON REST API and business rules |
+| Data and identity | Supabase PostgreSQL, Auth, Storage | Application data, sessions, asset storage |
+| Email | Nodemailer / SMTP | Order and wholesale status notifications |
+| Deployment | Vercel, Docker / Docker Compose | Serverless production and local containers |
+| Quality | ESLint, Prettier, Vitest, Testing Library | Linting, formatting, frontend tests |
 
----
+## Prerequisites
 
-## 🧭 Client Guide: How to Manage Your Store
+- Git
+- Node.js **22 LTS** and npm. The Docker images use Node 22; this is the supported baseline.
+- A Supabase project and a server-only **service-role** key.
+- SMTP credentials when email notifications are required.
+- Optional: Docker Desktop with Docker Compose.
+- Optional: Python 3.9+ and `pip` for MkDocs.
 
-This section explains how store managers and business owners can manage day-to-day operations.
+## Getting started
 
-### 1. Accessing the Admin Dashboard
-1. Go to `https://www.asiaelectronics.lk/admin` (or click **Login** in the top navigation).
-2. Enter your store administrator email and password.
-3. You will enter the **Admin Control Center**.
-
----
-
-### 2. Managing Products & Inventory
-* **View All Products**: Click **Products** in the admin sidebar.
-* **Add a Product**:
-  * Click **+ Add Product**.
-  * Enter Product Name, Brand, SKU, Model, Category, Price in LKR (Rs.), and Initial Stock.
-  * Upload product images or provide image URLs.
-  * Enter technical specs and description.
-  * Click **Save Product**.
-* **Edit or Restock Existing Items**:
-  * Click the edit icon next to any product to update prices or adjust stock levels.
-  * Stock updates automatically log to an auditable **Inventory History**.
-* **Low Stock Alerts**: Products with low or zero stock are highlighted in red/amber on the dashboard.
-
----
-
-### 3. Managing Orders
-* **View Customer Orders**: Click **Orders** in the admin sidebar to see recent purchases.
-* **Order Details**: Click any order to see items ordered, customer delivery address, contact phone number, and payment method (Cash on Delivery or Bank Transfer).
-* **Updating Order Status**:
-  * Change status between: `Pending` ➔ `Processing` ➔ `Shipped` ➔ `Delivered` (or `Cancelled`).
-  * Updating status automatically triggers an order confirmation email to the customer with delivery details!
-
----
-
-### 4. Updating Homepage Banners & Promotions
-* Go to **Banners** in the admin panel.
-* You can create, edit, reorder, or toggle promotional hero banners on the homepage (e.g., Seasonal Sales, Smart Home Entertainment, Repair Parts).
-
----
-
-### 5. Managing Brands & Categories
-* Go to **Brands** or **Categories** in the admin panel.
-* Upload official brand logos and categorize items (e.g. Components, Mobile Parts, LED Lighting, Home Appliances).
-
----
-
-### 6. Customer Contact & WhatsApp Inquiries
-* Customers can click the floating **WhatsApp** button anywhere on the store to immediately send inquiries about circuit components or TV repair parts directly to your official WhatsApp number (`+94 74 106 6017`).
-* Incoming order notifications are sent to the store email (`aecpvt60@gmail.com`).
-
----
-
-## 🛠️ Technical Overview (For Developers & IT)
-
-### Technology Stack
-* **Frontend**: React + TanStack Start (Server-Side Rendering SSR + Vite client SPA) + Tailwind CSS + Lucide Icons.
-* **Backend**: Express.js REST API bundled as a high-performance Vercel Serverless Function under `/api/*`.
-* **Database & Authentication**: Supabase (PostgreSQL, Service-Role Auth, RLS, Storage Buckets).
-* **Hosting**: Vercel (Edge CDN + Automated SSL + Git Deployments).
-* **Emails**: NodeMailer with secure SMTP (Gmail App Password).
-
-### Run with Docker
-
-Docker runs the SSR frontend and Express API as separate services. Create the
-backend environment file from its example, set the real Supabase and SMTP
-values, then start both services:
+### Clone and install
 
 ```bash
-cp backend/.env.example backend/.env
-docker compose up --build
-```
-
-Open `http://localhost:3000`; the API health endpoint is at
-`http://localhost:5000/health`. The frontend API URL is compiled when the image
-is built. For a non-local deployment, set the `VITE_API_URL` build argument to
-the publicly reachable API address.
-
----
-
-### Project Structure
-```text
-asia-electronics/
-├── frontend/                     # TanStack Start / React UI
-│   ├── src/
-│   │   ├── routes/              # Pages: Home, Shop, Product Details, Admin, Cart
-│   │   ├── components/          # Reusable UI components & modals
-│   │   └── services/            # API client services
-│   └── package.json
-├── backend/                      # Express REST API
-│   ├── src/
-│   │   ├── routes/              # Endpoints: /api/products, /api/orders, /api/auth
-│   │   ├── data/                # Database migrations & Supabase client
-│   │   ├── middleware/          # Security, CSRF protection, CORS
-│   │   └── server.js            # Express application entrypoint
-│   └── package.json
-├── build-combined.mjs            # Unified builder script for Vercel
-├── vercel.json                   # Vercel deployment configuration
-├── DEPLOYMENT_GUIDE_VERCEL_SUPABASE.md  # Complete Disaster Recovery & Deployment Guide
-└── README.md                     # This document
-```
-
----
-
-## 💻 Local Development Setup
-
-To run the project locally on your computer:
-
-### 1. Prerequisites
-* [Node.js](https://nodejs.org/) (version 20 or higher)
-* Git
-
-### 2. Installation
-```bash
-# Clone the repository
 git clone https://github.com/asiaelectronics/asia-electronics.git
 cd asia-electronics
 
-# Install frontend dependencies
-cd frontend
-npm install
+cd backend
+npm ci
 
-# Install backend dependencies
-cd ../backend
-npm install
+cd ../frontend
+npm ci
 ```
 
-### 3. Environment Variables
-Create `.env` inside `backend/` (refer to `backend/.env.example`):
-```env
-PORT=5000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:8080,http://localhost:5173,https://www.asiaelectronics.lk
-STORE_URL=https://www.asiaelectronics.lk
-SUPABASE_URL=your-supabase-url
-SUPABASE_SERVICE_KEY=your-supabase-service-key
-SUPABASE_ANON_KEY=your-supabase-anon-key
-ADMIN_EMAIL=aecpvt60@gmail.com
-```
+### Configure the backend
 
-### 4. Running the App
-In one terminal (Backend):
 ```bash
+cd ../backend
+cp .env.example .env
+```
+
+On PowerShell, use `Copy-Item .env.example .env`. Replace the placeholders; never expose server secrets to the frontend.
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `PORT` | No | API port, default `5000`. |
+| `NODE_ENV` | Yes | `development` locally, `production` when deployed. |
+| `FRONTEND_URL` | Yes | Comma-separated browser origins allowed to call the API. |
+| `SUPABASE_URL` | Yes | Supabase project URL. |
+| `SUPABASE_SERVICE_KEY` | Yes | Server-only Supabase service-role key. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Initially | Bootstrap the first administrator when none exists. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | For email | SMTP delivery configuration. |
+| `PUBLIC_API_URL` | Recommended | Canonical backend origin for permanent wholesale attachment links. |
+| `WHOLESALE_FILE_LINK_SECRET` | Recommended | Stable HMAC secret for private wholesale links. Defaults to the service key when omitted. |
+
+### Configure the frontend
+
+```bash
+cd ../frontend
+cp .env.example .env
+```
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+### Create the database and seed data
+
+1. Open **SQL Editor** in Supabase.
+2. Run [backend/src/data/migration.sql](backend/src/data/migration.sql) in full. It creates tables, indexes, SQL functions, and category seed data.
+3. From `backend/`, optionally seed catalogue data and the initial administrator:
+
+```bash
+npm run seed
+npm run seed:admin
+```
+
+These scripts use the service-role key; use care when targeting production.
+
+### Start development
+
+Run the backend and frontend in separate terminals:
+
+```bash
+# terminal 1
 cd backend
 npm run dev
-```
 
-In a second terminal (Frontend):
-```bash
+# terminal 2
 cd frontend
 npm run dev
 ```
-Open **`http://localhost:8080`** in your browser.
 
----
+Open the Vite URL (normally `http://localhost:5173`). The API health endpoint is `http://localhost:5000/api/health`.
 
-## 🚀 Deployment & Updates
+### Docker
 
-The project is connected to **Vercel** with automatic CI/CD.
-Any time changes are pushed to the `main` branch on GitHub:
+Create `backend/.env`, then run:
+
 ```bash
-git add .
-git commit -m "Description of changes"
-git push origin main
+docker compose up --build
 ```
-Vercel automatically builds and deploys the unified frontend and backend to [https://www.asiaelectronics.lk](https://www.asiaelectronics.lk).
 
-For a complete guide on re-deploying to a new Vercel or Supabase project in the future, please refer to:
-👉 **[DEPLOYMENT_GUIDE_VERCEL_SUPABASE.md](./DEPLOYMENT_GUIDE_VERCEL_SUPABASE.md)**
+The frontend is at `http://localhost:3000`; API health is at `http://localhost:5000/health`. `VITE_API_URL` is compiled into the frontend image, so set the Docker build argument to the public API URL for non-local deployments.
 
----
+## Available commands
 
-## 📞 Support & Contacts
-* **Company**: Asia Electronics & Cellular Pvt Ltd
-* **Official Website**: [https://www.asiaelectronics.lk](https://www.asiaelectronics.lk)
-* **Email**: [aecpvt60@gmail.com](mailto:aecpvt60@gmail.com)
-* **Phone / WhatsApp**: +94 74 106 6017
+Run commands from the listed directory.
+
+| Directory | Command | Purpose |
+| --- | --- | --- |
+| `backend` | `npm run dev` | Start Express with watch mode. |
+| `backend` | `npm start` | Start the production Express process. |
+| `backend` | `npm run seed` | Seed Supabase catalogue data. |
+| `backend` | `npm run seed:admin` | Create or promote the bootstrap admin. |
+| `frontend` | `npm run dev` | Start Vite/TanStack Start development server. |
+| `frontend` | `npm run build` | Produce the production SSR/client build. |
+| `frontend` | `npm run preview` | Serve a completed build. |
+| `frontend` | `npm run lint` | Run ESLint. |
+| `frontend` | `npm test` | Run Vitest once. |
+| `frontend` | `npm run test:watch` | Run Vitest in watch mode. |
+| `frontend` | `npm run format` | Apply Prettier. |
+| `frontend` | `npm run sitemap` | Generate the sitemap. |
+| root | `docker compose up --build` | Build and run both services. |
+
+## Folder structure
+
+```text
+asia-electronics/
+├── backend/
+│   ├── api/                     # Vercel adapters
+│   ├── src/
+│   │   ├── data/                # Supabase client, schema, persistence helpers
+│   │   ├── middleware/          # Auth, roles, security controls
+│   │   ├── routes/              # Express resource routers
+│   │   ├── scripts/             # Bootstrap and maintenance scripts
+│   │   ├── services/            # Email and attachment-link services
+│   │   └── server.js            # Express application entrypoint
+│   ├── .env.example
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── components/          # Storefront, admin, and shared UI
+│   │   ├── context/             # Auth, cart, and settings providers
+│   │   ├── routes/              # TanStack file-based routes
+│   │   ├── services/            # Browser API clients
+│   │   ├── router.tsx           # Router configuration
+│   │   └── server.ts            # SSR server entrypoint
+│   ├── .env.example
+│   ├── vite.config.ts
+│   └── package.json
+├── docs/                        # MkDocs source documentation
+├── docker-compose.yml            # Local two-service stack
+├── mkdocs.yml                    # Material for MkDocs configuration
+└── README.md                     # Project onboarding guide
+```
+
+## Documentation
+
+- [Documentation home](docs/index.md)
+- [Architecture and system design](docs/architecture.md)
+- [API and module reference](docs/api.md)
+
+For a fresh Windows PowerShell clone, preview the documentation with:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-docs.txt
+.\.venv\Scripts\python.exe -m mkdocs serve
+```
+
+## Production notes
+
+Set `VITE_API_URL` to the public `/api` endpoint in the frontend deployment and `PUBLIC_API_URL` to the backend’s canonical origin. Deploy the SQL schema before relying on inventory creation, adjustment, or cancellation restoration.
