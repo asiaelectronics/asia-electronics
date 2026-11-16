@@ -2,6 +2,7 @@ import express from "express";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
 import { supabase } from "../data/supabase.js";
 import { sendWholesaleStatusEmail } from "../services/orderStatusEmail.js";
+import { fileLinkToken, verifyFileLinkToken } from "../services/wholesaleFileLinks.js";
 
 const router = express.Router();
 const BUCKET = "wholesale-request-files";
@@ -21,6 +22,10 @@ const ALLOWED_FILE_TYPES = {
   ".png": ["image/png"],
 };
 const ALLOWED_MIME_TYPES = [...new Set(Object.values(ALLOWED_FILE_TYPES).flat())];
+
+function fileLinkSecret() {
+  return process.env.WHOLESALE_FILE_LINK_SECRET || process.env.SUPABASE_SERVICE_KEY;
+}
 
 async function ensureBucket() {
   const { data, error: lookupError } = await supabase.storage.getBucket(BUCKET);
@@ -150,14 +155,10 @@ router.post("/", async (req, res) => {
     }
     let fileUrl = null;
     if (filePath) {
-      const { data: signed, error: signedError } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUrl(filePath, 60 * 60);
-      if (signedError)
-        throw new Error(
-          `Could not prepare the file link: ${signedError.message}`,
-        );
-      fileUrl = signed?.signedUrl || null;
+      const origin = process.env.PUBLIC_API_URL ||
+        `${req.get("x-forwarded-proto") === "https" ? "https" : req.protocol}://${req.get("host")}`;
+      const token = fileLinkToken(id, filePath, fileLinkSecret());
+      fileUrl = `${origin.replace(/\/$/, "")}${req.baseUrl}/${encodeURIComponent(id)}/file?token=${token}`;
     }
     const salesNumber = normalizeWhatsAppNumber(
       process.env.WHATSAPP_SALES_NUMBER || "+94741066017",
@@ -175,6 +176,34 @@ router.post("/", async (req, res) => {
       success: false,
       error: err.message || "Could not submit wholesale request",
     });
+  }
+});
+
+// The shared link has no expiry. Each visit gets a fresh storage URL while
+// the bucket stays private. The token grants access only to this attachment.
+router.get("/:id/file", async (req, res) => {
+  res.set("Cache-Control", "no-store");
+  res.set("Referrer-Policy", "no-referrer");
+  try {
+    const { data: request, error } = await supabase
+      .from("wholesale_requests")
+      .select("id, file_path")
+      .eq("id", req.params.id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!request?.file_path || !verifyFileLinkToken(
+      req.query.token, request.id, request.file_path, fileLinkSecret(),
+    )) {
+      return res.status(404).send("Attachment not found");
+    }
+    const { data, error: signedError } = await supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(request.file_path, 60 * 10);
+    if (signedError || !data?.signedUrl) throw signedError || new Error("Missing file URL");
+    return res.redirect(302, data.signedUrl);
+  } catch (err) {
+    console.error("Could not open wholesale attachment:", err.message);
+    return res.status(503).send("Could not open attachment. Please try again.");
   }
 });
 
