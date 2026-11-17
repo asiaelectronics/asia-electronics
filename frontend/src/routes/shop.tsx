@@ -328,7 +328,7 @@ function ShopPage() {
               <ProductGrid products={data.items} />
               {data.pages > 1 && (
                 <nav
-                  className="mt-8 flex items-center justify-center gap-1"
+                  className="mt-8 flex flex-wrap items-center justify-center gap-1 sm:gap-2"
                   aria-label="Pagination"
                 >
                   <PageBtn
@@ -338,16 +338,20 @@ function ShopPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </PageBtn>
-                  {Array.from({ length: data.pages }, (_, i) => i + 1).map((n) => (
-                    <PageBtn
-                      key={n}
-                      active={n === data.page}
-                      onClick={() => update({ page: n })}
-                      label={`Page ${n}`}
-                    >
-                      {n}
-                    </PageBtn>
-                  ))}
+                  {paginationItems(data.page, data.pages).map((item) =>
+                    typeof item === "number" ? (
+                      <PageBtn
+                        key={item}
+                        active={item === data.page}
+                        onClick={() => update({ page: item })}
+                        label={`Page ${item}`}
+                      >
+                        {item}
+                      </PageBtn>
+                    ) : (
+                      <span key={item} className="grid h-10 w-6 place-items-center text-muted-foreground" aria-hidden="true">…</span>
+                    ),
+                  )}
                   <PageBtn
                     disabled={data.page >= data.pages}
                     onClick={() => update({ page: data.page + 1 })}
@@ -363,6 +367,18 @@ function ShopPage() {
       </div>
     </>
   );
+}
+
+function paginationItems(page: number, pages: number): Array<number | string> {
+  const visible = Array.from(new Set([1, page - 1, page, page + 1, pages]))
+    .filter((n) => n >= 1 && n <= pages)
+    .sort((a, b) => a - b);
+  return visible.flatMap((n, index) => {
+    const previous = visible[index - 1];
+    if (previous === undefined || n - previous === 1) return [n];
+    if (n - previous === 2) return [previous + 1, n];
+    return [`gap-${previous}`, n];
+  });
 }
 
 function PageBtn({

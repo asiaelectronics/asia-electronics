@@ -660,15 +660,15 @@ export function SiteHeader() {
                 <Link
                   to="/cart"
                   aria-label={`Cart with ${count} items`}
-                  className="flex items-center gap-1.5 text-zinc-800 hover:text-primary transition-colors py-1 focus:outline-none"
+                  className="group inline-flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap text-zinc-800 transition-colors hover:text-primary"
                 >
-                  <div className="relative flex items-center justify-center">
-                    <ShoppingCart className="h-5 w-5 text-zinc-700 hover:text-primary" />
-                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center shadow-xs">
+                  <div className="relative flex h-8 w-8 shrink-0 items-center justify-start">
+                    <ShoppingCart className="h-5 w-5 text-zinc-700 transition-colors group-hover:text-primary" />
+                    <span className="absolute right-0 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold leading-none text-primary-foreground shadow-xs">
                       {count}
                     </span>
                   </div>
-                  <span className="text-xs font-bold tracking-tight text-zinc-800 ml-1">Cart</span>
+                  <span className="text-xs font-bold tracking-tight">Cart</span>
                 </Link>
 
                 {/* Account / User Profile / Login */}
