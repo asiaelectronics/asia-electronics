@@ -118,7 +118,7 @@ export function CategoryProductSection({
               ? Array.from({ length: 6 }).map((_, idx) => (
                   <div
                     key={idx}
-                    className="min-w-0 flex-[0_0_calc(50%_-_0.25rem)] border border-border sm:flex-[0_0_33.333333%] sm:border-r-0 lg:flex-[0_0_25%] xl:flex-[0_0_16.666667%]"
+                    className="category-product-slide border border-border sm:border-r-0"
                   >
                     <CategoryProductCardSkeleton />
                   </div>
@@ -126,7 +126,7 @@ export function CategoryProductSection({
               : products.map((product) => (
                   <div
                     key={product.id}
-                    className="min-w-0 flex-[0_0_calc(50%_-_0.25rem)] border border-border sm:flex-[0_0_33.333333%] sm:border-r-0 lg:flex-[0_0_25%] xl:flex-[0_0_16.666667%]"
+                    className="category-product-slide border border-border sm:border-r-0"
                   >
                     <CategoryProductCard product={product} />
                   </div>

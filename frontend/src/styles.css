@@ -169,6 +169,23 @@
   font-size: 1.125rem;
 }
 
+.category-product-slide {
+  flex: 0 0 calc(50% - 0.25rem);
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .category-product-slide {
+    flex-basis: 33.333333%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .category-product-slide {
+    flex-basis: 20%;
+  }
+}
+
 /* ─── AEC Full-Screen Orbital Loader ────────────────────────────────────────── */
 @keyframes aec-orbital-spin {
   0% {
