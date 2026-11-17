@@ -66,11 +66,11 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
       <Link
         to="/product/$slug"
         params={{ slug: product.slug }}
-        className="block relative overflow-hidden focus:outline-none"
+        className="relative block min-w-0 shrink-0 overflow-hidden focus:outline-none"
       >
-        <div className="relative flex aspect-square w-full items-center justify-center rounded-xs bg-white p-1.5 sm:p-2">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xs bg-white">
           {imageError ? (
-            <div className="flex h-full w-full items-center justify-center bg-tile text-muted-foreground text-xs font-semibold">
+            <div className="absolute inset-0 flex items-center justify-center bg-tile text-muted-foreground text-xs font-semibold">
               No image
             </div>
           ) : (
@@ -79,8 +79,10 @@ export function CategoryProductCard({ product }: CategoryProductCardProps) {
               alt={product.name}
               loading="lazy"
               decoding="async"
+              width={816}
+              height={816}
               onError={() => setImageError(true)}
-              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+              className="absolute inset-0 h-full w-full object-contain object-center p-1.5 transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none sm:p-2"
             />
           )}
         </div>
