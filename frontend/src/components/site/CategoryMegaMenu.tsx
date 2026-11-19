@@ -356,7 +356,7 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
                 <IconComponent
                   className={`h-4 w-4 shrink-0 ${isSelected ? "text-primary" : "text-zinc-500"}`}
                 />
-                <span className="truncate">{c.short || c.name}</span>
+                <span>{c.name}</span>
               </div>
               <ChevronRight
                 className={`h-3.5 w-3.5 shrink-0 ${isSelected ? "text-primary" : "text-zinc-400"}`}
@@ -394,7 +394,7 @@ export function CategoryMegaMenu({ categories, onClose }: CategoryMegaMenuProps)
                 onClick={onClose}
                 className="text-xs font-semibold text-primary hover:underline"
               >
-                Explore all {activeCategory.short} →
+                Explore all {activeCategory.name} →
               </Link>
             </div>
 

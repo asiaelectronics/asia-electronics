@@ -647,7 +647,7 @@ function ProductsPage() {
               const count = products.filter((p) => p.category === c.slug).length;
               return (
                 <option key={c.slug} value={c.slug}>
-                  {c.short} ({count})
+                  {c.name} ({count})
                 </option>
               );
             })}
@@ -850,7 +850,7 @@ function ProductsPage() {
                     {/* Category */}
                     <td className="px-4 py-3">
                       <span className="text-xs text-zinc-300 font-medium bg-zinc-800/40 px-2 py-0.5 rounded border border-zinc-700/30">
-                        {cat?.short || p.category}
+                        {cat?.name || p.category}
                       </span>
                     </td>
 
@@ -1628,7 +1628,7 @@ function ProductFormModal({
               >
                 {categories.map((c) => (
                   <option key={c.slug} value={c.slug}>
-                    {c.name} ({c.short})
+                    {c.name}
                   </option>
                 ))}
               </select>
@@ -2845,7 +2845,7 @@ function CategoryManagerModal({
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-xs font-bold text-white">{c.name}</p>
                           <span className="text-[10px] font-semibold px-2 py-0.2 rounded bg-zinc-800 text-zinc-300 border border-zinc-700">
-                            {c.short}
+                            {c.name}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-[10px] text-zinc-400 mt-0.5">

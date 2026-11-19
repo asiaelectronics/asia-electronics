@@ -246,7 +246,7 @@ function ShopPage() {
     <>
       <PageHeading
         title={cat?.name ?? (search.q ? `Results for “${search.q}”` : "All Products")}
-        crumb={cat?.short ?? "Shop"}
+        crumb={cat?.name ?? "Shop"}
       >
         <div className="mt-2 flex items-end justify-between gap-4">
           <p className="text-sm text-muted-foreground" aria-live="polite">

@@ -230,7 +230,7 @@ function ProductDetails() {
         </Link>{" "}
         /{" "}
         <Link to="/shop" search={{ category: product.category }} className="hover:text-primary">
-          {cat?.short || product.category}
+          {cat?.name || product.category}
         </Link>{" "}
         / <span className="text-foreground font-medium">{product.name}</span>
       </nav>
