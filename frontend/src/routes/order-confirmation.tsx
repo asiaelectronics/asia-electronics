@@ -160,7 +160,7 @@ function Confirm() {
         : "AEC will keep this page updated as your order progresses.";
 
   return (
-    <div className="container-shop max-w-xl py-16 text-center">
+    <div className="mx-auto w-full max-w-xl px-4 py-16 text-center sm:px-6">
       <CheckCircle2 className="mx-auto h-14 w-14 text-success" />
       <h1 className="mt-4 font-display text-2xl font-extrabold uppercase">
         Quotation Request Submitted!
