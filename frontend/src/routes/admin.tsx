@@ -200,7 +200,7 @@ function AdminLayout() {
                 const isActive = item.exact ? pathname === item.to : pathname.startsWith(item.to);
 
                 if (item.to === "/admin/orders") {
-                  const filters = ["Active", "Processing", "Shipped", "Past Orders"] as const;
+                  const filters = ["All", "Active", "Processing", "Shipped", "Past Orders"] as const;
                   const wholesaleActive = pathname === "/admin/wholesale";
                   return (
                     <div key={item.to}>
@@ -227,7 +227,7 @@ function AdminLayout() {
                               to="/admin/orders"
                               search={{ filter } as any}
                               onClick={() => setSidebarOpen(false)}
-                              className={`flex rounded-md px-3 py-2 text-xs font-semibold ${isActive && orderFilter === filter ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}
+                              className={`flex rounded-md px-3 py-2 text-xs font-semibold ${isActive && (orderFilter || "Active") === filter ? "bg-orange-500/10 text-orange-300" : "text-zinc-500 hover:bg-zinc-800/50 hover:text-white"}`}
                             >
                               {filter}
                             </Link>

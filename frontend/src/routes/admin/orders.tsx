@@ -1,4 +1,4 @@
-import { createFileRoute, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import {
   Search,
@@ -413,18 +413,15 @@ function escapeCsvCell(value: string | number) {
 
 function AdminOrders() {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("Active");
+  const navigate = useNavigate();
   const sidebarFilter = useRouterState({ select: (state) => (state.location.search as { filter?: string }).filter });
+  const filters = ["All", "Active", "Processing", "Shipped", "Past Orders"];
+  const statusFilter = sidebarFilter && filters.includes(sidebarFilter) ? sidebarFilter : "Active";
   const [orders, setOrders] = useState<MockOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
   const [selectedPastOrderIds, setSelectedPastOrderIds] = useState<Set<string>>(new Set());
   const [deletingSelected, setDeletingSelected] = useState(false);
-
-  useEffect(() => {
-    const filters = ["Active", "Processing", "Shipped", "Past Orders"];
-    if (sidebarFilter && filters.includes(sidebarFilter)) setStatusFilter(sidebarFilter);
-  }, [sidebarFilter]);
 
   useEffect(() => {
     async function loadOrders() {
@@ -502,6 +499,7 @@ function AdminOrders() {
         o.product.toLowerCase().includes(search.toLowerCase());
       const isPastOrder = o.status === "Delivered" || o.status === "Cancelled";
       const matchStatus =
+        statusFilter === "All" ||
         (statusFilter === "Active" && !isPastOrder) ||
         (statusFilter === "Past Orders" && isPastOrder) ||
         o.status === statusFilter ||
@@ -651,6 +649,7 @@ function AdminOrders() {
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
               <Filter className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
               {[
+                { id: "All", label: "All", count: stats.totalOrders },
                 { id: "Active", label: "Active", count: stats.processing + stats.shipped },
                 { id: "Processing", label: "Processing", count: stats.processing },
                 { id: "Shipped", label: "Shipped", count: stats.shipped },
@@ -662,7 +661,7 @@ function AdminOrders() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
+                  onClick={() => void navigate({ to: "/admin/orders", search: { filter: tab.id } as any })}
                   className={`px-3 py-1.5 rounded-md text-xs font-bold transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                     statusFilter === tab.id
                       ? "bg-orange-500/20 text-orange-400 border border-orange-500/40"

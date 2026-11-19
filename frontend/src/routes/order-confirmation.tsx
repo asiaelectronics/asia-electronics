@@ -195,7 +195,7 @@ function Confirm() {
             </button>
           </dd>
         </div>
-        <Row k="Items Requested" v={String(s.items ?? 0)} />
+        {s.items !== undefined && <Row k="Items Requested" v={String(s.items)} />}
         <Row k="Current Status" v={status} />
         <Row k="What's next?" v={nextStep} />
       </dl>

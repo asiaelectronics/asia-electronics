@@ -112,6 +112,7 @@ function OverviewPage() {
           </h3>
           <Link
             to="/admin/orders"
+            search={{ filter: "All" } as any}
             className="text-[11px] text-violet-400 font-semibold hover:text-violet-300"
           >
             View all orders ({orders.length}) →
