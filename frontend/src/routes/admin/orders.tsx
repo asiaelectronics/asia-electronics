@@ -27,7 +27,7 @@ import {
   type MockOrder,
   type OrderStatus,
 } from "@/components/admin/shared";
-import { deletePastOrderApi, fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
+import { deleteOldPastOrdersApi, deletePastOrderApi, fetchOrdersApi, updateOrderStatusApi } from "@/services/api";
 import { syncCatalogWithBackend } from "@/services/catalog";
 import { toast } from "sonner";
 
@@ -573,6 +573,20 @@ function AdminOrders() {
     toast.success(`Order ${order.id} deleted permanently.`);
   };
   const handleDeleteSelectedPastOrders = async () => { const ids = Array.from(selectedPastOrderIds); if (!ids.length || !window.confirm(`Permanently delete ${ids.length} selected past orders? This cannot be undone.`)) return; setDeletingSelected(true); const results = await Promise.all(ids.map((id) => deletePastOrderApi(id))); const deleted = new Set(ids.filter((_, i) => results[i]?.success)); if (deleted.size) { setOrders((current) => current.filter((order) => !deleted.has(order.id))); setSelectedPastOrderIds(new Set()); toast.success(`${deleted.size} orders deleted permanently.`); } if (deleted.size !== ids.length) toast.error("Some orders could not be deleted."); setDeletingSelected(false); };
+  const handleDeleteOldPastOrders = async () => {
+    if (!window.confirm("Permanently delete all delivered and cancelled orders created more than 3 months ago? This also removes them from sales totals and cannot be undone.")) return;
+    setDeletingSelected(true);
+    const result = await deleteOldPastOrdersApi();
+    if (result.deletedIds) {
+      const deleted = new Set(result.deletedIds);
+      setOrders((current) => current.filter((order) => !deleted.has(order.id)));
+      setSelectedPastOrderIds((current) => new Set([...current].filter((id) => !deleted.has(id))));
+      toast.success(`${deleted.size} old orders deleted.`);
+    } else {
+      toast.error(result.error || "Could not delete old orders.");
+    }
+    setDeletingSelected(false);
+  };
   return (
     <>
       {/* Order Detail Modal */}
@@ -635,8 +649,8 @@ function AdminOrders() {
 
         {/* Filter and Search Bar */}
         <div className="admin-card space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="relative w-full sm:w-72">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative w-full sm:w-72 sm:shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-500" />
               <input
                 value={search}
@@ -646,7 +660,7 @@ function AdminOrders() {
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+            <div className="flex flex-wrap items-center gap-2">
               <Filter className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
               {[
                 { id: "All", label: "All", count: stats.totalOrders },
@@ -683,11 +697,15 @@ function AdminOrders() {
 
               {selectedPastOrderIds.size > 0 && <button type="button" onClick={() => void handleDeleteSelectedPastOrders()} disabled={deletingSelected} className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300"><Trash2 className="h-3.5 w-3.5" />{deletingSelected ? "Deleting..." : `Delete selected (${selectedPastOrderIds.size})`}</button>}
 
+              <button type="button" onClick={() => void handleDeleteOldPastOrders()} disabled={loading || deletingSelected} className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300 disabled:opacity-50">
+                <Trash2 className="h-3.5 w-3.5" /> Delete past orders over 3 months old
+              </button>
+
               <button
                 type="button"
                 onClick={handleExportCsv}
                 disabled={loading || filteredOrders.length === 0}
-                className="admin-btn-ghost flex items-center gap-1.5 ml-auto sm:ml-2 shrink-0 disabled:opacity-50"
+                className="admin-btn-ghost flex items-center gap-1.5 shrink-0 disabled:opacity-50"
               >
                 <Download className="h-3.5 w-3.5" /> Export CSV
               </button>

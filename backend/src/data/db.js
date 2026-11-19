@@ -1092,6 +1092,18 @@ export async function updateOrder(id, fields) {
 // Orders are retained while they are being fulfilled. Only terminal orders can
 // be removed by an administrator, so an in-progress order can never disappear
 // accidentally from the dashboard.
+export async function deleteOldPastOrders(cutoff) {
+  const { data, error } = await supabase
+    .from("orders")
+    .delete()
+    .in("status", ["Delivered", "Cancelled"])
+    .lt("created_at", cutoff)
+    .select("id");
+
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 export async function deletePastOrder(id) {
   const { data, error } = await supabase
     .from("orders")

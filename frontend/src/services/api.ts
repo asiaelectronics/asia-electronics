@@ -635,6 +635,20 @@ export async function updateOrderDetailsApi(
     return { success: false, error: err instanceof Error ? err.message : "Network error" };
   }
 }
+export async function deleteOldPastOrdersApi(): Promise<{ deletedIds?: string[]; error?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/orders/old-past`, {
+      method: "DELETE",
+      headers: authHeaders(false),
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) return { error: json.error || "Failed to delete old orders" };
+    return { deletedIds: json.deletedIds };
+  } catch {
+    return { error: "Could not connect to the server" };
+  }
+}
+
 export async function deletePastOrderApi(
   id: string,
 ): Promise<{ success: boolean; error?: string }> {

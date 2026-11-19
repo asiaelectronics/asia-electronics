@@ -7,6 +7,7 @@ import {
   updateOrder,
   restoreOrderInventory,
   deletePastOrder,
+  deleteOldPastOrders,
 } from "../data/db.js";
 import { sendOrderStatusEmail } from "../services/orderStatusEmail.js";
 import { requireAdmin, requireAuth } from "../middleware/auth.js";
@@ -206,6 +207,22 @@ router.patch("/:id/status", requireAuth, requireAdmin, async (req, res) => {
       notification,
       message: `Order status updated to ${status}`,
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// DELETE /api/orders/old-past
+router.delete("/old-past", requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const cutoff = new Date();
+    const day = cutoff.getUTCDate();
+    cutoff.setUTCDate(1);
+    cutoff.setUTCMonth(cutoff.getUTCMonth() - 3);
+    const lastDay = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate();
+    cutoff.setUTCDate(Math.min(day, lastDay));
+    const deleted = await deleteOldPastOrders(cutoff.toISOString());
+    res.json({ success: true, deletedIds: deleted.map((order) => order.id) });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
