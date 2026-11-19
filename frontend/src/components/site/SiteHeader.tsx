@@ -531,11 +531,12 @@ export function SiteHeader() {
                       Guides & Blog
                     </Link>
                     <Link
-                      to="/account"
+                      to="/policy/$slug"
+                      params={{ slug: "delivery" }}
                       onClick={() => setMobileOpen(false)}
                       className="block px-2 py-2 text-sm font-semibold text-zinc-800 hover:text-primary"
                     >
-                      My Account / Orders
+                      Track your order
                     </Link>
                     <Link
                       to="/wholesale"

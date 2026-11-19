@@ -330,7 +330,7 @@ function DeliveryTracker() {
 
           <form onSubmit={trackOrder} className="mt-7 space-y-3">
             <label
-              className="text-xs font-extrabold uppercase tracking-wide text-foreground"
+              className="block text-xs font-extrabold uppercase tracking-wide text-foreground"
               htmlFor="tracking-order-id"
             >
               Order or quotation ID
@@ -341,7 +341,7 @@ function DeliveryTracker() {
                 value={orderId}
                 onChange={(event) => setOrderId(event.target.value.toUpperCase())}
                 placeholder="Example: AEC-ABC123456"
-                className="h-12 min-w-0 flex-1 border border-input bg-background px-3 text-sm font-bold uppercase outline-none transition focus:border-primary focus:ring-1 focus:ring-primary"
+                className="h-12 w-full min-w-0 rounded-md border border-input bg-background px-4 text-base font-semibold uppercase text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 sm:w-auto sm:flex-1"
               />
               <button
                 type="submit"
