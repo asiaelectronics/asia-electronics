@@ -137,9 +137,8 @@ function AdminLayout() {
       </main>
     );
   }
-  const handleLogout = async () => {
-    await logout();
-    navigate({ to: "/login" });
+  const handleLogout = () => {
+    void logout();
   };
 
   return (

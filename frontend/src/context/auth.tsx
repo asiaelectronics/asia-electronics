@@ -128,15 +128,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    try {
-      await logoutApi(token);
-    } finally {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      toast.success("Signed out successfully");
-    }
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    toast.success("Signed out successfully");
+    await logoutApi(token);
   };
 
   const updateAdminCredentials = async (data: {

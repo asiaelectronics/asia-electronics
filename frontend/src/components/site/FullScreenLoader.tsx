@@ -69,7 +69,7 @@ export function FullScreenLoader() {
       role="status"
       aria-live="polite"
       aria-label="Loading Asiaelectronics"
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-background px-4 transition-opacity duration-300 ease-out select-none ${
+      className={`fixed inset-0 z-[99999] isolate flex flex-col items-center justify-center bg-background px-4 transition-opacity duration-300 ease-out select-none ${
         isReady ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
@@ -132,6 +132,7 @@ export function FullScreenLoader() {
           <img
             src={logoImg}
             alt="Asia Electronic & Cellular"
+            fetchPriority="high"
             className="h-auto max-h-12 w-20 rounded-xl object-contain drop-shadow-sm sm:max-h-16 sm:w-24"
           />
         </div>

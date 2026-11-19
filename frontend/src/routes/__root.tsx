@@ -158,6 +158,7 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body suppressHydrationWarning>
         {children}
+        <FullScreenLoader />
         <Observability />
         <Scripts />
       </body>
@@ -176,7 +177,6 @@ function RootComponent() {
         <AuthProvider>
           <SettingsProvider>
             <CartProvider>
-              <FullScreenLoader />
               <Outlet />
               <Toaster position="bottom-right" />
             </CartProvider>
@@ -192,7 +192,6 @@ function RootComponent() {
         <SettingsProvider>
           <CartProvider>
             <>
-              <FullScreenLoader />
               <a
                 href="#main"
                 className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-primary focus:p-3 focus:text-primary-foreground"

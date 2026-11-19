@@ -156,8 +156,7 @@ function SearchForm({ className = "", onClose }: { className?: string; onClose?:
   );
 }
 
-/** Full-screen search overlay shown when tapping the search icon on mobile */
-function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
+function MobileSearchPanel({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const { products } = useCatalog();
@@ -165,12 +164,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     inputRef.current?.focus();
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, []);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -179,51 +173,41 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-[60] bg-black/40 flex flex-col lg:hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Search overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div className="bg-white px-4 pt-3 pb-4 shadow-xl">
-        <div className="relative flex items-center gap-2">
-          <form
-            onSubmit={submit}
-            role="search"
-            className="flex flex-1 items-center h-11 border border-zinc-300 rounded overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white"
-          >
-            <label htmlFor="mobile-overlay-search" className="sr-only">
-              Search products
-            </label>
-            <input
-              ref={inputRef}
-              id="mobile-overlay-search"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search for products, categories and more"
-              className="min-w-0 flex-1 bg-transparent px-3.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
-            />
-            <button
-              type="submit"
-              aria-label="Search"
-              className="bg-primary text-primary-foreground px-4 h-full flex items-center justify-center shrink-0 cursor-pointer"
-            >
-              <Search className="h-4 w-4" />
-            </button>
-          </form>
-          <ProductSuggestions products={products} query={q} onSelect={onClose} />
+    <div className="border-t border-zinc-200 bg-white px-4 pt-3 pb-4">
+      <div className="relative flex items-center gap-2">
+        <form
+          onSubmit={submit}
+          role="search"
+          className="flex flex-1 items-center h-11 border border-zinc-300 rounded overflow-hidden focus-within:border-primary focus-within:ring-1 focus-within:ring-primary bg-white"
+        >
+          <label htmlFor="mobile-overlay-search" className="sr-only">
+            Search products
+          </label>
+          <input
+            ref={inputRef}
+            id="mobile-overlay-search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search for products, categories and more"
+            className="min-w-0 flex-1 bg-transparent px-3.5 text-sm text-zinc-900 outline-none placeholder:text-zinc-400"
+          />
           <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close search"
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-100 cursor-pointer"
+            type="submit"
+            aria-label="Search"
+            className="bg-primary text-primary-foreground px-4 h-full flex items-center justify-center shrink-0 cursor-pointer"
           >
-            <X className="h-5 w-5" />
+            <Search className="h-4 w-4" />
           </button>
-        </div>
+        </form>
+        <ProductSuggestions products={products} query={q} onSelect={onClose} />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close search"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-zinc-200 text-zinc-600 hover:bg-zinc-100 cursor-pointer"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );
@@ -286,6 +270,7 @@ export function SiteHeader() {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (headerRef.current && !headerRef.current.contains(e.target as Node)) {
         setActiveMenu(null);
+        setMobileSearchOpen(false);
       }
     };
 
@@ -389,9 +374,6 @@ export function SiteHeader() {
 
   return (
     <>
-      {/* â”€â”€â”€ Mobile search overlay â”€â”€â”€ */}
-      {mobileSearchOpen && <MobileSearchOverlay onClose={() => setMobileSearchOpen(false)} />}
-
       {/* â”€â”€â”€ Brands drawer (triggered from bottom nav) â”€â”€â”€ */}
       {BrandsDrawer}
 
@@ -598,8 +580,9 @@ export function SiteHeader() {
               {/* Search icon */}
               <button
                 type="button"
-                aria-label="Open search"
-                onClick={() => setMobileSearchOpen(true)}
+                aria-label={mobileSearchOpen ? "Close search panel" : "Open search"}
+                aria-expanded={mobileSearchOpen}
+                onClick={() => setMobileSearchOpen((open) => !open)}
                 className="grid h-10 w-10 place-items-center text-zinc-700 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
               >
                 <Search className="h-5 w-5" />
@@ -612,9 +595,14 @@ export function SiteHeader() {
                 className="relative grid h-10 w-10 place-items-center text-zinc-700 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-md"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute top-1 right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full h-4 min-w-4 px-0.5 flex items-center justify-center leading-none">
-                  {count > 99 ? "99+" : count}
-                </span>
+                {count > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-0.5 right-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] leading-none font-bold text-primary-foreground ring-1 ring-white"
+                  >
+                    {count > 99 ? "99+" : count}
+                  </span>
+                )}
               </Link>
 
               {/* Account */}
@@ -637,6 +625,7 @@ export function SiteHeader() {
               </div>
             </div>
           </div>
+          {mobileSearchOpen && <MobileSearchPanel onClose={() => setMobileSearchOpen(false)} />}
         </div>
 
         {/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•

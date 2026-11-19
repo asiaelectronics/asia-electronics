@@ -167,7 +167,7 @@ function OrderDetailModal({
             </div>
             {selectedStatus !== order.status && (
               <p className="text-[11px] text-orange-400 font-semibold">
-                Status will change from <strong>{order.status}</strong> Ã¢â€ â€™{" "}
+                Status will change from <strong>{order.status}</strong> to{" "}
                 <strong>{selectedStatus}</strong>
               </p>
             )}
@@ -260,7 +260,7 @@ function OrderDetailModal({
                         border: "1px solid oklch(0.25 0.004 270)",
                       }}
                     >
-                      {item.qty}Ãƒâ€”
+                      {item.qty}x
                     </div>
                     <div className="min-w-0">
                       <p className="font-semibold text-white truncate">{item.name}</p>
@@ -405,6 +405,12 @@ function InfoRow({
 
 // Ã¢â€â‚¬Ã¢â€â‚¬ Main Orders Page Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
+function escapeCsvCell(value: string | number) {
+  if (typeof value === "number") return String(value);
+  const text = /^[\t\r\n]|^\s*[=+@-]/.test(value) ? `'${value}` : value;
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
 function AdminOrders() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("Active");
@@ -431,27 +437,27 @@ function AdminOrders() {
           const itemCount = items.reduce((s, it) => s + (Number(it.qty) || 1), 0);
           const productSummary =
             items.length > 0
-              ? items.map((it) => `${it.qty > 1 ? `${it.qty}Ãƒâ€” ` : ""}${it.name}`).join(", ")
-              : "Ã¢â‚¬â€";
+              ? items.map((it) => `${it.qty > 1 ? `${it.qty}x ` : ""}${it.name}`).join(", ")
+              : "-";
 
           return {
             id: o.id,
             customer: o.customerName,
-            email: o.email || "Ã¢â‚¬â€",
-            phone: o.phone || "Ã¢â‚¬â€",
+            email: o.email || "-",
+            phone: o.phone || "-",
             product: productSummary,
             items: itemCount,
             total: Number(o.totalLKR) || 0,
             status: (o.status as MockOrder["status"]) || "Processing",
             date: new Date(o.createdAt).toLocaleDateString("en-GB"),
             paymentMethod: "Direct / WhatsApp",
-            address: o.address || "Ã¢â‚¬â€",
-            city: o.city || "Ã¢â‚¬â€",
-            district: o.city || "Ã¢â‚¬â€", // DB has no separate district; use city
+            address: o.address || "-",
+            city: o.city || "-",
+            district: o.city || "-", // DB has no separate district; use city
             notes: o.notes || undefined,
             lineItems: items.map((it) => ({
               name: it.name || "Unknown Item",
-              sku: it.sku || "Ã¢â‚¬â€",
+              sku: it.sku || "-",
               qty: Number(it.qty) || 1,
               unitPrice: Number(it.priceLKR) || 0,
             })),
@@ -504,6 +510,32 @@ function AdminOrders() {
       return matchSearch && matchStatus;
     });
   }, [search, statusFilter, orders]);
+
+  const handleExportCsv = () => {
+    if (loading || filteredOrders.length === 0) return;
+
+    const rows = [
+      ["Order ID", "Customer", "Date", "Products", "Quantity", "Total (LKR)", "Status"],
+      ...filteredOrders.map((order) => [
+        order.id,
+        order.customer,
+        order.date,
+        order.product,
+        order.items,
+        order.total,
+        order.status,
+      ]),
+    ];
+    const csv = rows.map((row) => row.map(escapeCsvCell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "orders.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
 
   const visiblePastOrders = filteredOrders.filter((order) => order.status === "Delivered" || order.status === "Cancelled");
   const allVisiblePastOrdersSelected = visiblePastOrders.length > 0 && visiblePastOrders.every((order) => selectedPastOrderIds.has(order.id));
@@ -652,7 +684,12 @@ function AdminOrders() {
 
               {selectedPastOrderIds.size > 0 && <button type="button" onClick={() => void handleDeleteSelectedPastOrders()} disabled={deletingSelected} className="inline-flex items-center gap-1.5 rounded-md border border-red-500/40 bg-red-500/10 px-3 py-1.5 text-xs font-bold text-red-300"><Trash2 className="h-3.5 w-3.5" />{deletingSelected ? "Deleting..." : `Delete selected (${selectedPastOrderIds.size})`}</button>}
 
-              <button className="admin-btn-ghost flex items-center gap-1.5 ml-auto sm:ml-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleExportCsv}
+                disabled={loading || filteredOrders.length === 0}
+                className="admin-btn-ghost flex items-center gap-1.5 ml-auto sm:ml-2 shrink-0 disabled:opacity-50"
+              >
                 <Download className="h-3.5 w-3.5" /> Export CSV
               </button>
             </div>
@@ -712,7 +749,7 @@ function AdminOrders() {
                             {o.lineItems.slice(0, 2).map((item, idx) => (
                               <div key={idx} className="flex items-center gap-1.5">
                                 <span className="rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold px-1.5 py-0.5 shrink-0 leading-none">
-                                  {item.qty}Ãƒâ€”
+                                  {item.qty}x
                                 </span>
                                 <span
                                   className="text-zinc-200 text-xs font-semibold truncate max-w-[180px]"
@@ -720,7 +757,7 @@ function AdminOrders() {
                                 >
                                   {item.name}
                                 </span>
-                                {item.sku && item.sku !== "Ã¢â‚¬â€" && (
+                                {item.sku && item.sku !== "-" && (
                                   <span className="text-[9px] font-mono text-zinc-500 bg-zinc-800/80 px-1 py-0.5 rounded shrink-0">
                                     {item.sku}
                                   </span>
