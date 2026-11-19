@@ -100,7 +100,7 @@ function AdminAnalytics() {
 
   // ─── 1. REVENUE METRICS ────────────────────────────────────────────────────────
   const validOrders = useMemo(
-    () => orders.filter((order) => order.status !== "Cancelled"),
+    () => orders.filter((order) => order.status === "Shipped" || order.status === "Delivered"),
     [orders],
   );
 
@@ -224,19 +224,8 @@ function AdminAnalytics() {
 
     const list = Array.from(itemMap.values()).sort((a, b) => b.unitsSold - a.unitsSold);
 
-    if (list.length > 0) {
-      return list.slice(0, 6);
-    }
-
-    // If orders don't have item breakdowns yet, show top catalog items
-    return products.slice(0, 5).map((p, idx) => ({
-      name: p.name,
-      sku: p.sku,
-      unitsSold: Math.max(1, 10 - idx * 2),
-      revenueLKR: Math.round((p.priceCents / 100) * Math.max(1, 10 - idx * 2)),
-      ordersCount: 1,
-    }));
-  }, [validOrders, products]);
+    return list.slice(0, 6);
+  }, [validOrders]);
 
   return (
     <div className="space-y-7">
@@ -267,7 +256,7 @@ function AdminAnalytics() {
         <MetricCard
           label="Total Revenue"
           value={formatRupees(totalRevenueLKR)}
-          note={`${validOrders.length} valid orders placed`}
+          note={`${validOrders.length} shipped or delivered orders`}
           icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
           trend="+18% vs last month"
           badgeColor="bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
@@ -275,7 +264,7 @@ function AdminAnalytics() {
         <MetricCard
           label="Delivered Revenue"
           value={formatRupees(deliveredRevenueLKR)}
-          note={`${deliveredOrders.length} completed & dispatched`}
+          note={`${deliveredOrders.length} delivered orders`}
           icon={<CheckCircle2 className="h-4 w-4 text-sky-400" />}
           trend={`${Math.round((deliveredOrders.length / (orders.length || 1)) * 100)}% completion`}
           badgeColor="bg-sky-500/10 text-sky-400 border-sky-500/20"
@@ -385,7 +374,7 @@ function AdminAnalytics() {
             <div className="flex items-center justify-between">
               <ChartHeading
                 icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
-                title="Revenue & Quotation Value"
+                title="Revenue"
                 description="Revenue trend over order history (LKR)"
               />
               <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">

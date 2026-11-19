@@ -33,7 +33,7 @@ function OverviewPage() {
     void load();
   }, []);
 
-  const validOrders = orders.filter((o) => o.status !== "Cancelled");
+  const validOrders = orders.filter((o) => o.status === "Shipped" || o.status === "Delivered");
   const totalRevenueLKR = validOrders.reduce((a, o) => a + (Number(o.totalLKR) || 0), 0);
 
   const processingOrders = orders.filter(
@@ -42,14 +42,13 @@ function OverviewPage() {
       o.status === "Quotation Requested" ||
       o.status === "Quotation Sent",
   ).length;
-  const deliveredOrders = orders.filter((o) => o.status === "Delivered").length;
   const cancelledOrders = orders.filter((o) => o.status === "Cancelled").length;
 
   const kpis = [
     {
       label: "Total Revenue",
       value: formatRupees(totalRevenueLKR),
-      sub: `${deliveredOrders} delivered (${validOrders.length} valid sales)`,
+      sub: `${validOrders.length} shipped or delivered orders`,
       icon: <DollarSign className="h-5 w-5" />,
       color: "from-orange-500 to-pink-600",
     },

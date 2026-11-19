@@ -468,8 +468,7 @@ function AdminOrders() {
   }, []);
 
   const stats = useMemo(() => {
-    // Only non-cancelled orders count towards actual Total Sales revenue
-    const validOrders = orders.filter((o) => o.status !== "Cancelled");
+    const validOrders = orders.filter((o) => o.status === "Shipped" || o.status === "Delivered");
     const total = validOrders.reduce((acc, o) => acc + (Number(o.total) || 0), 0);
     const processing = orders.filter(
       (o) =>
@@ -611,8 +610,7 @@ function AdminOrders() {
             </div>
             <p className="text-xl font-black text-white mt-1">{formatRupees(stats.total)}</p>
             <p className="text-xs text-zinc-400 mt-1">
-              {stats.validSalesCount} {stats.validSalesCount === 1 ? "order" : "orders"}
-              {stats.cancelled > 0 ? ` (${stats.cancelled} cancelled excluded)` : " total"}
+              {stats.validSalesCount} shipped or delivered {stats.validSalesCount === 1 ? "order" : "orders"}
             </p>
           </div>
           <div className="admin-card">

@@ -45,7 +45,9 @@ router.get("/", requireAuth, requireAdmin, async (req, res) => {
     const categories = await readCategories();
     const events = await readProductAnalyticsEvents();
 
-    const validOrders = orders.filter((o) => o.status !== "Cancelled");
+    const validOrders = orders.filter(
+      (o) => o.status === "Shipped" || o.status === "Delivered",
+    );
     const totalRevenue = validOrders.reduce(
       (sum, o) => sum + (Number(o.totalLKR) || 0),
       0,
